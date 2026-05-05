@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "276745733796",
+    "project_id": "northstar-e1cf2",
+    "storage_bucket": "northstar-e1cf2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:276745733796:android:398a5eaef815da99194831",
+        "android_client_info": {
+          "package_name": "com.example.northstar"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAgZGSv9VwpSmXKc9wsn6hPQHr2bGq7Dy0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
