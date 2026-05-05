@@ -2,6 +2,7 @@ package com.example.northstar.ui.auth
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -13,6 +14,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.example.northstar.ui.components.AppPasswordTextField
 import com.example.northstar.ui.components.AppTextField
@@ -22,6 +25,7 @@ import com.example.northstar.ui.components.PrimaryButton
 fun LoginScreen(
     onLoginClick: (String, String) -> Unit,
     onRegisterClick: () -> Unit,
+    onForgotPasswordClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val emailState = remember { mutableStateOf("") }
@@ -89,7 +93,21 @@ fun LoginScreen(
             )
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        // Forgot Password Action Row
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End
+        ) {
+            TextButton(onClick = onForgotPasswordClick) {
+                Text(
+                    text = "Forgot Password?",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(8.dp))
 
         // Login Button
         PrimaryButton(
