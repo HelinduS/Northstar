@@ -1,3 +1,68 @@
 package com.example.northstar.data.local.dao
 
-// TODO: Define Room DAOs
+import androidx.room.Dao
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import com.example.northstar.data.local.entity.ExpenseEntity
+import com.example.northstar.data.local.entity.GoalEntity
+import com.example.northstar.data.local.entity.IncomeEntity
+import kotlinx.coroutines.flow.Flow
+
+@Dao
+interface IncomeDao {
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertIncome(income: IncomeEntity)
+
+    @Delete
+    suspend fun deleteIncome(income: IncomeEntity)
+
+    @Query("SELECT * FROM incomes ORDER BY date DESC")
+    fun getAllIncomes(): Flow<List<IncomeEntity>>
+
+    @Query("SELECT * FROM incomes WHERE date >= :startDate AND date <= :endDate ORDER BY date DESC")
+    fun getIncomesByDateRange(startDate: Long, endDate: Long): Flow<List<IncomeEntity>>
+
+    @Query("SELECT * FROM incomes WHERE sourceType = :sourceType ORDER BY date DESC")
+    fun getIncomesBySource(sourceType: String): Flow<List<IncomeEntity>>
+}
+
+@Dao
+interface ExpenseDao {
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertExpense(expense: ExpenseEntity)
+
+    @Delete
+    suspend fun deleteExpense(expense: ExpenseEntity)
+
+    @Query("SELECT * FROM expenses ORDER BY date DESC")
+    fun getAllExpenses(): Flow<List<ExpenseEntity>>
+
+    @Query("SELECT * FROM expenses WHERE date >= :startDate AND date <= :endDate ORDER BY date DESC")
+    fun getExpensesByDateRange(startDate: Long, endDate: Long): Flow<List<ExpenseEntity>>
+
+    @Query("SELECT * FROM expenses WHERE category = :category ORDER BY date DESC")
+    fun getExpensesByCategory(category: String): Flow<List<ExpenseEntity>>
+
+    @Query("SELECT * FROM expenses WHERE expenseType = :expenseType ORDER BY date DESC")
+    fun getExpensesByType(expenseType: String): Flow<List<ExpenseEntity>>
+}
+
+@Dao
+interface GoalDao {
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertGoal(goal: GoalEntity)
+
+    @Delete
+    suspend fun deleteGoal(goal: GoalEntity)
+
+    @Query("SELECT * FROM goals ORDER BY createdAt DESC")
+    fun getAllGoals(): Flow<List<GoalEntity>>
+
+    @Query("SELECT * FROM goals WHERE isActive = 1 LIMIT 1")
+    fun getActiveGoal(): Flow<GoalEntity?>
+}
