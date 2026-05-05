@@ -1,0 +1,87 @@
+package com.example.northstar.ui.auth
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
+import com.example.northstar.ui.components.AppPasswordTextField
+import com.example.northstar.ui.components.PrimaryButton
+
+@Composable
+fun ResetPasswordScreen(
+    onResetClick: (String) -> Unit,
+    onBackClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var newPasswordState by remember { mutableStateOf("") }
+    var passwordError by remember { mutableStateOf(false) }
+    var passwordVisible by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        // Back Button
+        TextButton(onClick = onBackClick, modifier = Modifier.align(Alignment.Start)) {
+            Text("< Back", style = MaterialTheme.typography.labelLarge)
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Text(
+            text = "Reset your password here",
+            style = MaterialTheme.typography.headlineLarge,
+            color = MaterialTheme.colorScheme.primary
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "Select which contact details should we use to reset your password",
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
+        )
+
+        Spacer(modifier = Modifier.height(48.dp))
+
+        AppPasswordTextField(
+            value = newPasswordState,
+            onValueChange = {
+                newPasswordState = it
+                passwordError = false
+            },
+            label = "New Password",
+            isPasswordVisible = passwordVisible,
+            onVisibilityToggle = { passwordVisible = !passwordVisible },
+            isError = passwordError,
+            supportingText = "Password cannot be empty",
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Password,
+                imeAction = ImeAction.Done
+            )
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        PrimaryButton(
+            text = "Reset My Password",
+            onClick = {
+                if (newPasswordState.isBlank()) {
+                    passwordError = true
+                } else {
+                    onResetClick(newPasswordState)
+                }
+            }
+        )
+    }
+}
