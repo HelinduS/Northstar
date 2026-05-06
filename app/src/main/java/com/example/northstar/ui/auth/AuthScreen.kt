@@ -25,7 +25,7 @@ fun AuthScreen(
             when (screen) {
                 "Login" -> {
                     LoginScreen(
-                        onLoginClick = { email, _ -> onAuthSuccess(email) },
+                        onLoginSuccess = { onAuthSuccess("") },  // ← changed
                         onRegisterClick = { currentScreen.value = "Register" },
                         onForgotPasswordClick = { currentScreen.value = "ForgotPassword" }
                     )
