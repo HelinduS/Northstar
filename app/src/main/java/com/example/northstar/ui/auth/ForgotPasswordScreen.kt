@@ -1,5 +1,6 @@
 package com.example.northstar.ui.auth
 
+import android.util.Patterns
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
@@ -68,10 +69,11 @@ fun ForgotPasswordScreen(
         PrimaryButton(
             text = "Send OTP",
             onClick = {
-                if (emailState.value.isBlank()) {
+                val email = emailState.value.trim()
+                if (email.isBlank() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
                     emailErrorState.value = true
                 } else {
-                    onSendInstructionsClick(emailState.value)
+                    onSendInstructionsClick(email)
                 }
             }
         )

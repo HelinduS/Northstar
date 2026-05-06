@@ -30,7 +30,7 @@ fun VerificationScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // Back Button
+
         TextButton(onClick = onBackClick, modifier = Modifier.align(Alignment.Start)) {
             Text("< Back", style = MaterialTheme.typography.labelLarge)
         }
@@ -52,10 +52,13 @@ fun VerificationScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Basic 4-digit input for now
         AppTextField(
             value = otpState,
-            onValueChange = { if (it.length <= 4) { otpState = it; otpError = false } },
+            onValueChange = { input ->
+                val filtered = input.filter { it.isDigit() }.take(4)
+                otpState = filtered
+                otpError = false
+            },
             label = "Verification Code",
             isError = otpError,
             supportingText = "Must be 4 digits",
@@ -70,10 +73,11 @@ fun VerificationScreen(
         PrimaryButton(
             text = "Verify Code",
             onClick = {
-                if (otpState.length != 4) {
+                val cleanText = otpState.filter { it.isDigit() }
+                if (cleanText.length != 4) {
                     otpError = true
                 } else {
-                    onVerifyClick(otpState)
+                    onVerifyClick(cleanText)
                 }
             }
         )
