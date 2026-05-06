@@ -55,7 +55,7 @@ fun RegisterScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Full Name Field
+
         AppTextField(
             value = nameState.value,
             onValueChange = {
@@ -73,7 +73,7 @@ fun RegisterScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Email Field
+
         AppTextField(
             value = emailState.value,
             onValueChange = {
@@ -91,7 +91,7 @@ fun RegisterScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Password Field
+
         AppPasswordTextField(
             value = passwordState.value,
             onValueChange = {
@@ -111,7 +111,8 @@ fun RegisterScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Register Button
+
+
         PrimaryButton(
             text = "Sign Up",
             onClick = {
@@ -137,7 +138,7 @@ fun RegisterScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Login Redirect
+
         Row(
             verticalAlignment = Alignment.CenterVertically
         ) {

@@ -1,7 +1,14 @@
 package com.example.northstar.ui.auth
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -22,6 +29,7 @@ import com.example.northstar.ui.components.PrimaryButton
 fun LoginScreen(
     onLoginClick: (String, String) -> Unit,
     onRegisterClick: () -> Unit,
+    onForgotPasswordClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val emailState = remember { mutableStateOf("") }
@@ -53,7 +61,7 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(48.dp))
 
-        // Email Field
+
         AppTextField(
             value = emailState.value,
             onValueChange = {
@@ -71,7 +79,7 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Password Field
+
         AppPasswordTextField(
             value = passwordState.value,
             onValueChange = {
@@ -89,9 +97,23 @@ fun LoginScreen(
             )
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
 
-        // Login Button
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End
+        ) {
+            TextButton(onClick = onForgotPasswordClick) {
+                Text(
+                    text = "Forgot Password?",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+
+
         PrimaryButton(
             text = "Log In",
             onClick = {
