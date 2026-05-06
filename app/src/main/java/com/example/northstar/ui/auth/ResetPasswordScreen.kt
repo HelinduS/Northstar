@@ -22,8 +22,14 @@ fun ResetPasswordScreen(
     modifier: Modifier = Modifier
 ) {
     var newPasswordState by remember { mutableStateOf("") }
+    var confirmPasswordState by remember { mutableStateOf("") }
+
     var passwordError by remember { mutableStateOf(false) }
+    var confirmPasswordError by remember { mutableStateOf(false) }
+
     var passwordVisible by remember { mutableStateOf(false) }
+
+    var errorText by remember { mutableStateOf("") }
 
     Column(
         modifier = modifier
@@ -52,8 +58,9 @@ fun ResetPasswordScreen(
             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
         )
 
-        Spacer(modifier = Modifier.height(48.dp))
+        Spacer(modifier = Modifier.height(32.dp))
 
+        // First Password Input
         AppPasswordTextField(
             value = newPasswordState,
             onValueChange = {
@@ -64,7 +71,28 @@ fun ResetPasswordScreen(
             isPasswordVisible = passwordVisible,
             onVisibilityToggle = { passwordVisible = !passwordVisible },
             isError = passwordError,
-            supportingText = "Password cannot be empty",
+            supportingText = errorText.ifBlank { "Password cannot be empty" },
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Password,
+                imeAction = ImeAction.Next
+            )
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Confirm Password Input
+        AppPasswordTextField(
+            value = confirmPasswordState,
+            onValueChange = {
+                confirmPasswordState = it
+                confirmPasswordError = false
+                passwordError = false
+            },
+            label = "Confirm Password",
+            isPasswordVisible = passwordVisible,
+            onVisibilityToggle = { /* Uses the same toggle state */ },
+            isError = confirmPasswordError,
+            supportingText = errorText.ifBlank { "Please re-enter your password" },
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Password,
                 imeAction = ImeAction.Done
@@ -76,10 +104,23 @@ fun ResetPasswordScreen(
         PrimaryButton(
             text = "Reset My Password",
             onClick = {
-                if (newPasswordState.isBlank()) {
-                    passwordError = true
-                } else {
-                    onResetClick(newPasswordState)
+                when {
+                    newPasswordState.isBlank() -> {
+                        passwordError = true
+                        errorText = "Password cannot be empty"
+                    }
+                    confirmPasswordState.isBlank() -> {
+                        confirmPasswordError = true
+                        errorText = "Password cannot be empty"
+                    }
+                    newPasswordState != confirmPasswordState -> {
+                        passwordError = true
+                        confirmPasswordError = true
+                        errorText = "Passwords do not match"
+                    }
+                    else -> {
+                        onResetClick(newPasswordState)
+                    }
                 }
             }
         )
