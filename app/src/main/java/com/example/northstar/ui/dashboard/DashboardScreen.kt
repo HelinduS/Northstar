@@ -8,11 +8,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.northstar.ui.dashboard.components.BalanceCard
-import com.example.northstar.ui.dashboard.components.DashboardHeader
-import com.example.northstar.ui.dashboard.components.QuickActionsRow
-import com.example.northstar.ui.dashboard.components.TransactionSection
-import com.example.northstar.ui.dashboard.components.WalletSection
+import com.example.northstar.ui.components.BalanceCard
+import com.example.northstar.ui.components.DashboardHeader
+import com.example.northstar.ui.components.QuickActionsRow
+import com.example.northstar.ui.components.TransactionSection
+import com.example.northstar.ui.components.WalletSection
 import com.example.northstar.ui.theme.NeutralWhite
 
 @Composable
