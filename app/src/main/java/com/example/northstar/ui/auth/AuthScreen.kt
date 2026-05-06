@@ -32,7 +32,7 @@ fun AuthScreen(
                 }
                 "Register" -> {
                     RegisterScreen(
-                        onRegisterClick = { _, _, _ -> currentScreen.value = "Login" },
+                        onRegisterSuccess = { currentScreen.value = "Login" },
                         onLoginClick = { currentScreen.value = "Login" }
                     )
                 }
