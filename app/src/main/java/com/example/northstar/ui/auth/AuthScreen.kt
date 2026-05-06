@@ -14,37 +14,66 @@ fun AuthScreen(
     onAuthSuccess: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // State to keep track of which screen to show. True = Login, False = Register
-    val isLoginScreen = remember { mutableStateOf(true) }
+    // Keeps track of the active screen in the auth flow
+    val currentScreen = remember { mutableStateOf("Login") }
 
     Surface(
         modifier = modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
     ) {
-        // Crossfade adds a smooth animation when switching between screens
-        Crossfade(targetState = isLoginScreen.value, label = "AuthScreenAnimation") { showLogin ->
-            if (showLogin) {
-                LoginScreen(
-                    onLoginClick = { email, password ->
-                        // When they log in successfully, tell the main app
-                        onAuthSuccess(email)
-                    },
-                    onRegisterClick = {
-                        // Switch the state to show the Register screen
-                        isLoginScreen.value = false
-                    }
-                )
-            } else {
-                RegisterScreen(
-                    onRegisterClick = { name, email, password ->
-                        // After they sign up, switch back to the Login screen
-                        isLoginScreen.value = true
-                    },
-                    onLoginClick = {
-                        // Switch the state back to show the Login screen
-                        isLoginScreen.value = true
-                    }
-                )
+        Crossfade(targetState = currentScreen.value, label = "AuthScreenAnimation") { screen ->
+            when (screen) {
+                "Login" -> {
+                    LoginScreen(
+                        onLoginClick = { email, password -> onAuthSuccess(email) },
+                        onRegisterClick = { currentScreen.value = "Register" },
+                        // Now routing to the initial forgot password entry
+                        onForgotPasswordClick = { currentScreen.value = "ForgotPassword" }
+                    )
+                }
+                "Register" -> {
+                    RegisterScreen(
+                        onRegisterClick = { _, _, _ -> currentScreen.value = "Login" },
+                        onLoginClick = { currentScreen.value = "Login" }
+                    )
+                }
+                // --- NEW SCREENS FOR THE RESET SCENARIO ---
+                "ForgotPassword" -> {
+                    // Scenario Screen 1: Request Email/SMS (matches image_8.png)
+                    ForgotPasswordScreen(
+                        onSendInstructionsClick = { contactDetail ->
+                            // TODO: Add logic to determine if it's email/SMS.
+                            // For now, route straight to verification
+                            currentScreen.value = "Verification"
+                        },
+                        onBackToLoginClick = { currentScreen.value = "Login" }
+                    )
+                }
+                "Verification" -> {
+                    // Scenario Screen 2: OTP Entry (matches image_9.png)
+                    VerificationScreen(
+                        onVerifyClick = { otpCode ->
+                            // Route to reset if code is accepted
+                            currentScreen.value = "ResetPassword"
+                        },
+                        onBackClick = { currentScreen.value = "ForgotPassword" }
+                    )
+                }
+                "ResetPassword" -> {
+                    // Scenario Screen 3: New Password (matches image_10.png)
+                    ResetPasswordScreen(
+                        onResetClick = { newPassword ->
+                            currentScreen.value = "ResetSuccess"
+                        },
+                        onBackClick = { currentScreen.value = "Verification" }
+                    )
+                }
+                "ResetSuccess" -> {
+                    // Scenario Screen 4: Success Message (matches image_11.png)
+                    ResetSuccessScreen(
+                        onContinueClick = { currentScreen.value = "Login" }
+                    )
+                }
             }
         }
     }
