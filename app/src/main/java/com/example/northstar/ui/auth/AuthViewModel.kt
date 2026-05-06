@@ -34,7 +34,9 @@ class AuthViewModel @Inject constructor(
             _uiState.value = if (result.isSuccess) {
                 AuthUiState.Success
             } else {
-                AuthUiState.Error(result.exceptionOrNull()?.message ?: "Login failed")
+                AuthUiState.Error(
+                    result.exceptionOrNull()?.message ?: "Login failed"
+                )
             }
         }
     }
@@ -42,11 +44,17 @@ class AuthViewModel @Inject constructor(
     fun register(email: String, password: String, displayName: String) {
         viewModelScope.launch {
             _uiState.value = AuthUiState.Loading
-            val result = authRepository.register(email.trim(), password, displayName)
+            val result = authRepository.register(
+                email.trim(),
+                password,
+                displayName.trim()
+            )
             _uiState.value = if (result.isSuccess) {
                 AuthUiState.Success
             } else {
-                AuthUiState.Error(result.exceptionOrNull()?.message ?: "Registration failed")
+                AuthUiState.Error(
+                    result.exceptionOrNull()?.message ?: "Registration failed"
+                )
             }
         }
     }
