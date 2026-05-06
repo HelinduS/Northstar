@@ -18,10 +18,22 @@ fun NavGraph(navController: NavHostController) {
         startDestination = Screen.Login.route
     ) {
         composable(Screen.Login.route) {
-            AuthScreen(navController = navController)
+            AuthScreen(
+                onAuthSuccess = {
+                    navController.navigate(Screen.Dashboard.route) {
+                        popUpTo(Screen.Login.route) { inclusive = true }
+                    }
+                }
+            )
         }
         composable(Screen.Register.route) {
-            AuthScreen(navController = navController)
+            AuthScreen(
+                onAuthSuccess = {
+                    navController.navigate(Screen.Dashboard.route) {
+                        popUpTo(Screen.Register.route) { inclusive = true }
+                    }
+                }
+            )
         }
         composable(Screen.Dashboard.route) {
             DashboardScreen(navController = navController)
