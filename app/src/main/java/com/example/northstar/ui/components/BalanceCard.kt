@@ -1,4 +1,4 @@
-package com.example.northstar.ui.dashboard.components
+package com.example.northstar.ui.components
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape

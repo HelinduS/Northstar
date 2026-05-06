@@ -1,4 +1,4 @@
-package com.example.northstar.ui.dashboard.components
+package com.example.northstar.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
