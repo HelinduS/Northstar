@@ -33,7 +33,7 @@ fun ResetPasswordScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // Back Button
+
         TextButton(onClick = onBackClick, modifier = Modifier.align(Alignment.Start)) {
             Text("< Back", style = MaterialTheme.typography.labelLarge)
         }
@@ -47,7 +47,7 @@ fun ResetPasswordScreen(
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "Select which contact details should we use to reset your password",
+            text = "Enter and confirm your new password",
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
         )
