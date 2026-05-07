@@ -13,7 +13,21 @@ import com.example.northstar.ui.theme.NeutralWhite
 import com.example.northstar.ui.theme.PrimaryBlue
 
 @Composable
-fun BalanceCard() {
+fun BalanceCard(
+    totalIncome: Long = 0L,
+    totalExpenses: Long = 0L,
+    netSaved: Long = 0L
+) {
+    // Convert from paisa to LKR for display
+    val incomeLkr = totalIncome / 100.0
+    val expensesLkr = totalExpenses / 100.0
+    val savedLkr = netSaved / 100.0
+
+    // Progress = expenses / income (capped at 1.0)
+    val spentProgress = if (totalIncome > 0)
+        (totalExpenses.toFloat() / totalIncome.toFloat()).coerceIn(0f, 1f)
+    else 0f
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -23,13 +37,13 @@ fun BalanceCard() {
     ) {
         Column(modifier = Modifier.padding(22.dp)) {
             Text(
-                "Track Your Financial Goals",
+                "Total Income This Month",
                 color = NeutralWhite.copy(alpha = 0.7f),
                 fontSize = 13.sp
             )
             Spacer(Modifier.height(8.dp))
             Text(
-                "$ 243,320.00",
+                "LKR ${String.format("%,.2f", incomeLkr)}",
                 color = NeutralWhite,
                 fontSize = 36.sp,
                 fontWeight = FontWeight.Bold
@@ -40,19 +54,19 @@ fun BalanceCard() {
                 Arrangement.SpaceBetween
             ) {
                 Text(
-                    "Transfer Limit",
+                    "Total Expenses",
                     color = NeutralWhite.copy(alpha = 0.7f),
                     fontSize = 12.sp
                 )
                 Text(
-                    "\$8,920.00",
+                    "LKR ${String.format("%,.2f", expensesLkr)}",
                     color = NeutralWhite,
                     fontSize = 12.sp
                 )
             }
             Spacer(Modifier.height(8.dp))
             LinearProgressIndicator(
-                progress = { 0.35f },
+                progress = { spentProgress },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(8.dp)
@@ -62,7 +76,7 @@ fun BalanceCard() {
             )
             Spacer(Modifier.height(6.dp))
             Text(
-                "Spent \$120.00",
+                "Saved LKR ${String.format("%,.2f", savedLkr)}",
                 color = NeutralWhite.copy(alpha = 0.7f),
                 fontSize = 11.sp
             )

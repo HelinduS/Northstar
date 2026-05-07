@@ -1,6 +1,7 @@
 package com.example.northstar.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -19,7 +20,11 @@ import com.example.northstar.ui.theme.NeutralCharcoal
 import com.example.northstar.ui.theme.NeutralLightGrey
 
 @Composable
-fun DashboardHeader() {
+fun DashboardHeader(
+    displayName: String = "",
+    email: String = "",
+    onSettingsClick: () -> Unit = {}
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -45,13 +50,13 @@ fun DashboardHeader() {
             Spacer(Modifier.width(14.dp))
             Column {
                 Text(
-                    "Hi, Kavindu!",
+                    text = if (displayName.isNotBlank()) "Hi, $displayName!" else "Hi there!",
                     color = NeutralCharcoal,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    "kavindu@gmail.com",
+                    text = email.ifBlank { "" },
                     color = NeutralCharcoal.copy(alpha = 0.5f),
                     fontSize = 12.sp
                 )
@@ -61,7 +66,8 @@ fun DashboardHeader() {
             modifier = Modifier
                 .size(42.dp)
                 .clip(CircleShape)
-                .background(NeutralLightGrey),
+                .background(NeutralLightGrey)
+                .clickable { onSettingsClick() },
             contentAlignment = Alignment.Center
         ) {
             Icon(
