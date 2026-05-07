@@ -1,5 +1,7 @@
 package com.example.northstar.di
 
+import com.example.northstar.data.repository.ExpenseRepository
+import com.example.northstar.data.repository.ExpenseRepositoryImpl
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.Module
@@ -17,6 +19,13 @@ object AppModule {
     fun provideFirebaseAuth(): FirebaseAuth = FirebaseAuth.getInstance()
 
     @Provides
-    @Singleton 
+    @Singleton
     fun provideFirebaseFirestore(): FirebaseFirestore = FirebaseFirestore.getInstance()
+
+    @Provides
+    @Singleton
+    fun provideExpenseRepository(
+        firebaseAuth: FirebaseAuth,
+        firestore: FirebaseFirestore
+    ): ExpenseRepository = ExpenseRepositoryImpl(firebaseAuth, firestore)
 }
