@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -26,10 +25,16 @@ import com.example.northstar.ui.theme.NeutralWhite
 @Composable
 fun DashboardScreen(
     navController: NavController,
-    dashboardViewModel: DashboardViewModel = hiltViewModel(),
-    authViewModel: AuthViewModel = hiltViewModel()
+    dashboardViewModel: DashboardViewModel = hiltViewModel()
 ) {
     val uiState by dashboardViewModel.uiState.collectAsState()
+    val authViewModel: AuthViewModel = hiltViewModel()
+    val onLogoutClick = {
+        authViewModel.signOut()
+        navController.navigate(Screen.Login.route) {
+            popUpTo(Screen.Dashboard.route) { inclusive = true }
+        }
+    }
 
     if (uiState.isLoading) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -50,7 +55,11 @@ fun DashboardScreen(
             email = uiState.email,
             onSettingsClick = {
                 navController.navigate(Screen.Profile.route)
-            }
+            },
+            onProfileClick = {
+                navController.navigate(Screen.Profile.route)
+            },
+            onLogoutClick = onLogoutClick
         )
         Spacer(Modifier.height(4.dp))
         BalanceCard(

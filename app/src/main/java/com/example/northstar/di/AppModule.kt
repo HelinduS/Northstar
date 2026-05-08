@@ -3,7 +3,6 @@ package com.example.northstar.di
 import android.content.Context
 import androidx.room.Room
 import com.example.northstar.data.local.NorthStarDatabase
-import com.example.northstar.data.local.dao.GoalDao
 import com.example.northstar.data.repository.GoalRepository
 import com.example.northstar.data.repository.GoalRepositoryImpl
 import com.example.northstar.data.repository.ExpenseRepository
@@ -40,13 +39,10 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideGoalDao(database: NorthStarDatabase): GoalDao =
-        database.goalDao()
-
-    @Provides
-    @Singleton
-    fun provideGoalRepository(goalDao: GoalDao): GoalRepository =
-        GoalRepositoryImpl(goalDao)
+    fun provideGoalRepository(
+        firebaseAuth: FirebaseAuth,
+        firestore: FirebaseFirestore
+    ): GoalRepository = GoalRepositoryImpl(firebaseAuth, firestore)
 
     @Provides
     @Singleton
