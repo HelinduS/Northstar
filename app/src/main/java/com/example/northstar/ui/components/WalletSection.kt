@@ -20,13 +20,21 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.northstar.Screen
 import com.example.northstar.ui.theme.NeutralCharcoal
+import java.util.Locale
 import com.example.northstar.ui.theme.NeutralLightGrey
 import com.example.northstar.ui.theme.NeutralWhite
 import com.example.northstar.ui.theme.PrimaryBlue
 import com.example.northstar.ui.theme.SecondaryAccentGreen
 
 @Composable
-fun WalletSection(navController: NavController) {
+fun WalletSection(
+    navController: NavController,
+    committed: Long = 0L,
+    discretionary: Long = 0L
+) {
+    val committedLkr = committed / 100.0
+    val discretionaryLkr = discretionary / 100.0
+
     Column(modifier = Modifier.padding(horizontal = 20.dp)) {
         Row(
             Modifier.fillMaxWidth(),
@@ -54,15 +62,15 @@ fun WalletSection(navController: NavController) {
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             WalletCard(
-                title = "Income",
-                amount = "\$600",
+                title = "Committed",
+                amount = "LKR ${String.format(Locale.US, "%,.0f", committedLkr)}",
                 iconBg = PrimaryBlue,
                 modifier = Modifier.weight(1f),
                 onClick = { navController.navigate(Screen.AddIncome.route) }
             )
             WalletCard(
-                title = "Spending",
-                amount = "\$600",
+                title = "Discretionary",
+                amount = "LKR ${String.format(Locale.US, "%,.0f", discretionaryLkr)}",
                 iconBg = SecondaryAccentGreen,
                 modifier = Modifier.weight(1f),
                 onClick = { navController.navigate(Screen.AddExpense.route) }
@@ -120,7 +128,7 @@ fun WalletCard(
             Text(
                 amount,
                 color = NeutralCharcoal,
-                fontSize = 24.sp,
+                fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )
         }
