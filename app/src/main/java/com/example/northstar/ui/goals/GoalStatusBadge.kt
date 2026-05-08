@@ -15,12 +15,17 @@ import com.example.northstar.ui.theme.PrimaryBlue
 import com.example.northstar.ui.theme.SecondaryAccentGreen
 
 @Composable
-fun GoalStatusBadge(isReached: Boolean, progressPercent: Int) {
+fun GoalStatusBadge(
+    isReached: Boolean,
+    progressPercent: Int,
+    modifier: Modifier = Modifier
+) {
+    val safePercent = progressPercent.coerceIn(0, 100)
     val color = if (isReached) SecondaryAccentGreen else PrimaryBlue
-    val text = if (isReached) "✓ Reached!" else "$progressPercent%"
+    val text = if (isReached) "✓ Reached!" else "$safePercent%"
 
     Box(
-        modifier = Modifier
+        modifier = modifier
             .clip(RoundedCornerShape(20.dp))
             .background(color.copy(alpha = 0.15f))
             .padding(horizontal = 10.dp, vertical = 4.dp)
