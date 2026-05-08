@@ -11,6 +11,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.northstar.ui.theme.NeutralWhite
 import com.example.northstar.ui.theme.PrimaryBlue
+import java.util.Locale
 
 @Composable
 fun BalanceCard(
@@ -43,7 +44,7 @@ fun BalanceCard(
             )
             Spacer(Modifier.height(8.dp))
             Text(
-                "LKR ${String.format("%,.2f", incomeLkr)}",
+                "LKR ${String.format(Locale.US, "%,.2f", incomeLkr)}",
                 color = NeutralWhite,
                 fontSize = 36.sp,
                 fontWeight = FontWeight.Bold
@@ -59,7 +60,7 @@ fun BalanceCard(
                     fontSize = 12.sp
                 )
                 Text(
-                    "LKR ${String.format("%,.2f", expensesLkr)}",
+                    "LKR ${String.format(Locale.US, "%,.2f", expensesLkr)}",
                     color = NeutralWhite,
                     fontSize = 12.sp
                 )
@@ -76,7 +77,7 @@ fun BalanceCard(
             )
             Spacer(Modifier.height(6.dp))
             Text(
-                "Saved LKR ${String.format("%,.2f", savedLkr)}",
+                "Saved LKR ${String.format(Locale.US, "%,.2f", savedLkr)}",
                 color = NeutralWhite.copy(alpha = 0.7f),
                 fontSize = 11.sp
             )
