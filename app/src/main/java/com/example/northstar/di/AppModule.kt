@@ -47,6 +47,9 @@ object AppModule {
     @Singleton
     fun provideGoalRepository(goalDao: GoalDao): GoalRepository =
         GoalRepositoryImpl(goalDao)
+
+    @Provides
+    @Singleton
     fun provideExpenseRepository(
         firebaseAuth: FirebaseAuth,
         firestore: FirebaseFirestore

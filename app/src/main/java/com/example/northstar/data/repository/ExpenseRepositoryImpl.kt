@@ -1,5 +1,6 @@
 package com.example.northstar.data.repository
 
+import com.example.northstar.data.remote.FirestoreConstants
 import com.example.northstar.domain.model.Expense
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -18,6 +19,11 @@ class ExpenseRepositoryImpl @Inject constructor(
 
     private fun getUserIdOrNull(): String? = firebaseAuth.currentUser?.uid
 
+    private fun expensesCollection(userId: String) = firestore
+        .collection(FirestoreConstants.COLLECTION_USERS)
+        .document(userId)
+        .collection(FirestoreConstants.COLLECTION_EXPENSES)
+
     override suspend fun addExpense(expense: Expense): Result<Unit> {
         return try {
             val userId = getUserIdOrNull()
@@ -32,12 +38,7 @@ class ExpenseRepositoryImpl @Inject constructor(
                 "createdAt" to com.google.firebase.Timestamp.now(),
                 "updatedAt" to com.google.firebase.Timestamp.now()
             )
-            firestore
-                .collection("users")
-                .document(userId)
-                .collection("expenses")
-                .add(data)
-                .await()
+            expensesCollection(userId).add(data).await()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
@@ -56,10 +57,7 @@ class ExpenseRepositoryImpl @Inject constructor(
                 "description" to (expense.description ?: ""),
                 "updatedAt" to com.google.firebase.Timestamp.now()
             )
-            firestore
-                .collection("users")
-                .document(userId)
-                .collection("expenses")
+            expensesCollection(userId)
                 .document(expense.id)
                 .update(data)
                 .await()
@@ -73,10 +71,7 @@ class ExpenseRepositoryImpl @Inject constructor(
         return try {
             val userId = getUserIdOrNull()
                 ?: return Result.failure(IllegalStateException("User is not signed in"))
-            firestore
-                .collection("users")
-                .document(userId)
-                .collection("expenses")
+            expensesCollection(userId)
                 .document(expenseId)
                 .delete()
                 .await()
@@ -88,10 +83,7 @@ class ExpenseRepositoryImpl @Inject constructor(
 
     override fun getAllExpenses(): Flow<List<Expense>> = callbackFlow {
         val userId = getUserIdOrNull() ?: return@callbackFlow
-        val listener = firestore
-            .collection("users")
-            .document(userId)
-            .collection("expenses")
+        val listener = expensesCollection(userId)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
                     close(error)
@@ -122,10 +114,7 @@ class ExpenseRepositoryImpl @Inject constructor(
         val userId = getUserIdOrNull() ?: return@callbackFlow
         val start = java.util.Date(startDate)
         val end = java.util.Date(endDate)
-        val listener = firestore
-            .collection("users")
-            .document(userId)
-            .collection("expenses")
+        val listener = expensesCollection(userId)
             .whereGreaterThanOrEqualTo("date", start)
             .whereLessThanOrEqualTo("date", end)
             .addSnapshotListener { snapshot, error ->
@@ -153,10 +142,7 @@ class ExpenseRepositoryImpl @Inject constructor(
 
     override fun getExpensesByCategory(category: String): Flow<List<Expense>> = callbackFlow {
         val userId = getUserIdOrNull() ?: return@callbackFlow
-        val listener = firestore
-            .collection("users")
-            .document(userId)
-            .collection("expenses")
+        val listener = expensesCollection(userId)
             .whereEqualTo("category", category)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
@@ -183,10 +169,7 @@ class ExpenseRepositoryImpl @Inject constructor(
 
     override fun getExpensesByType(expenseType: String): Flow<List<Expense>> = callbackFlow {
         val userId = getUserIdOrNull() ?: return@callbackFlow
-        val listener = firestore
-            .collection("users")
-            .document(userId)
-            .collection("expenses")
+        val listener = expensesCollection(userId)
             .whereEqualTo("expenseType", expenseType)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
