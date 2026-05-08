@@ -21,6 +21,7 @@ import com.example.northstar.Screen
 import com.example.northstar.ui.dashboard.TransactionItem
 import com.example.northstar.ui.theme.NeutralCharcoal
 import com.example.northstar.ui.theme.NeutralLightGrey
+import java.util.Locale
 import com.example.northstar.ui.theme.PrimaryBlue
 import com.example.northstar.ui.theme.SemanticRed
 import com.example.northstar.ui.theme.SecondaryAccentGreen
@@ -70,9 +71,9 @@ fun TransactionSection(
             transactions.forEach { tx ->
                 val amountLkr = tx.amount / 100.0
                 val amountText = if (tx.isIncome)
-                    "+ LKR ${String.format("%,.2f", amountLkr)}"
+                    "+ LKR ${String.format(Locale.US, "%,.2f", amountLkr)}"
                 else
-                    "- LKR ${String.format("%,.2f", amountLkr)}"
+                    "- LKR ${String.format(Locale.US, "%,.2f", amountLkr)}"
 
                 Card(
                     modifier = Modifier.fillMaxWidth(),

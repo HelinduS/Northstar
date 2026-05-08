@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.northstar.Screen
 import com.example.northstar.ui.theme.NeutralCharcoal
+import java.util.Locale
 import com.example.northstar.ui.theme.NeutralLightGrey
 import com.example.northstar.ui.theme.NeutralWhite
 import com.example.northstar.ui.theme.PrimaryBlue
@@ -62,14 +63,14 @@ fun WalletSection(
         ) {
             WalletCard(
                 title = "Committed",
-                amount = "LKR ${String.format("%,.0f", committedLkr)}",
+                amount = "LKR ${String.format(Locale.US, "%,.0f", committedLkr)}",
                 iconBg = PrimaryBlue,
                 modifier = Modifier.weight(1f),
                 onClick = { navController.navigate(Screen.AddIncome.route) }
             )
             WalletCard(
                 title = "Discretionary",
-                amount = "LKR ${String.format("%,.0f", discretionaryLkr)}",
+                amount = "LKR ${String.format(Locale.US, "%,.0f", discretionaryLkr)}",
                 iconBg = SecondaryAccentGreen,
                 modifier = Modifier.weight(1f),
                 onClick = { navController.navigate(Screen.AddExpense.route) }
