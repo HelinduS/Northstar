@@ -7,23 +7,37 @@ import kotlinx.coroutines.flow.Flow
 
 interface IncomeRepository {
 
-    // Add a new income entry
+
+
+    /** Add a new income entry */
     suspend fun addIncome(income: Income): Result<Unit>
 
-    // Update an existing income entry
+    /** Update an existing income entry */
     suspend fun updateIncome(income: Income): Result<Unit>
 
-    // Delete an income entry
+    /** Delete an income entry */
     suspend fun deleteIncome(incomeId: String): Result<Unit>
 
-    // Get all incomes as a live stream
+    // --- Read (Reactive Streams) ---
+
+    /** Get all incomes as a live stream */
     fun getAllIncomes(): Flow<List<Income>>
 
-    // Get incomes filtered by date range
+    /** * NEW: Get the most recent entries for the Dashboard.
+     * This specifically fixes the "Latest Transactions" view.
+     */
+    fun getLatestIncomes(limit: Int = 5): Flow<List<Income>>
+
+    /** Get incomes filtered by date range */
     fun getIncomesByDateRange(startDate: Long, endDate: Long): Flow<List<Income>>
 
-    // Get incomes filtered by source type (SALARY, FREELANCE, etc.)
+    /** Get incomes filtered by source type (SALARY, FREELANCE, etc.) */
     fun getIncomesBySource(sourceType: String): Flow<List<Income>>
+
+    /** * NEW: Get total income for the current month calculation.
+     * Use this to update the "Total Income" card on the Dashboard.
+     */
+    fun getTotalIncomeForMonth(startTime: Long, endTime: Long): Flow<Long>
 }
 
 interface ExpenseRepository {
