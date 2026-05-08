@@ -22,6 +22,8 @@ fun AddGoalDialog(
 
     val parsedAmount = amount.toLongOrNull() ?: 0L
 
+    val isFormValid = name.trim().isNotEmpty() && parsedAmount > 0L
+
     AlertDialog(
         onDismissRequest = onDismiss,
         shape = RoundedCornerShape(20.dp),
@@ -64,9 +66,14 @@ fun AddGoalDialog(
         confirmButton = {
             Button(
                 onClick = {
-                    val targetAmount = (amount.toLongOrNull() ?: 0L) * 100L
-                    onConfirm(name, targetAmount, 0L)
+                    // Re-validate before submission
+                    val finalParsedAmount = amount.toLongOrNull() ?: 0L
+                    if (name.trim().isNotEmpty() && finalParsedAmount > 0L) {
+                        val targetAmount = finalParsedAmount * 100L
+                        onConfirm(name.trim(), targetAmount, 0L)
+                    }
                 },
+                enabled = isFormValid,
                 shape = RoundedCornerShape(10.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
             ) {
