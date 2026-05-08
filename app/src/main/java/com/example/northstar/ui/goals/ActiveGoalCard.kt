@@ -14,6 +14,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.northstar.domain.model.Goal
+import com.example.northstar.ui.theme.PrimaryBlue
+import com.example.northstar.ui.theme.NeutralWhite
 
 @Composable
 fun ActiveGoalCard(goal: Goal, viewModel: GoalViewModel) {
@@ -24,68 +26,73 @@ fun ActiveGoalCard(goal: Goal, viewModel: GoalViewModel) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
+            .clip(RoundedCornerShape(28.dp))
             .background(
-                Brush.horizontalGradient(
-                    colors = listOf(Color(0xFF1565C0), Color(0xFF42A5F5))
+                Brush.verticalGradient(
+                    colors = listOf(
+                        Color(0xFF3B66B9), // A lighter tint of your PrimaryBlue for the top
+                        PrimaryBlue        // Your brand PrimaryBlue (0xFF103986) at the bottom
+                    )
                 )
             )
-            .padding(20.dp)
+            .padding(24.dp)
     ) {
         Column {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.Top
             ) {
                 Column {
                     Text(
                         text = "Active Goal",
                         fontSize = 12.sp,
-                        color = Color.White.copy(alpha = 0.8f)
+                        color = NeutralWhite.copy(alpha = 0.7f),
+                        fontWeight = FontWeight.Medium
                     )
                     Text(
                         text = goal.name,
-                        fontSize = 22.sp,
+                        fontSize = 26.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White
+                        color = NeutralWhite
                     )
                 }
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(Color.White.copy(alpha = 0.2f))
-                        .padding(horizontal = 12.dp, vertical = 6.dp)
+
+                // Translucent Badge using Brand Neutral White
+                Surface(
+                    color = NeutralWhite.copy(alpha = 0.15f),
+                    shape = RoundedCornerShape(12.dp)
                 ) {
                     Text(
                         text = "$progressPercent%",
-                        color = Color.White,
+                        color = NeutralWhite,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp
+                        fontSize = 18.sp,
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(28.dp))
 
-            // Progress bar
+            // Progress Bar using Neutral White
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(8.dp)
-                    .clip(RoundedCornerShape(4.dp))
-                    .background(Color.White.copy(alpha = 0.3f))
+                    .height(6.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(NeutralWhite.copy(alpha = 0.25f))
             ) {
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth(progress)
-                        .height(8.dp)
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(Color.White)
+                        .fillMaxWidth(progress.coerceIn(0f, 1f))
+                        .height(6.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(NeutralWhite)
                 )
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -94,27 +101,27 @@ fun ActiveGoalCard(goal: Goal, viewModel: GoalViewModel) {
                 Column {
                     Text(
                         text = "Saved",
-                        fontSize = 11.sp,
-                        color = Color.White.copy(alpha = 0.7f)
+                        fontSize = 12.sp,
+                        color = NeutralWhite.copy(alpha = 0.7f)
                     )
                     Text(
                         text = "LKR ${goal.savedAmount / 100}",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color.White
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = NeutralWhite
                     )
                 }
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
                         text = "Remaining",
-                        fontSize = 11.sp,
-                        color = Color.White.copy(alpha = 0.7f)
+                        fontSize = 12.sp,
+                        color = NeutralWhite.copy(alpha = 0.7f)
                     )
                     Text(
                         text = "LKR ${remaining / 100}",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color.White
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = NeutralWhite
                     )
                 }
             }
