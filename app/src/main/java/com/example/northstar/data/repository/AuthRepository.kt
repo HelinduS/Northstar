@@ -33,12 +33,14 @@ class AuthRepository @Inject constructor(
         password: String,
         displayName: String
     ): Result<FirebaseUser> {
+        var createdUser: FirebaseUser? = null
         return try {
             // Step 1 — create Firebase Auth account
             val result = firebaseAuth
                 .createUserWithEmailAndPassword(email, password)
                 .await()
             val user = result.user!!
+            createdUser = user
 
             // Step 2 — write user document to Firestore
             val userDoc = hashMapOf(
@@ -57,6 +59,12 @@ class AuthRepository @Inject constructor(
 
             Result.success(user)
         } catch (e: Exception) {
+            createdUser?.let { user ->
+                runCatching {
+                    user.delete().await()
+                }
+                firebaseAuth.signOut()
+            }
             Result.failure(e)
         }
     }

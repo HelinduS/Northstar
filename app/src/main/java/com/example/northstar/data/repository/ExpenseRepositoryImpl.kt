@@ -16,25 +16,25 @@ class ExpenseRepositoryImpl @Inject constructor(
     private val firestore: FirebaseFirestore
 ) : ExpenseRepository {
 
-    private fun getUserId() = firebaseAuth.currentUser?.uid ?: ""
+    private fun getUserIdOrNull(): String? = firebaseAuth.currentUser?.uid
 
     override suspend fun addExpense(expense: Expense): Result<Unit> {
         return try {
-            val data = hashMapOf(
+            val userId = getUserIdOrNull()
+                ?: return Result.failure(IllegalStateException("User is not signed in"))
+            val data = mapOf<String, Any>(
                 "amount" to expense.amount,
                 "category" to expense.category,
                 "expenseType" to expense.expenseType,
                 "paymentMethod" to expense.paymentMethod,
-                "description" to expense.description,
-                "date" to com.google.firebase.Timestamp(
-                    java.util.Date(expense.date)
-                ),
+                "description" to (expense.description ?: ""),
+                "date" to com.google.firebase.Timestamp(java.util.Date(expense.date)),
                 "createdAt" to com.google.firebase.Timestamp.now(),
                 "updatedAt" to com.google.firebase.Timestamp.now()
             )
             firestore
                 .collection("users")
-                .document(getUserId())
+                .document(userId)
                 .collection("expenses")
                 .add(data)
                 .await()
@@ -46,20 +46,22 @@ class ExpenseRepositoryImpl @Inject constructor(
 
     override suspend fun updateExpense(expense: Expense): Result<Unit> {
         return try {
-            val data = hashMapOf(
+            val userId = getUserIdOrNull()
+                ?: return Result.failure(IllegalStateException("User is not signed in"))
+            val data = mapOf<String, Any>(
                 "amount" to expense.amount,
                 "category" to expense.category,
                 "expenseType" to expense.expenseType,
                 "paymentMethod" to expense.paymentMethod,
-                "description" to expense.description,
+                "description" to (expense.description ?: ""),
                 "updatedAt" to com.google.firebase.Timestamp.now()
             )
             firestore
                 .collection("users")
-                .document(getUserId())
+                .document(userId)
                 .collection("expenses")
                 .document(expense.id)
-                .update(data as Map<String, Any>)
+                .update(data)
                 .await()
             Result.success(Unit)
         } catch (e: Exception) {
@@ -69,9 +71,11 @@ class ExpenseRepositoryImpl @Inject constructor(
 
     override suspend fun deleteExpense(expenseId: String): Result<Unit> {
         return try {
+            val userId = getUserIdOrNull()
+                ?: return Result.failure(IllegalStateException("User is not signed in"))
             firestore
                 .collection("users")
-                .document(getUserId())
+                .document(userId)
                 .collection("expenses")
                 .document(expenseId)
                 .delete()
@@ -83,7 +87,7 @@ class ExpenseRepositoryImpl @Inject constructor(
     }
 
     override fun getAllExpenses(): Flow<List<Expense>> = callbackFlow {
-        val userId = getUserId()
+        val userId = getUserIdOrNull() ?: return@callbackFlow
         val listener = firestore
             .collection("users")
             .document(userId)
@@ -115,7 +119,7 @@ class ExpenseRepositoryImpl @Inject constructor(
         startDate: Long,
         endDate: Long
     ): Flow<List<Expense>> = callbackFlow {
-        val userId = getUserId()
+        val userId = getUserIdOrNull() ?: return@callbackFlow
         val start = java.util.Date(startDate)
         val end = java.util.Date(endDate)
         val listener = firestore
@@ -148,7 +152,7 @@ class ExpenseRepositoryImpl @Inject constructor(
     }
 
     override fun getExpensesByCategory(category: String): Flow<List<Expense>> = callbackFlow {
-        val userId = getUserId()
+        val userId = getUserIdOrNull() ?: return@callbackFlow
         val listener = firestore
             .collection("users")
             .document(userId)
@@ -178,7 +182,7 @@ class ExpenseRepositoryImpl @Inject constructor(
     }
 
     override fun getExpensesByType(expenseType: String): Flow<List<Expense>> = callbackFlow {
-        val userId = getUserId()
+        val userId = getUserIdOrNull() ?: return@callbackFlow
         val listener = firestore
             .collection("users")
             .document(userId)

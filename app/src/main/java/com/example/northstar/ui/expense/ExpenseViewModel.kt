@@ -49,7 +49,13 @@ class ExpenseViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
-                val user = firebaseAuth.currentUser ?: return@launch
+                val user = firebaseAuth.currentUser ?: run {
+                    _uiState.value = ExpenseUiState(
+                        isLoading = false,
+                        error = "User not logged in"
+                    )
+                    return@launch
+                }
 
                 val snapshot = firestore
                     .collection("users")
@@ -106,7 +112,14 @@ class ExpenseViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
-                val user = firebaseAuth.currentUser ?: return@launch
+                val user = firebaseAuth.currentUser ?: run {
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        error = "User not logged in",
+                        isSaved = false
+                    )
+                    return@launch
+                }
 
                 val expense = hashMapOf(
                     "amount" to amount,
@@ -145,7 +158,12 @@ class ExpenseViewModel @Inject constructor(
     fun deleteExpense(expenseId: String) {
         viewModelScope.launch {
             try {
-                val user = firebaseAuth.currentUser ?: return@launch
+                val user = firebaseAuth.currentUser ?: run {
+                    _uiState.value = _uiState.value.copy(
+                        error = "User not logged in"
+                    )
+                    return@launch
+                }
 
                 firestore
                     .collection("users")

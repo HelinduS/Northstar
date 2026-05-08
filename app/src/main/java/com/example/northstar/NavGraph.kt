@@ -12,10 +12,13 @@ import com.example.northstar.ui.goals.GoalsScreen
 import com.example.northstar.ui.income.IncomeScreen
 
 @Composable
-fun NavGraph(navController: NavHostController) {
+fun NavGraph(
+    navController: NavHostController,
+    startDestination: String = Screen.Login.route
+) {
     NavHost(
         navController = navController,
-        startDestination = Screen.Login.route
+        startDestination = startDestination
     ) {
         composable(Screen.Login.route) {
             AuthScreen(

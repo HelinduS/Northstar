@@ -30,7 +30,7 @@ data class TransactionItem(
     val title: String = "",
     val amount: Long = 0L,
     val isIncome: Boolean = false,
-    val date: String = "",
+    val date: Long = 0L,
     val category: String = ""
 )
 
@@ -53,7 +53,7 @@ class DashboardViewModel @Inject constructor(
             try {
                 val user = firebaseAuth.currentUser
                 if (user == null) {
-                    _uiState.value = _uiState.value.copy(
+                    _uiState.value = DashboardUiState(
                         isLoading = false,
                         error = "User not logged in"
                     )
@@ -119,6 +119,7 @@ class DashboardViewModel @Inject constructor(
                         title = it.getString("sourceType") ?: "Income",
                         amount = it.getLong("lkrAmount") ?: 0L,
                         isIncome = true,
+                        date = it.getTimestamp("date")?.toDate()?.time ?: 0L,
                         category = it.getString("sourceType") ?: ""
                     )
                 }
@@ -129,6 +130,7 @@ class DashboardViewModel @Inject constructor(
                         title = it.getString("category") ?: "Expense",
                         amount = it.getLong("amount") ?: 0L,
                         isIncome = false,
+                        date = it.getTimestamp("date")?.toDate()?.time ?: 0L,
                         category = it.getString("category") ?: ""
                     )
                 }
