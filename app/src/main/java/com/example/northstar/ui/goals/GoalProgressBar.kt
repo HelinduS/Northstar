@@ -11,6 +11,8 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun GoalProgressBar(progress: Float, isReached: Boolean) {
+    val boundedProgress = progress.coerceIn(0f, 1f)
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -20,7 +22,7 @@ fun GoalProgressBar(progress: Float, isReached: Boolean) {
     ) {
         Box(
             modifier = Modifier
-                .fillMaxWidth(progress)
+                .fillMaxWidth(boundedProgress)
                 .height(6.dp)
                 .clip(RoundedCornerShape(3.dp))
                 .background(if (isReached) Color(0xFFD481FF) else Color(0xFFB0BEC5))
