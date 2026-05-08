@@ -20,6 +20,8 @@ fun AddGoalDialog(
     var name by remember { mutableStateOf("") }
     var amount by remember { mutableStateOf("") }
 
+    val parsedAmount = amount.toLongOrNull() ?: 0L
+
     AlertDialog(
         onDismissRequest = onDismiss,
         shape = RoundedCornerShape(20.dp),
@@ -86,6 +88,8 @@ fun ContributeDialog(
 ) {
     var amount by remember { mutableStateOf("") }
 
+    val parsedAmount = amount.toLongOrNull() ?: 0L
+
     AlertDialog(
         onDismissRequest = onDismiss,
         shape = RoundedCornerShape(20.dp),
@@ -114,9 +118,10 @@ fun ContributeDialog(
         confirmButton = {
             Button(
                 onClick = {
-                    val contribution = (amount.toLongOrNull() ?: 0L) * 100L
+                    val contribution = parsedAmount * 100L
                     onConfirm(contribution)
                 },
+                enabled = parsedAmount > 0,
                 shape = RoundedCornerShape(10.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
             ) {
