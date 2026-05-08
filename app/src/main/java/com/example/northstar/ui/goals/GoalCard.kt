@@ -23,6 +23,7 @@ fun GoalCard(goal: Goal, viewModel: GoalViewModel) {
     val progressPercent = viewModel.getProgress(goal).toInt()
     val isReached = viewModel.isGoalReached(goal)
     var showContributeDialog by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -76,7 +77,7 @@ fun GoalCard(goal: Goal, viewModel: GoalViewModel) {
                         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
                     ) { Text("Add", fontSize = 12.sp) }
                     OutlinedButton(
-                        onClick = { viewModel.deleteGoal(goal.id) },
+                        onClick = { showDeleteDialog = true },
                         shape = RoundedCornerShape(10.dp),
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = SemanticRed),
                         border = ButtonDefaults.outlinedButtonBorder.copy(brush = SolidColor(SemanticRed)),
@@ -93,6 +94,32 @@ fun GoalCard(goal: Goal, viewModel: GoalViewModel) {
             onConfirm = { amount ->
                 viewModel.contributeToGoal(goal, amount)
                 showContributeDialog = false
+            }
+        )
+    }
+
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            shape = RoundedCornerShape(20.dp),
+            title = { Text("Delete Goal") },
+            text = {
+                Text("Are you sure you want to delete \"${goal.name}\"?")
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.deleteGoal(goal.id)
+                        showDeleteDialog = false
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = SemanticRed),
+                    shape = RoundedCornerShape(10.dp)
+                ) { Text("Delete") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Cancel", color = PrimaryBlue)
+                }
             }
         )
     }
