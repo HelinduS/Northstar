@@ -13,6 +13,15 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface IncomeDao {
 
+
+        @Query("SELECT * FROM incomes ORDER BY date DESC LIMIT :limit")
+        fun getLatestIncomes(limit: Int): Flow<List<IncomeEntity>>
+
+        @Query("SELECT SUM(lkrAmount) FROM incomes WHERE date BETWEEN :startTime AND :endTime")
+        fun getTotalIncomeForMonth(startTime: Long, endTime: Long): Flow<Long>
+
+
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertIncome(income: IncomeEntity)
 
