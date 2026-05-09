@@ -2,6 +2,8 @@ package com.example.northstar.ui.income
 
 import android.app.DatePickerDialog
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -34,13 +36,16 @@ fun IncomeScreen(
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
 
-    var amount by remember { mutableStateOf("") }
-    var selectedCurrency by remember { mutableStateOf("LKR") }
+    val selectedSource by viewModel.selectedSource.collectAsState()
+    val selectedCurrency by viewModel.selectedCurrency.collectAsState()
+    val availableCurrencies by viewModel.availableCurrencies.collectAsState()
+    val currentRate by viewModel.exchangeRate.collectAsState()
 
-    var selectedSource by remember { mutableStateOf("") }
+    val totalLkrEstimate by viewModel.totalLkrEstimate.collectAsState()
+
+    var amount by remember { mutableStateOf("") }
     var projectName by remember { mutableStateOf("") }
     var notes by remember { mutableStateOf("") }
-
     var selectedDate by remember { mutableLongStateOf(0L) }
 
     var showCurrencyMenu by remember { mutableStateOf(false) }
@@ -61,25 +66,21 @@ fun IncomeScreen(
                 Button(
                     onClick = {
                         if (amount.isNotEmpty()) {
-                            val rate = if (selectedCurrency == "USD") 300.0 else 1.0
                             viewModel.addIncome(
-                                selectedSource,
-                                projectName.ifBlank { null },
-                                amount,
-                                selectedCurrency,
-                                rate,
-                                selectedDate,
-                                notes.ifBlank { null }
+                                sourceType = selectedSource,
+                                projectName = if (selectedSource == "Freelance") projectName else null,
+                                amountStr = amount,
+                                currency = selectedCurrency,
+                                exchangeRate = currentRate,
+                                date = selectedDate,
+                                notes = notes.ifBlank { null }
                             )
                         }
                     },
                     modifier = Modifier.fillMaxWidth().padding(16.dp).height(56.dp),
                     shape = RoundedCornerShape(12.dp),
-
-                    enabled = uiState !is IncomeUiState.Loading &&
-                            amount.isNotEmpty() &&
-                            selectedSource.isNotEmpty() &&
-                            selectedDate != 0L
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1A56B4)),
+                    enabled = uiState !is IncomeUiState.Loading && amount.isNotEmpty() && selectedSource.isNotEmpty() && selectedDate != 0L
                 ) {
                     if (uiState is IncomeUiState.Loading) {
                         CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.White)
@@ -91,83 +92,32 @@ fun IncomeScreen(
         }
     ) { padding ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .verticalScroll(rememberScrollState())
-                .background(Color(0xFFF8F9FB))
+            modifier = Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).background(Color(0xFFF8F9FB))
         ) {
-            // --- HEADER SECTION ---
-            Box(modifier = Modifier.fillMaxWidth().background(Color(0xFF1A56B4)).padding(bottom = 32.dp)) {
+            // Header
+            Box(modifier = Modifier.fillMaxWidth().background(Color(0xFF1A56B4)).padding(bottom = 40.dp)) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(top = 12.dp, start = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        IconButton(onClick = { navController.popBackStack() }) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = Color.White)
-                        }
+                    Row(modifier = Modifier.fillMaxWidth().padding(top = 12.dp, start = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                        IconButton(onClick = { navController.popBackStack() }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = Color.White) }
                         Text("Add Income", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
                     }
-                    Spacer(modifier = Modifier.height(20.dp))
+                    Spacer(modifier = Modifier.height(24.dp))
                     Text("How much did you earn?", color = Color.White.copy(alpha = 0.8f))
-                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 12.dp)) {
-                        Text(selectedCurrency, color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.Bold)
-                        Spacer(modifier = Modifier.width(12.dp))
-
-                        Text(if (amount.isEmpty()) "0.00" else amount, color = Color.White, fontSize = 48.sp, fontWeight = FontWeight.Bold)
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 8.dp)) {
+                        Text(selectedCurrency, color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(text = if (amount.isEmpty()) "0" else amount, color = Color.White, fontSize = 44.sp, fontWeight = FontWeight.ExtraBold)
                     }
-                    OutlinedTextField(
-                        value = amount,
-                        onValueChange = { if (it.all { c -> c.isDigit() || c == '.' }) amount = it },
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 32.dp),
-                        textStyle = androidx.compose.ui.text.TextStyle(color = Color.White, fontSize = 20.sp),
-                        placeholder = { Text("Enter amount", color = Color.White.copy(alpha = 0.5f)) },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color.White,
-                            unfocusedBorderColor = Color.White.copy(alpha = 0.6f),
-                            cursorColor = Color.White
-                        )
-                    )
                 }
             }
 
-            // --- DETAILS CARD ---
             Column(
-                modifier = Modifier
-                    .offset(y = (-20).dp)
-                    .padding(horizontal = 16.dp)
-                    .background(Color.White, RoundedCornerShape(16.dp))
-                    .padding(20.dp),
+                modifier = Modifier.offset(y = (-24).dp).padding(horizontal = 16.dp).background(Color.White, RoundedCornerShape(16.dp)).padding(20.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Text("Income Details", fontWeight = FontWeight.Bold, color = Color(0xFF1A56B4))
 
-                // --- CURRENCY DROPDOWN ---
-                Box {
-                    DetailDropdown(
-                        label = "Currency",
-                        selected = selectedCurrency,
-                        icon = Icons.Default.Info,
-                        onClick = { showCurrencyMenu = true }
-                    )
-                    DropdownMenu(
-                        expanded = showCurrencyMenu,
-                        onDismissRequest = { showCurrencyMenu = false },
-                        modifier = Modifier.fillMaxWidth(0.8f).background(Color.White)
-                    ) {
-                        CurrencyMenuItem("LKR", "Sri Lankan Rupee", Icons.Default.Info) {
-                            selectedCurrency = "LKR"; showCurrencyMenu = false
-                        }
-                        CurrencyMenuItem("USD", "United States Dollar", Icons.Default.Info) {
-                            selectedCurrency = "USD"; showCurrencyMenu = false
-                        }
-                    }
-                }
-
-                // --- SOURCE DROPDOWN ---
+                // Source Selection
                 Box {
                     DetailDropdown(
                         label = "Income Source",
@@ -175,101 +125,102 @@ fun IncomeScreen(
                         icon = Icons.Default.List,
                         onClick = { showSourceMenu = true }
                     )
-                    DropdownMenu(
-                        expanded = showSourceMenu,
-                        onDismissRequest = { showSourceMenu = false },
-                        modifier = Modifier.fillMaxWidth(0.8f).background(Color.White)
-                    ) {
-                        SourceMenuItem("SALARY", "Fixed recurring monthly pay", Icons.Default.Lock) {
-                            selectedSource = "SALARY"; showSourceMenu = false
-                        }
-                        SourceMenuItem("FREELANCE", "Variable project-based income", Icons.Default.List) {
-                            selectedSource = "FREELANCE"; showSourceMenu = false
-                        }
-                        SourceMenuItem("INVESTMENT", "Dividends and market returns", Icons.Default.Star) {
-                            selectedSource = "INVESTMENT"; showSourceMenu = false
+                    DropdownMenu(expanded = showSourceMenu, onDismissRequest = { showSourceMenu = false }, modifier = Modifier.fillMaxWidth(0.85f)) {
+                        val sources = listOf("Salary", "Freelance", "Social Media", "Google AdSense", "Investments", "E-commerce", "Affiliate", "Crypto", "Digital Products", "Tutoring", "Other")
+                        sources.forEach { title ->
+                            DropdownMenuItem(
+                                text = { Text(title) },
+                                leadingIcon = { Icon(Icons.Default.Add, null, tint = Color(0xFF1A56B4)) },
+                                onClick = { viewModel.onSourceSelected(title); showSourceMenu = false }
+                            )
                         }
                     }
                 }
 
-                // --- DATE SELECTION ---
+                if (selectedSource == "Freelance") {
+                    OutlinedTextField(value = projectName, onValueChange = { projectName = it }, label = { Text("Project Name") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp))
+                }
+
+                // Currency Selection
+                Box {
+                    DetailDropdown(label = "Currency", selected = selectedCurrency, icon = Icons.Default.Info, onClick = { showCurrencyMenu = true })
+                    DropdownMenu(expanded = showCurrencyMenu, onDismissRequest = { showCurrencyMenu = false }, modifier = Modifier.fillMaxWidth(0.8f)) {
+                        availableCurrencies.forEach { currency ->
+                            DropdownMenuItem(
+                                text = { Text(currency) },
+                                onClick = { viewModel.onCurrencySelected(currency); showCurrencyMenu = false }
+                            )
+                        }
+                    }
+                }
+
+                // Amount & Estimate
+                OutlinedTextField(
+                    value = amount,
+                    onValueChange = {
+                        if (it.all { c -> c.isDigit() || c == '.' }) {
+                            amount = it
+                            viewModel.updateLiveAmount(it)
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text("Amount") },
+                    prefix = { Text("$selectedCurrency ", color = Color(0xFF1A56B4), fontWeight = FontWeight.Bold) },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    shape = RoundedCornerShape(12.dp)
+                )
+
+                if (selectedCurrency != "LKR" && amount.isNotEmpty()) {
+                    Card(colors = CardDefaults.cardColors(containerColor = Color(0xFFF0F4FF)), shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text("Estimated Total", fontSize = 12.sp, color = Color.Gray)
+                            Text("LKR ${String.format(Locale.US, "%.2f", totalLkrEstimate)}", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1A56B4))
+                        }
+                    }
+                }
+
+                // Date
                 DetailDropdown(
                     label = "Date Received",
                     selected = if (selectedDate == 0L) "Select Date" else dateFormatter.format(Date(selectedDate)),
                     icon = Icons.Default.DateRange,
                     onClick = {
                         val cal = Calendar.getInstance()
-                        DatePickerDialog(context, { _, y, m, d ->
-                            cal.set(y, m, d)
-                            selectedDate = cal.timeInMillis
-                        }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)).show()
+                        DatePickerDialog(context, { _, y, m, d -> cal.set(y, m, d); selectedDate = cal.timeInMillis }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)).show()
                     }
                 )
 
-                OutlinedTextField(
-                    value = notes,
-                    onValueChange = { notes = it },
-                    label = { Text("Add a note...") },
-                    leadingIcon = { Icon(Icons.Default.Edit, null) },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
-                )
+                OutlinedTextField(value = notes, onValueChange = { notes = it }, label = { Text("Add a note...") }, leadingIcon = { Icon(Icons.Default.Edit, null) }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp))
             }
         }
     }
 }
 
-@Composable
-fun SourceMenuItem(title: String, subtitle: String, icon: androidx.compose.ui.graphics.vector.ImageVector, onClick: () -> Unit) {
-    DropdownMenuItem(
-        text = {
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 4.dp)) {
-                Icon(icon, null, tint = Color(0xFF1A56B4), modifier = Modifier.size(24.dp))
-                Spacer(Modifier.width(12.dp))
-                Column {
-                    Text(title, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                    Text(subtitle, fontSize = 12.sp, color = Color.Gray)
-                }
-            }
-        },
-        onClick = onClick
-    )
-}
+// --- RESTORED HELPER COMPOSABLES ---
 
 @Composable
-fun CurrencyMenuItem(title: String, subtitle: String, icon: androidx.compose.ui.graphics.vector.ImageVector, onClick: () -> Unit) {
-    DropdownMenuItem(
-        text = {
+fun DetailDropdown(
+    label: String,
+    selected: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    onClick: () -> Unit
+) {
+    Column(modifier = Modifier.fillMaxWidth().clickable { onClick() }) {
+        Text(text = label, fontSize = 12.sp, color = Color.Gray, modifier = Modifier.padding(start = 4.dp, bottom = 4.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .border(1.dp, Color(0xFFE0E0E0), RoundedCornerShape(12.dp))
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(icon, null, tint = Color(0xFF1A56B4), modifier = Modifier.size(20.dp))
-                Spacer(Modifier.width(12.dp))
-                Column {
-                    Text(title, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
-                    Text(subtitle, fontSize = 11.sp, color = Color.Gray)
-                }
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(text = selected, fontSize = 16.sp, color = if (selected.contains("Select")) Color.LightGray else Color.Black)
             }
-        },
-        onClick = onClick
-    )
-}
-
-@Composable
-fun DetailDropdown(label: String, selected: String, icon: androidx.compose.ui.graphics.vector.ImageVector, onClick: () -> Unit) {
-    Column {
-        Text(label, fontSize = 12.sp, color = Color.Gray, modifier = Modifier.padding(start = 4.dp, bottom = 4.dp))
-        Surface(
-            onClick = onClick,
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE0E0E0)),
-            color = Color.White
-        ) {
-            Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                Icon(icon, null, tint = Color(0xFF1A56B4))
-                Spacer(Modifier.width(12.dp))
-                Text(selected, modifier = Modifier.weight(1f), fontWeight = FontWeight.Medium)
-                Icon(Icons.Default.KeyboardArrowDown, null, tint = Color.Gray)
-            }
+            Icon(Icons.Default.ArrowDropDown, null, tint = Color.Gray)
         }
     }
 }
