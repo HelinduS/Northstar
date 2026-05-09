@@ -7,6 +7,8 @@ import com.example.northstar.data.local.dao.ExpenseDao
 import com.example.northstar.data.local.dao.GoalDao
 import com.example.northstar.data.local.dao.IncomeDao
 import com.example.northstar.data.remote.CurrencyApiService
+import com.example.northstar.data.repository.GoalRepository
+import com.example.northstar.data.repository.GoalRepositoryImpl
 import com.example.northstar.data.repository.ExpenseRepository
 import com.example.northstar.data.repository.ExpenseRepositoryImpl
 import com.example.northstar.data.repository.GoalRepository
@@ -83,6 +85,10 @@ object AppModule {
         firestore: FirebaseFirestore,
         firebaseAuth: FirebaseAuth
     ): IncomeRepository = IncomeRepositoryImpl(incomeDao, firestore, firebaseAuth)
+    fun provideGoalRepository(
+        firebaseAuth: FirebaseAuth,
+        firestore: FirebaseFirestore
+    ): GoalRepository = GoalRepositoryImpl(firebaseAuth, firestore)
 
     @Provides
     @Singleton
