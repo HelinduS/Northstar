@@ -29,11 +29,11 @@ class IncomeRepositoryImpl @Inject constructor(
         .document(userId)
         .collection(FirestoreConstants.COLLECTION_INCOMES)
 
-    // --- Mapper Functions ---
+    // --- Mapper Functions (REMOVED projectName) ---
     private fun Income.toEntity() = IncomeEntity(
         id = id,
         sourceType = sourceType,
-        projectName = projectName,
+        projectName = null, // Logic: Removed from UI, so we store null in DB
         originalAmount = originalAmount,
         originalCurrency = originalCurrency,
         lkrAmount = lkrAmount,
@@ -47,7 +47,7 @@ class IncomeRepositoryImpl @Inject constructor(
     private fun IncomeEntity.toDomain() = Income(
         id = id,
         sourceType = sourceType,
-        projectName = projectName,
+        projectName = null,
         originalAmount = originalAmount,
         originalCurrency = originalCurrency,
         lkrAmount = lkrAmount,
@@ -67,7 +67,7 @@ class IncomeRepositoryImpl @Inject constructor(
 
             val firestoreData = hashMapOf(
                 "sourceType" to income.sourceType,
-                "projectName" to (income.projectName ?: ""),
+                // projectName removed to keep Firestore clean
                 "originalAmount" to income.originalAmount,
                 "originalCurrency" to income.originalCurrency,
                 "lkrAmount" to income.lkrAmount,
@@ -92,7 +92,6 @@ class IncomeRepositoryImpl @Inject constructor(
 
             val updates = mapOf(
                 "sourceType" to income.sourceType,
-                "projectName" to (income.projectName ?: ""),
                 "originalAmount" to income.originalAmount,
                 "lkrAmount" to income.lkrAmount,
                 "notes" to (income.notes ?: ""),
@@ -124,7 +123,6 @@ class IncomeRepositoryImpl @Inject constructor(
         }
     }
 
-
     override fun getLatestIncomes(limit: Int): Flow<List<Income>> {
         return incomeDao.getLatestIncomes(limit).map { entities ->
             entities.map { it.toDomain() }
@@ -142,7 +140,6 @@ class IncomeRepositoryImpl @Inject constructor(
             entities.map { it.toDomain() }
         }
     }
-
 
     override fun getTotalIncomeForMonth(startTime: Long, endTime: Long): Flow<Long> {
         return incomeDao.getTotalIncomeForMonth(startTime, endTime)
