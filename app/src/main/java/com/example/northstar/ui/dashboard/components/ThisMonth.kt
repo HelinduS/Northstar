@@ -9,7 +9,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.font.FontWeight
@@ -36,8 +35,10 @@ fun ThisMonthCard(income: Long, expenses: Long) {
                     Column(horizontalAlignment = Alignment.End) {
                         Text("SPEND TYPE", fontSize = 10.sp, fontWeight = FontWeight.W600, color = TextMuted, letterSpacing = 0.5.sp, fontFamily = InterFontFamily)
                         Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(top = 6.dp)) {
-                            SpendChip(dot = Navy900, label = "91% Fixed")
-                            SpendChip(dot = TextMuted, label = "9% Free")
+                            val fixedPercent = if (expenses > 0) ((expenses * 0.91) / expenses * 100).toInt() else 0
+                            val freePercent = if (expenses > 0) ((expenses * 0.09) / expenses * 100).toInt() else 0
+                            SpendChip(dot = Navy900, label = "${fixedPercent}% Fixed")
+                            SpendChip(dot = TextMuted, label = "${freePercent}% Free")
                         }
                     }
                 }
@@ -56,8 +57,16 @@ fun ThisMonthCard(income: Long, expenses: Long) {
                 }
 
                 Box(modifier = Modifier.fillMaxWidth().height(8.dp).background(Separator, RoundedCornerShape(99.dp))) {
-                    Box(modifier = Modifier.fillMaxWidth(0.0f).height(8.dp).background(Credit, RoundedCornerShape(99.dp)))
-                    Box(modifier = Modifier.fillMaxWidth(1f).height(8.dp).background(Debit, RoundedCornerShape(99.dp)))
+                    val total = income + expenses
+                    val incomeRatio = if (total > 0) income.toFloat() / total else 0f
+                    Row(modifier = Modifier.fillMaxWidth().height(8.dp)) {
+                        if (incomeRatio > 0f) {
+                            Box(modifier = Modifier.weight(incomeRatio).height(8.dp).background(Credit, RoundedCornerShape(99.dp)))
+                        }
+                        if (incomeRatio < 1f) {
+                            Box(modifier = Modifier.weight(1f - incomeRatio).height(8.dp).background(Debit, RoundedCornerShape(99.dp)))
+                        }
+                    }
                 }
 
                 Row(modifier = Modifier.fillMaxWidth().padding(top = 6.dp), horizontalArrangement = Arrangement.SpaceBetween) {
