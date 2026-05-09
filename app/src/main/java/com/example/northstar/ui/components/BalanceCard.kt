@@ -1,12 +1,30 @@
 package com.example.northstar.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.draw.shadow
@@ -23,89 +41,148 @@ fun BalanceCard(
     totalExpenses: Long = 0L,
     netSaved: Long = 0L
 ) {
-    // Convert from paisa to LKR for display
-    val incomeLkr = totalIncome / 100.0
-    val expensesLkr = totalExpenses / 100.0
-    val savedLkr = netSaved / 100.0
-
-    // Progress = expenses / income (capped at 1.0)
-    val spentProgress = if (totalIncome > 0)
-        (totalExpenses.toFloat() / totalIncome.toFloat()).coerceIn(0f, 1f)
-    else 0f
-
-    val cardShape = RoundedCornerShape(24.dp)
-
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp)
-            .shadow(
-                elevation = 10.dp,
-                shape = cardShape,
-                ambientColor = Color.Black.copy(alpha = 0.12f),
-                spotColor = Color.Black.copy(alpha = 0.18f)
-            )
-            .border(
-                width = 1.dp,
-                color = Color.White.copy(alpha = 0.65f),
-                shape = cardShape
-            )
-            .clip(cardShape)
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        Color(0xFFFFFFFF),
-                        Color(0xFFF4F7FB),
-                        Color(0xFFE8EEF8)
+            .padding(horizontal = 0.dp)
+            .shadow(8.dp, RoundedCornerShape(24.dp), clip = false)
+            .clip(RoundedCornerShape(24.dp))
+            .background(Brush.linearGradient(listOf(DashboardPrimary, DashboardPrimaryGradientEnd)))
+    ) {
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .offset(x = 36.dp, y = (-24).dp)
+                .size(160.dp)
+                .background(
+                    Brush.radialGradient(
+                        colors = listOf(
+                            Color.White.copy(alpha = 0.24f),
+                            Color.Transparent
+                        )
                     )
                 )
-            )
-    ) {
-        Column(modifier = Modifier.padding(22.dp)) {
-            Text(
-                "Total Income This Month",
-                color = PrimaryBlue.copy(alpha = 0.7f),
-                fontSize = 13.sp
-            )
-            Spacer(Modifier.height(8.dp))
-            Text(
-                "LKR ${String.format(Locale.US, "%,.2f", incomeLkr)}",
-                color = PrimaryBlue,
-                fontSize = 36.sp,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(Modifier.height(18.dp))
+        )
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .offset(x = (-24).dp, y = 28.dp)
+                .size(140.dp)
+                .background(
+                    Brush.radialGradient(
+                        colors = listOf(
+                            Color.White.copy(alpha = 0.14f),
+                            Color.Transparent
+                        )
+                    )
+                )
+        )
+
+        Column(modifier = Modifier.padding(20.dp)) {
             Row(
-                Modifier.fillMaxWidth(),
-                Arrangement.SpaceBetween
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
             ) {
-                Text(
-                    "Total Expenses",
-                    color = PrimaryBlue.copy(alpha = 0.7f),
-                    fontSize = 12.sp
-                )
-                Text(
-                    "LKR ${String.format(Locale.US, "%,.2f", expensesLkr)}",
-                    color = PrimaryBlue,
-                    fontSize = 12.sp
-                )
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Total Balance",
+                        color = Color.White.copy(alpha = 0.55f),
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Row(verticalAlignment = Alignment.Bottom) {
+                        Text(
+                            text = "LKR",
+                            color = Color.White.copy(alpha = 0.55f),
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Spacer(Modifier.width(6.dp))
+                        Text(
+                                text = if (netSaved < 0) "-${formatLkrPlain(netSaved)}" else formatLkrPlain(netSaved),
+                            color = Color.White,
+                            fontSize = 36.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            letterSpacing = (-1.5).sp
+                        )
+                    }
+                }
+
+                Row(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(999.dp))
+                        .background(Color.White.copy(alpha = 0.15f))
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(7.dp)
+                            .clip(RoundedCornerShape(999.dp))
+                            .background(DashboardSuccessSoft)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = currentMonthLabel(),
+                        color = Color.White,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
             }
-            Spacer(Modifier.height(8.dp))
-            LinearProgressIndicator(
-                progress = { spentProgress },
+
+            Spacer(Modifier.height(18.dp))
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(8.dp)
-                    .clip(RoundedCornerShape(4.dp)),
-                color = PrimaryBlue,
-                trackColor = PrimaryBlue.copy(alpha = 0.3f)
+                    .height(1.dp)
+                    .background(Color.White.copy(alpha = 0.12f))
             )
-            Spacer(Modifier.height(6.dp))
-            Text(
-                "Saved LKR ${String.format(Locale.US, "%,.2f", savedLkr)}",
-                color = PrimaryBlue.copy(alpha = 0.7f),
-                fontSize = 11.sp
-            )
+            Spacer(Modifier.height(18.dp))
+
+            Row(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "↑ Income",
+                        color = DashboardSuccessSoft,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        text = "LKR ${formatLkrPlain(totalIncome)}",
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                Box(
+                    modifier = Modifier
+                        .padding(horizontal = 14.dp)
+                        .width(1.dp)
+                        .height(34.dp)
+                        .background(Color.White.copy(alpha = 0.15f))
+                )
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "↓ Expenses",
+                        color = DashboardExpenseSoft,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        text = "LKR ${formatLkrPlain(totalExpenses)}",
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
         }
     }
 }

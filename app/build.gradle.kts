@@ -48,6 +48,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.activity.compose)
+    implementation("androidx.compose.material:material-icons-extended:1.7.8")
 
     // Compose
     implementation(platform(libs.androidx.compose.bom))

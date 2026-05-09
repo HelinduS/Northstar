@@ -82,7 +82,7 @@ object AppModule {
         incomeDao: IncomeDao,
         firestore: FirebaseFirestore,
         firebaseAuth: FirebaseAuth
-     ): IncomeRepository = IncomeRepositoryImpl(incomeDao, firestore, firebaseAuth)
+    ): IncomeRepository = IncomeRepositoryImpl(incomeDao, firestore, firebaseAuth)
 
     @Provides
     @Singleton

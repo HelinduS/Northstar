@@ -3,7 +3,7 @@ package com.example.northstar.ui.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.Icon
@@ -12,16 +12,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.northstar.Screen
-import com.example.northstar.ui.theme.NeutralCharcoal
-import com.example.northstar.ui.theme.NeutralLightGrey
-import com.example.northstar.ui.theme.PrimaryBlue
 
-data class Action(
+private data class Action(
     val icon: ImageVector,
     val label: String,
     val route: String?
@@ -30,45 +28,45 @@ data class Action(
 @Composable
 fun QuickActionsRow(navController: NavController) {
     val actions = listOf(
-        Action(Icons.Default.Add,       "Add Money", Screen.AddIncome.route),
-        Action(Icons.Default.Star,      "Goal",      Screen.Goals.route),
-        Action(Icons.Default.Menu,      "Budget",    Screen.AddExpense.route),
-        Action(Icons.Default.DateRange, "History",   Screen.Analytics.route),
-        Action(Icons.Default.MoreVert,  "More",      null)
+        Action(Icons.Default.Add, "Add Money", Screen.AddIncome.route),
+        Action(Icons.Default.Star, "Goal", Screen.Goals.route),
+        Action(Icons.Default.List, "Budget", Screen.AddExpense.route),
+        Action(Icons.Default.DateRange, "History", Screen.Analytics.route)
     )
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly
+            .padding(horizontal = 4.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
         actions.forEach { action ->
             Column(
+                modifier = Modifier.weight(1f),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier
-                    .clickable { action.route?.let { navController.navigate(it) } }
-                    .padding(vertical = 4.dp)
+                verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 Box(
                     modifier = Modifier
-                        .size(58.dp)
-                        .clip(CircleShape)
-                        .background(NeutralLightGrey),
+                        .size(48.dp)
+                        .shadow(2.dp, RoundedCornerShape(15.dp), clip = false)
+                        .clip(RoundedCornerShape(15.dp))
+                        .background(DashboardSurface)
+                        .clickable { action.route?.let { navController.navigate(it) } },
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         action.icon,
                         contentDescription = action.label,
-                        tint = PrimaryBlue,
-                        modifier = Modifier.size(24.dp)
+                        tint = DashboardPrimary,
+                        modifier = Modifier.size(19.dp)
                     )
                 }
-                Spacer(Modifier.height(6.dp))
                 Text(
                     action.label,
-                    color = NeutralCharcoal.copy(alpha = 0.6f),
-                    fontSize = 11.sp
+                    color = DashboardTextSecondary,
+                    fontSize = 10.sp,
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold
                 )
             }
         }

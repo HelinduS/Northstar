@@ -4,13 +4,17 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.navigation.compose.rememberNavController
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
+import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import com.example.northstar.data.repository.AuthRepository
+import com.example.northstar.ui.navigation.BottomNavBar
 import com.example.northstar.ui.theme.NorthStarTheme
+import com.example.northstar.ui.theme.Surface as AppSurface
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -26,19 +30,38 @@ class MainActivity : ComponentActivity() {
         setContent {
             NorthStarTheme {
                 val navController = rememberNavController()
+                val navBackStackEntry by navController.currentBackStackEntryAsState()
+                val currentRoute = navBackStackEntry?.destination?.route
+
                 val startDestination = if (authRepository.isLoggedIn()) {
                     Screen.Dashboard.route
                 } else {
                     Screen.Login.route
                 }
-                Surface(
+
+                Scaffold(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    NavGraph(
-                        navController = navController,
-                        startDestination = startDestination
-                    )
+                    containerColor = AppSurface,
+                    bottomBar = {
+                        val showNavBar = currentRoute in listOf(
+                            Screen.Dashboard.route,
+                            Screen.Analytics.route,
+                            Screen.TransactionHistory.route,
+                            Screen.Profile.route,
+                            Screen.Goals.route
+                        )
+                        if (showNavBar) {
+                            BottomNavBar(navController = navController)
+                        }
+                    }
+                ) { _ ->
+                    // Screens handle their own insets individually
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        NavGraph(
+                            navController = navController,
+                            startDestination = startDestination
+                        )
+                    }
                 }
             }
         }
