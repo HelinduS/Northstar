@@ -6,7 +6,6 @@ import com.example.northstar.data.remote.FirestoreConstants
 import com.example.northstar.domain.model.Income
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.Query
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -29,11 +28,11 @@ class IncomeRepositoryImpl @Inject constructor(
         .document(userId)
         .collection(FirestoreConstants.COLLECTION_INCOMES)
 
-    // --- Mapper Functions (REMOVED projectName) ---
+
     private fun Income.toEntity() = IncomeEntity(
         id = id,
         sourceType = sourceType,
-        projectName = null, // Logic: Removed from UI, so we store null in DB
+        projectName = null,
         originalAmount = originalAmount,
         originalCurrency = originalCurrency,
         lkrAmount = lkrAmount,
