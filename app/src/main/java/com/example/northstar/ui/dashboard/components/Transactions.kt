@@ -6,7 +6,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Restaurant
+import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -44,9 +49,13 @@ fun TransactionsList(transactions: List<TransactionItem>, onSeeAll: () -> Unit) 
 
 @Composable
 fun TransactionRow(t: TransactionItem) {
+    val key = (t.title + " " + t.category).lowercase(Locale.US)
+    val icon = transactionIcon(t, key)
+    val iconTint = transactionIconTint(t, key)
+
     Row(modifier = Modifier.fillMaxWidth().background(White).padding(horizontal = 14.dp, vertical = 13.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
         Box(modifier = Modifier.size(38.dp).background(Color(0xFFFEF2F2), RoundedCornerShape(12.dp)).border(1.dp, Border, RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center) {
-            Icon(Icons.Default.Home, contentDescription = null, tint = Color(0xFFDC2626))
+            Icon(icon, contentDescription = null, tint = iconTint)
         }
         Column(modifier = Modifier.weight(1f)) {
             Text(t.category.ifBlank { "Transaction" }, fontSize = 13.sp, fontWeight = FontWeight.W600, color = TextPrimary, fontFamily = InterFontFamily)
@@ -57,5 +66,23 @@ fun TransactionRow(t: TransactionItem) {
             Text(SimpleDateFormat("hh:mm a", Locale.US).format(Date(t.date)), fontSize = 10.sp, color = TextHint, fontFamily = InterFontFamily, modifier = Modifier.padding(top = 2.dp))
         }
     }
+}
+
+private fun transactionIcon(t: TransactionItem, key: String) = when {
+    t.isIncome -> Icons.Default.KeyboardArrowUp
+    key.contains("rent") || key.contains("home") || key.contains("mortgage") -> Icons.Default.Home
+    key.contains("food") || key.contains("meal") || key.contains("restaurant") -> Icons.Default.Restaurant
+    key.contains("car") || key.contains("fuel") || key.contains("transport") || key.contains("taxi") || key.contains("ride") -> Icons.Default.DirectionsCar
+    key.contains("shop") || key.contains("grocery") || key.contains("market") || key.contains("purchase") -> Icons.Default.ShoppingBag
+    else -> Icons.Default.KeyboardArrowDown
+}
+
+private fun transactionIconTint(t: TransactionItem, key: String): Color = when {
+    t.isIncome -> Credit
+    key.contains("rent") || key.contains("home") || key.contains("mortgage") -> Debit
+    key.contains("food") || key.contains("meal") || key.contains("restaurant") -> Color(0xFFE67700)
+    key.contains("car") || key.contains("fuel") || key.contains("transport") || key.contains("taxi") || key.contains("ride") -> Color(0xFF0B7285)
+    key.contains("shop") || key.contains("grocery") || key.contains("market") || key.contains("purchase") -> Color(0xFF5F3DC4)
+    else -> Debit
 }
 

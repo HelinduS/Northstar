@@ -32,6 +32,7 @@ fun QuickActionsRow(navController: NavController) {
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         QuickAction(label = "Add Money", icon = Icons.Outlined.Add, modifier = Modifier.weight(1f), onClick = { navController.navigate(Screen.AddIncome.route) })
+        QuickAction(label = "Add Expense", icon = Icons.Outlined.Add, modifier = Modifier.weight(1f), onClick = { navController.navigate(Screen.AddExpense.route) })
         QuickAction(label = "Goal",      icon = Icons.Outlined.FavoriteBorder, modifier = Modifier.weight(1f), onClick = { navController.navigate(Screen.Goals.route) })
         QuickAction(label = "Analytics", icon = Icons.Outlined.MoreVert, modifier = Modifier.weight(1f), onClick = { navController.navigate(Screen.Analytics.route) })
         QuickAction(label = "History",   icon = Icons.Outlined.DateRange, modifier = Modifier.weight(1f), onClick = { navController.navigate(Screen.TransactionHistory.route) })

@@ -29,7 +29,7 @@ fun ThisMonthCard(income: Long, expenses: Long) {
                     Column {
                         Text("NET SAVED", fontSize = 10.sp, fontWeight = FontWeight.W600, color = TextMuted, letterSpacing = 0.5.sp, fontFamily = InterFontFamily)
                         val balance = (income - expenses) / 100.0
-                        Text(String.format(Locale.US, "− LKR %.2f", balance), fontSize = 22.sp, fontWeight = FontWeight.W800, color = Debit, letterSpacing = (-0.8).sp, fontFamily = InterFontFamily)
+                        Text(String.format(Locale.US, "LKR %.2f", balance), fontSize = 22.sp, fontWeight = FontWeight.W800, color = Navy900, letterSpacing = (-0.8).sp, fontFamily = InterFontFamily)
                     }
 
                     Column(horizontalAlignment = Alignment.End) {
