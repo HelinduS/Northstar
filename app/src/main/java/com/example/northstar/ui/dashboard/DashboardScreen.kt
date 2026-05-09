@@ -6,6 +6,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect // --- CHANGE START: Added for refresh trigger ---
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -35,6 +36,12 @@ fun DashboardScreen(
             popUpTo(Screen.Dashboard.route) { inclusive = true }
         }
     }
+
+
+    LaunchedEffect(Unit) {
+        dashboardViewModel.loadDashboardData()
+    }
+
 
     if (uiState.isLoading) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration // Added for real-time listener
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -43,6 +44,10 @@ class DashboardViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(DashboardUiState())
     val uiState: StateFlow<DashboardUiState> = _uiState.asStateFlow()
 
+    // --- CHANGE START: Added listener variable ---
+    private var incomeListener: ListenerRegistration? = null
+    // --- CHANGE END ---
+
     init {
         loadDashboardData()
     }
@@ -78,18 +83,43 @@ class DashboardViewModel @Inject constructor(
                 calendar.set(java.util.Calendar.SECOND, 0)
                 val startOfMonth = calendar.time
 
-                // Fetch incomes for current month
-                val incomesSnapshot = firestore
+
+                incomeListener = firestore
                     .collection("users")
                     .document(user.uid)
                     .collection("incomes")
                     .whereGreaterThanOrEqualTo("date", startOfMonth)
-                    .get()
-                    .await()
+                    .addSnapshotListener { snapshot, error ->
+                        if (error != null) return@addSnapshotListener
 
-                val totalIncome = incomesSnapshot.documents.sumOf {
-                    it.getLong("lkrAmount") ?: 0L
-                }
+                        val totalIncome = snapshot?.documents?.sumOf {
+                            it.getLong("lkrAmount") ?: 0L
+                        } ?: 0L
+
+                        val recentIncomes = snapshot?.documents?.map {
+                            TransactionItem(
+                                id = it.id,
+                                title = it.getString("sourceType") ?: "Income",
+                                amount = it.getLong("lkrAmount") ?: 0L,
+                                isIncome = true,
+                                date = it.getTimestamp("date")?.toDate()?.time ?: 0L,
+                                category = it.getString("sourceType") ?: ""
+                            )
+                        } ?: emptyList()
+
+                        // Update state with new income data and recalculate totals
+                        _uiState.value = _uiState.value.copy(
+                            displayName = displayName,
+                            email = email,
+                            totalIncomeLkr = totalIncome,
+                            netSavedLkr = totalIncome - _uiState.value.totalExpensesLkr,
+                            recentTransactions = (recentIncomes + _uiState.value.recentTransactions.filter { !it.isIncome })
+                                .sortedByDescending { it.date }
+                                .take(5),
+                            isLoading = false
+                        )
+                    }
+
 
                 // Fetch expenses for current month
                 val expensesSnapshot = firestore
@@ -112,18 +142,6 @@ class DashboardViewModel @Inject constructor(
                     .filter { it.getString("expenseType") == "DISCRETIONARY" }
                     .sumOf { it.getLong("amount") ?: 0L }
 
-                // Build recent transactions list (last 5)
-                val recentIncomes = incomesSnapshot.documents.map {
-                    TransactionItem(
-                        id = it.id,
-                        title = it.getString("sourceType") ?: "Income",
-                        amount = it.getLong("lkrAmount") ?: 0L,
-                        isIncome = true,
-                        date = it.getTimestamp("date")?.toDate()?.time ?: 0L,
-                        category = it.getString("sourceType") ?: ""
-                    )
-                }
-
                 val recentExpenses = expensesSnapshot.documents.map {
                     TransactionItem(
                         id = it.id,
@@ -135,20 +153,14 @@ class DashboardViewModel @Inject constructor(
                     )
                 }
 
-                val recentTransactions = (recentIncomes + recentExpenses)
-                    .sortedByDescending { it.date }
-                    .take(5)
-
-                _uiState.value = DashboardUiState(
-                    displayName = displayName,
-                    email = email,
-                    totalIncomeLkr = totalIncome,
+                _uiState.value = _uiState.value.copy(
                     totalExpensesLkr = totalExpenses,
-                    netSavedLkr = totalIncome - totalExpenses,
+                    netSavedLkr = _uiState.value.totalIncomeLkr - totalExpenses,
                     committedExpensesLkr = committedExpenses,
                     discretionaryExpensesLkr = discretionaryExpenses,
-                    recentTransactions = recentTransactions,
-                    isLoading = false
+                    recentTransactions = (_uiState.value.recentTransactions.filter { it.isIncome } + recentExpenses)
+                        .sortedByDescending { it.date }
+                        .take(5)
                 )
 
             } catch (e: Exception) {
@@ -159,4 +171,11 @@ class DashboardViewModel @Inject constructor(
             }
         }
     }
+
+
+    override fun onCleared() {
+        super.onCleared()
+        incomeListener?.remove()
+    }
+
 }
