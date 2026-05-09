@@ -40,7 +40,7 @@ fun IncomeScreen(
     val selectedCurrency by viewModel.selectedCurrency.collectAsState()
     val availableCurrencies by viewModel.availableCurrencies.collectAsState()
     val currentRate by viewModel.exchangeRate.collectAsState()
-
+    val isFetching by viewModel.isFetchingRate.collectAsState()
     val totalLkrEstimate by viewModel.totalLkrEstimate.collectAsState()
 
     var amount by remember { mutableStateOf("") }
@@ -117,7 +117,7 @@ fun IncomeScreen(
             ) {
                 Text("Income Details", fontWeight = FontWeight.Bold, color = Color(0xFF1A56B4))
 
-                // Source Selection
+                // 1. Source Selection
                 Box {
                     DetailDropdown(
                         label = "Income Source",
@@ -141,20 +141,25 @@ fun IncomeScreen(
                     OutlinedTextField(value = projectName, onValueChange = { projectName = it }, label = { Text("Project Name") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp))
                 }
 
-                // Currency Selection
+                // 2. Currency Selection
                 Box {
-                    DetailDropdown(label = "Currency", selected = selectedCurrency, icon = Icons.Default.Info, onClick = { showCurrencyMenu = true })
+                    DetailDropdown(label = "Currency", selected = "$selectedCurrency (${getCurrencyName(selectedCurrency)})", icon = Icons.Default.Info, onClick = { showCurrencyMenu = true })
                     DropdownMenu(expanded = showCurrencyMenu, onDismissRequest = { showCurrencyMenu = false }, modifier = Modifier.fillMaxWidth(0.8f)) {
                         availableCurrencies.forEach { currency ->
                             DropdownMenuItem(
-                                text = { Text(currency) },
+                                text = {
+                                    Row {
+                                        Text(currency, fontWeight = FontWeight.Bold, modifier = Modifier.width(50.dp))
+                                        Text(getCurrencyName(currency), color = Color.Gray, fontSize = 14.sp)
+                                    }
+                                },
                                 onClick = { viewModel.onCurrencySelected(currency); showCurrencyMenu = false }
                             )
                         }
                     }
                 }
 
-                // Amount & Estimate
+                // 3. Amount Field
                 OutlinedTextField(
                     value = amount,
                     onValueChange = {
@@ -170,16 +175,46 @@ fun IncomeScreen(
                     shape = RoundedCornerShape(12.dp)
                 )
 
+                // 4. Estimated Total Card
                 if (selectedCurrency != "LKR" && amount.isNotEmpty()) {
                     Card(colors = CardDefaults.cardColors(containerColor = Color(0xFFF0F4FF)), shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()) {
                         Column(modifier = Modifier.padding(16.dp)) {
-                            Text("Estimated Total", fontSize = 12.sp, color = Color.Gray)
-                            Text("LKR ${String.format(Locale.US, "%.2f", totalLkrEstimate)}", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1A56B4))
+                            Text("Estimated Total (LKR)", fontSize = 12.sp, color = Color.Gray)
+                            Text("Rs. ${String.format(Locale.US, "%,.2f", totalLkrEstimate)}", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1A56B4))
                         }
                     }
                 }
 
-                // Date
+                // 5. Exchange Rate Bar (Moved here)
+                if (selectedCurrency != "LKR") {
+                    Column {
+                        OutlinedTextField(
+                            value = currentRate.toString(),
+                            onValueChange = { viewModel.updateExchangeRate(it) },
+                            modifier = Modifier.fillMaxWidth(),
+                            label = { Text("Exchange Rate (1 $selectedCurrency to LKR)") },
+                            shape = RoundedCornerShape(12.dp),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                            trailingIcon = {
+                                IconButton(onClick = { viewModel.refreshRate() }) {
+                                    if (isFetching) {
+                                        CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                                    } else {
+                                        Icon(Icons.Default.Refresh, contentDescription = "Refresh Rate")
+                                    }
+                                }
+                            }
+                        )
+                        Text(
+                            text = "Edit if bank rate differs.",
+                            fontSize = 12.sp,
+                            color = Color.Gray,
+                            modifier = Modifier.padding(start = 4.dp, top = 4.dp)
+                        )
+                    }
+                }
+
+                // 6. Date Selection
                 DetailDropdown(
                     label = "Date Received",
                     selected = if (selectedDate == 0L) "Select Date" else dateFormatter.format(Date(selectedDate)),
@@ -190,28 +225,38 @@ fun IncomeScreen(
                     }
                 )
 
+                // 7. Notes
                 OutlinedTextField(value = notes, onValueChange = { notes = it }, label = { Text("Add a note...") }, leadingIcon = { Icon(Icons.Default.Edit, null) }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp))
             }
         }
     }
 }
 
-// --- RESTORED HELPER COMPOSABLES ---
+// Helpers
+fun getCurrencyName(code: String): String = when(code) {
+    "LKR" -> "Sri Lankan Rupee"
+    "USD" -> "US Dollar"
+    "EUR" -> "Euro"
+    "GBP" -> "British Pound"
+    "JPY" -> "Japanese Yen"
+    "CHF" -> "Swiss Franc"
+    "CAD" -> "Canadian Dollar"
+    "AUD" -> "Australian Dollar"
+    "INR" -> "Indian Rupee"
+    "CNY" -> "Chinese Yuan"
+    "USDT" -> "Tether"
+    "BTC" -> "Bitcoin"
+    "ETH" -> "Ethereum"
+    "ALT" -> "Altcoins"
+    else -> "Currency"
+}
 
 @Composable
-fun DetailDropdown(
-    label: String,
-    selected: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    onClick: () -> Unit
-) {
+fun DetailDropdown(label: String, selected: String, icon: androidx.compose.ui.graphics.vector.ImageVector, onClick: () -> Unit) {
     Column(modifier = Modifier.fillMaxWidth().clickable { onClick() }) {
         Text(text = label, fontSize = 12.sp, color = Color.Gray, modifier = Modifier.padding(start = 4.dp, bottom = 4.dp))
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(1.dp, Color(0xFFE0E0E0), RoundedCornerShape(12.dp))
-                .padding(16.dp),
+            modifier = Modifier.fillMaxWidth().border(1.dp, Color(0xFFE0E0E0), RoundedCornerShape(12.dp)).padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
