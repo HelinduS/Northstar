@@ -12,7 +12,6 @@ import kotlinx.coroutines.launch
 import java.util.UUID
 import javax.inject.Inject
 
-// 1. PLACE UI STATE HERE
 sealed class IncomeUiState {
     object Idle : IncomeUiState()
     object Loading : IncomeUiState()
@@ -37,9 +36,10 @@ class IncomeViewModel @Inject constructor(
         date: Long,
         notes: String?
     ) {
-        val amount = amountStr.toLongOrNull() ?: 0L
 
-        if (amount <= 0) {
+        val amountInCents = (amountStr.toDoubleOrNull() ?: 0.0).times(100).toLong()
+
+        if (amountInCents <= 0) {
             _uiState.value = IncomeUiState.Error("Amount must be greater than zero.")
             return
         }
@@ -47,13 +47,16 @@ class IncomeViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = IncomeUiState.Loading
 
+
+            val lkrAmountInCents = (amountInCents * exchangeRate).toLong()
+
             val income = Income(
                 id = UUID.randomUUID().toString(),
                 sourceType = sourceType,
                 projectName = projectName,
-                originalAmount = amount,
+                originalAmount = amountInCents,
                 originalCurrency = currency,
-                lkrAmount = (amount * exchangeRate).toLong(),
+                lkrAmount = lkrAmountInCents,
                 exchangeRate = exchangeRate,
                 date = date,
                 notes = notes,

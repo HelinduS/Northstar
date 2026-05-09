@@ -124,7 +124,7 @@ class IncomeRepositoryImpl @Inject constructor(
         }
     }
 
-    // FIXED: Now returns Flow as defined in interface
+
     override fun getLatestIncomes(limit: Int): Flow<List<Income>> {
         return incomeDao.getLatestIncomes(limit).map { entities ->
             entities.map { it.toDomain() }
@@ -143,7 +143,7 @@ class IncomeRepositoryImpl @Inject constructor(
         }
     }
 
-    // NEW: Implementing the monthly total flow
+
     override fun getTotalIncomeForMonth(startTime: Long, endTime: Long): Flow<Long> {
         return incomeDao.getTotalIncomeForMonth(startTime, endTime)
     }
