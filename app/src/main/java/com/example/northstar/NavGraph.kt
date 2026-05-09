@@ -10,6 +10,7 @@ import com.example.northstar.ui.dashboard.DashboardScreen
 import com.example.northstar.ui.expense.ExpenseScreen
 import com.example.northstar.ui.goals.GoalsScreen
 import com.example.northstar.ui.income.IncomeScreen
+import com.example.northstar.ui.history.TransactionHistoryScreen
 
 @Composable
 fun NavGraph(
@@ -52,6 +53,9 @@ fun NavGraph(
         }
         composable(Screen.Analytics.route) {
             AnalyticsScreen(navController = navController)
+        }
+        composable(Screen.TransactionHistory.route) {
+            TransactionHistoryScreen(navController = navController)
         }
     }
 }
