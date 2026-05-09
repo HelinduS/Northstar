@@ -164,6 +164,10 @@ fun ExpenseScreen(
                         ),
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
+                        textStyle = LocalTextStyle.current.copy(
+                            textAlign = TextAlign.Center,
+                            color = Color.White
+                        ),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedTextColor = Color.White,
                             unfocusedTextColor = Color.White,

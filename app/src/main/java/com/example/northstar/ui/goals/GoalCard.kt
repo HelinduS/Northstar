@@ -21,7 +21,6 @@ import java.util.*
 
 @Composable
 fun GoalCard(goal: Goal, viewModel: GoalViewModel) {
-    // Logic & State
     val progress = remember(goal.savedAmount, goal.targetAmount) {
         if (goal.targetAmount > 0L) (goal.savedAmount.toFloat() / goal.targetAmount.toFloat()).coerceIn(0f, 1f) else 0f
     }
@@ -30,6 +29,7 @@ fun GoalCard(goal: Goal, viewModel: GoalViewModel) {
 
     var showContributeDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var showReachedDialog by remember { mutableStateOf(false) }
 
     Card(
         modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
@@ -52,13 +52,15 @@ fun GoalCard(goal: Goal, viewModel: GoalViewModel) {
 
             GoalCardFooter(
                 goal = goal,
-                onAdd = { showContributeDialog = true },
+                onAdd = {
+                    if (isReached) showReachedDialog = true
+                    else showContributeDialog = true
+                },
                 onDelete = { showDeleteDialog = true }
             )
         }
     }
 
-    // Dialog Logic
     if (showContributeDialog) {
         ContributeDialog(onDismiss = { showContributeDialog = false }) { amount ->
             viewModel.contributeToGoal(goal, amount)
@@ -71,11 +73,27 @@ fun GoalCard(goal: Goal, viewModel: GoalViewModel) {
             showDeleteDialog = false
         }
     }
+    if (showReachedDialog) {
+        AlertDialog(
+            onDismissRequest = { showReachedDialog = false },
+            shape = RoundedCornerShape(24.dp),
+            title = { Text("✅ Goal Reached!", fontWeight = FontWeight.Bold) },
+            text = { Text("You have already completed \"${goal.name}\"! No more savings needed.") },
+            confirmButton = {
+                Button(
+                    onClick = { showReachedDialog = false },
+                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
+                    shape = RoundedCornerShape(12.dp)
+                ) { Text("Great!") }
+            }
+        )
+    }
 }
 
 @Composable
 private fun GoalCardHeader(goal: Goal, percent: Int, isReached: Boolean, accent: Color) {
-    val date = if (goal.targetDate > 0L) SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(Date(goal.targetDate)) else "No date set"
+    val dateFormatter = remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
+    val date = if (goal.targetDate > 0L) dateFormatter.format(Date(goal.targetDate)) else "No date set"
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
         Column(modifier = Modifier.weight(1f)) {
             Text(goal.name, fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Color.White)
@@ -95,7 +113,7 @@ private fun GoalCardHeader(goal: Goal, percent: Int, isReached: Boolean, accent:
 
 @Composable
 private fun GoalCardFooter(goal: Goal, onAdd: () -> Unit, onDelete: () -> Unit) {
-    val currencyFormat = NumberFormat.getInstance(Locale.getDefault())
+    val currencyFormat = remember { NumberFormat.getInstance(Locale.getDefault()) }
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Bottom) {
         Column {
             Text("LKR ${currencyFormat.format(goal.savedAmount / 100)}", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
@@ -138,7 +156,10 @@ private fun DeleteGoalDialog(name: String, onDismiss: () -> Unit, onConfirm: () 
             Button(
                 onClick = onDismiss,
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEEEEEE), contentColor = Color.Black)
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFFEEEEEE),
+                    contentColor = Color.Black
+                )
             ) { Text("Cancel") }
         }
     )
