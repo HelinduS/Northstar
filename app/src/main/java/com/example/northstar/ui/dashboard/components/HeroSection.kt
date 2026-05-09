@@ -31,18 +31,18 @@ fun HeroSection(
     income: Long,
     expenses: Long
 ) {
-    // Outer box — full navy background including the overlap area
     Box(
         modifier = Modifier
             .fillMaxWidth()
+            .clip(RoundedCornerShape(bottomStart = 28.dp, bottomEnd = 28.dp))
             .background(Navy900)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp)
+                .padding(bottom = 28.dp)
         ) {
-
             // ── Header row ──
             Row(
                 modifier = Modifier
@@ -183,10 +183,7 @@ fun HeroSection(
                         modifier = Modifier.padding(bottom = 14.dp)
                     )
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(0.dp)
-                    ) {
+                    Row(modifier = Modifier.fillMaxWidth()) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 "Income",
@@ -239,34 +236,6 @@ fun HeroSection(
                     }
                 }
             }
-
-            // gap between card and the white rounded cap
-            Spacer(modifier = Modifier.height(24.dp))
-        }
-
-        // ── White rounded cap — sits at bottom of the navy Box ──
-        // Creates the illusion of the white sheet sliding up over the dark hero
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(28.dp)
-                .align(Alignment.BottomCenter)
-                .background(
-                    Surface,
-                    RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
-                )
-        ) {
-            // Pull handle
-            Box(
-                modifier = Modifier
-                    .size(width = 36.dp, height = 4.dp)
-                    .align(Alignment.TopCenter)
-                    .padding(top = 0.dp)
-                    .background(
-                        Color.Black.copy(alpha = 0.1f),
-                        RoundedCornerShape(99.dp)
-                    )
-            )
         }
     }
 }

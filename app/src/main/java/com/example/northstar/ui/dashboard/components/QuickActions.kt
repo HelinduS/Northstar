@@ -9,8 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material.icons.outlined.FavoriteBorder
-import androidx.compose.material.icons.outlined.ShowChart
-import androidx.compose.material.icons.outlined.List
+import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,26 +28,26 @@ fun QuickActionsRow(navController: NavController) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 20.dp, end = 20.dp, top = 16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
+            .padding(start = 16.dp, end = 16.dp, top = 14.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        QuickAction(label = "Add Money", icon = Icons.Outlined.Add,          onClick = { navController.navigate(Screen.AddIncome.route) })
-        QuickAction(label = "Goal",      icon = Icons.Outlined.FavoriteBorder, onClick = { navController.navigate(Screen.Goals.route) })
-        QuickAction(label = "Analytics", icon = Icons.Outlined.ShowChart, onClick = { navController.navigate(Screen.Analytics.route) })
-        QuickAction(label = "History",   icon = Icons.Outlined.DateRange,     onClick = { navController.navigate(Screen.TransactionHistory.route) })
+        QuickAction(label = "Add Money", icon = Icons.Outlined.Add, modifier = Modifier.weight(1f), onClick = { navController.navigate(Screen.AddIncome.route) })
+        QuickAction(label = "Goal",      icon = Icons.Outlined.FavoriteBorder, modifier = Modifier.weight(1f), onClick = { navController.navigate(Screen.Goals.route) })
+        QuickAction(label = "Analytics", icon = Icons.Outlined.MoreVert, modifier = Modifier.weight(1f), onClick = { navController.navigate(Screen.Analytics.route) })
+        QuickAction(label = "History",   icon = Icons.Outlined.DateRange, modifier = Modifier.weight(1f), onClick = { navController.navigate(Screen.TransactionHistory.route) })
     }
 }
 
 @Composable
-fun QuickAction(label: String, icon: ImageVector, onClick: () -> Unit) {
+fun QuickAction(label: String, icon: ImageVector, modifier: Modifier = Modifier, onClick: () -> Unit) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(7.dp),
-        modifier = Modifier.clickable(onClick = onClick)
+        verticalArrangement = Arrangement.spacedBy(5.dp),
+        modifier = modifier.clickable(onClick = onClick)
     ) {
         Box(
             modifier = Modifier
-                .size(50.dp)
+                .size(58.dp)
                 .background(White, RoundedCornerShape(16.dp))
                 .border(1.dp, Border, RoundedCornerShape(16.dp))
                 .clip(RoundedCornerShape(16.dp)),
@@ -57,10 +56,10 @@ fun QuickAction(label: String, icon: ImageVector, onClick: () -> Unit) {
             Icon(
                 icon,
                 contentDescription = label,
-                modifier = Modifier.size(19.dp),
+                modifier = Modifier.size(22.dp),
                 tint = Navy900
             )
         }
-        Text(label, fontSize = 10.sp, color = TextSecondary, fontFamily = InterFontFamily)
+        Text(label, fontSize = 11.sp, color = TextSecondary, fontFamily = InterFontFamily)
     }
 }
