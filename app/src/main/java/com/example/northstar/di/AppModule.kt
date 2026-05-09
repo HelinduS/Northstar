@@ -11,8 +11,6 @@ import com.example.northstar.data.repository.GoalRepository
 import com.example.northstar.data.repository.GoalRepositoryImpl
 import com.example.northstar.data.repository.ExpenseRepository
 import com.example.northstar.data.repository.ExpenseRepositoryImpl
-import com.example.northstar.data.repository.GoalRepository
-import com.example.northstar.data.repository.GoalRepositoryImpl
 import com.example.northstar.data.repository.IncomeRepository
 import com.example.northstar.data.repository.IncomeRepositoryImpl
 import com.google.firebase.auth.FirebaseAuth
@@ -84,7 +82,10 @@ object AppModule {
         incomeDao: IncomeDao,
         firestore: FirebaseFirestore,
         firebaseAuth: FirebaseAuth
-    ): IncomeRepository = IncomeRepositoryImpl(incomeDao, firestore, firebaseAuth)
+     ): IncomeRepository = IncomeRepositoryImpl(incomeDao, firestore, firebaseAuth)
+
+    @Provides
+    @Singleton
     fun provideGoalRepository(
         firebaseAuth: FirebaseAuth,
         firestore: FirebaseFirestore
@@ -96,9 +97,4 @@ object AppModule {
         firebaseAuth: FirebaseAuth,
         firestore: FirebaseFirestore
     ): ExpenseRepository = ExpenseRepositoryImpl(firebaseAuth, firestore)
-
-    @Provides
-    @Singleton
-    fun provideGoalRepository(goalDao: GoalDao): GoalRepository =
-        GoalRepositoryImpl(goalDao)
 }

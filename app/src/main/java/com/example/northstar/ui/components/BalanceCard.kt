@@ -1,15 +1,19 @@
 package com.example.northstar.ui.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.shadow
+import androidx.compose.foundation.border
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.northstar.ui.theme.NeutralWhite
 import com.example.northstar.ui.theme.PrimaryBlue
 import java.util.Locale
 
@@ -29,23 +33,44 @@ fun BalanceCard(
         (totalExpenses.toFloat() / totalIncome.toFloat()).coerceIn(0f, 1f)
     else 0f
 
-    Card(
+    val cardShape = RoundedCornerShape(24.dp)
+
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = PrimaryBlue)
+            .padding(horizontal = 20.dp)
+            .shadow(
+                elevation = 10.dp,
+                shape = cardShape,
+                ambientColor = Color.Black.copy(alpha = 0.12f),
+                spotColor = Color.Black.copy(alpha = 0.18f)
+            )
+            .border(
+                width = 1.dp,
+                color = Color.White.copy(alpha = 0.65f),
+                shape = cardShape
+            )
+            .clip(cardShape)
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        Color(0xFFFFFFFF),
+                        Color(0xFFF4F7FB),
+                        Color(0xFFE8EEF8)
+                    )
+                )
+            )
     ) {
         Column(modifier = Modifier.padding(22.dp)) {
             Text(
                 "Total Income This Month",
-                color = NeutralWhite.copy(alpha = 0.7f),
+                color = PrimaryBlue.copy(alpha = 0.7f),
                 fontSize = 13.sp
             )
             Spacer(Modifier.height(8.dp))
             Text(
                 "LKR ${String.format(Locale.US, "%,.2f", incomeLkr)}",
-                color = NeutralWhite,
+                color = PrimaryBlue,
                 fontSize = 36.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -56,12 +81,12 @@ fun BalanceCard(
             ) {
                 Text(
                     "Total Expenses",
-                    color = NeutralWhite.copy(alpha = 0.7f),
+                    color = PrimaryBlue.copy(alpha = 0.7f),
                     fontSize = 12.sp
                 )
                 Text(
                     "LKR ${String.format(Locale.US, "%,.2f", expensesLkr)}",
-                    color = NeutralWhite,
+                    color = PrimaryBlue,
                     fontSize = 12.sp
                 )
             }
@@ -72,13 +97,13 @@ fun BalanceCard(
                     .fillMaxWidth()
                     .height(8.dp)
                     .clip(RoundedCornerShape(4.dp)),
-                color = NeutralWhite,
-                trackColor = NeutralWhite.copy(alpha = 0.3f)
+                color = PrimaryBlue,
+                trackColor = PrimaryBlue.copy(alpha = 0.3f)
             )
             Spacer(Modifier.height(6.dp))
             Text(
                 "Saved LKR ${String.format(Locale.US, "%,.2f", savedLkr)}",
-                color = NeutralWhite.copy(alpha = 0.7f),
+                color = PrimaryBlue.copy(alpha = 0.7f),
                 fontSize = 11.sp
             )
         }
