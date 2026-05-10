@@ -55,7 +55,7 @@ private val RoseBg       = Color(0xFFFFF0F6)
 // ── All templates ─────────────────────────────────────────────────────────────
 
 val allGoalTemplates = listOf(
-    GoalTemplate(Icons.Outlined.HealthAndSafety, "Emergency Fund", "Safety net",     GreenBg,   GreenStart,   targetAmount = 300000.0),
+    GoalTemplate(Icons.Outlined.HealthAndSafety, "Emergency", "Safety net",     GreenBg,   GreenStart,   targetAmount = 300000.0),
     GoalTemplate(Icons.Outlined.Flight,          "Vacation",       "Dream trip",     BlueBg,    Blue,         targetAmount = 150000.0),
     GoalTemplate(Icons.Outlined.DirectionsCar,   "New Car",        "Drive in style", OrangeBg,  OrangeTint,   targetAmount = 2000000.0),
     GoalTemplate(Icons.Outlined.Home,            "Dream Home",     "Own it",         PurpleBg,  Purple,       targetAmount = 10000000.0),
