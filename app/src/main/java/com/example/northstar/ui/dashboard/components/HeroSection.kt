@@ -59,7 +59,12 @@ fun HeroSection(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        "HS",
+                        displayName
+                            .split(" ")
+                            .filter { it.isNotBlank() }
+                            .take(2)
+                            .joinToString("") { it.first().uppercaseChar().toString() }
+                            .ifBlank { "?" },
                         fontSize = 12.sp,
                         fontWeight = FontWeight.W700,
                         color = White,

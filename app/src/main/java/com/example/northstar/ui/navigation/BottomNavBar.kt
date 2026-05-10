@@ -2,16 +2,7 @@ package com.example.northstar.ui.navigation
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -25,11 +16,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -42,9 +29,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.northstar.Screen
 import com.example.northstar.ui.theme.InterFontFamily
 import com.example.northstar.ui.theme.Navy900
-import com.example.northstar.ui.theme.Surface
 import com.example.northstar.ui.theme.White
-
+import androidx.compose.foundation.layout.navigationBarsPadding
 sealed class BottomNavItem(val route: String, val icon: ImageVector) {
     object Home      : BottomNavItem(Screen.Dashboard.route,          Icons.Outlined.Home)
     object Analytics : BottomNavItem(Screen.Analytics.route,          Icons.AutoMirrored.Outlined.ShowChart)
@@ -62,99 +48,87 @@ fun BottomNavBar(navController: NavHostController) {
     val leftItems  = listOf(BottomNavItem.Home, BottomNavItem.Analytics)
     val rightItems = listOf(BottomNavItem.History, BottomNavItem.Profile)
 
-    Box(
+    // Pill only — no background wrapper, no spacers
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Surface)
             .navigationBarsPadding()
-            .padding(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 16.dp),
-        contentAlignment = Alignment.BottomCenter
+            .padding(horizontal = 24.dp)
+            .padding(top = 12.dp, bottom = 16.dp)
+            .shadow(
+                elevation = 20.dp,
+                shape = RoundedCornerShape(99.dp),
+                ambientColor = Color.Black.copy(alpha = 0.25f),
+                spotColor = Color.Black.copy(alpha = 0.25f)
+            )
+            .background(Navy900, RoundedCornerShape(99.dp))
+            .height(64.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(64.dp)
-                .shadow(
-                    elevation = 24.dp,
-                    shape = RoundedCornerShape(99.dp),
-                    ambientColor = Color.Black.copy(alpha = 0.3f),
-                    spotColor = Color.Black.copy(alpha = 0.3f)
-                )
-                .background(Navy900, RoundedCornerShape(99.dp))
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(64.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
+        leftItems.forEach { item ->
+            Box(
+                modifier = Modifier.weight(1f),
+                contentAlignment = Alignment.Center
             ) {
-                leftItems.forEach { item ->
-                    Box(
-                        modifier = Modifier.weight(1f),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        NavIconItem(
-                            selected = currentRoute == item.route,
-                            icon = item.icon,
-                            onClick = {
-                                navController.navigate(item.route) {
-                                    popUpTo(Screen.Dashboard.route) { saveState = true }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            }
-                        )
+                NavIconItem(
+                    selected = currentRoute == item.route,
+                    icon = item.icon,
+                    onClick = {
+                        navController.navigate(item.route) {
+                            popUpTo(Screen.Dashboard.route) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
                     }
-                }
+                )
+            }
+        }
 
-                Box(
-                    modifier = Modifier.weight(1f),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(52.dp)
-                            .shadow(elevation = 8.dp, shape = CircleShape)
-                            .background(White, CircleShape)
-                            .clickable { showAddSheet = true },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            Icons.Outlined.Add,
-                            contentDescription = "Add transaction",
-                            modifier = Modifier.size(22.dp),
-                            tint = Navy900
-                        )
-                    }
-                }
+        // Centre FAB
+        Box(
+            modifier = Modifier.weight(1f),
+            contentAlignment = Alignment.Center
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(52.dp)
+                    .shadow(elevation = 6.dp, shape = CircleShape)
+                    .background(White, CircleShape)
+                    .clickable { showAddSheet = true },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    Icons.Outlined.Add,
+                    contentDescription = "Add",
+                    modifier = Modifier.size(22.dp),
+                    tint = Navy900
+                )
+            }
+        }
 
-                rightItems.forEach { item ->
-                    Box(
-                        modifier = Modifier.weight(1f),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        NavIconItem(
-                            selected = currentRoute == item.route,
-                            icon = item.icon,
-                            onClick = {
-                                navController.navigate(item.route) {
-                                    popUpTo(Screen.Dashboard.route) { saveState = true }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            }
-                        )
+        rightItems.forEach { item ->
+            Box(
+                modifier = Modifier.weight(1f),
+                contentAlignment = Alignment.Center
+            ) {
+                NavIconItem(
+                    selected = currentRoute == item.route,
+                    icon = item.icon,
+                    onClick = {
+                        navController.navigate(item.route) {
+                            popUpTo(Screen.Dashboard.route) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
                     }
-                }
+                )
             }
         }
     }
 
     if (showAddSheet) {
-        ModalBottomSheet(
-            onDismissRequest = { showAddSheet = false }
-        ) {
+        ModalBottomSheet(onDismissRequest = { showAddSheet = false }) {
             AddActionSheet(
                 onAddIncome = {
                     showAddSheet = false
@@ -170,11 +144,7 @@ fun BottomNavBar(navController: NavHostController) {
 }
 
 @Composable
-private fun NavIconItem(
-    selected: Boolean,
-    icon: ImageVector,
-    onClick: () -> Unit
-) {
+private fun NavIconItem(selected: Boolean, icon: ImageVector, onClick: () -> Unit) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(3.dp),
@@ -187,11 +157,7 @@ private fun NavIconItem(
             tint = if (selected) White else White.copy(alpha = 0.3f)
         )
         if (selected) {
-            Box(
-                modifier = Modifier
-                    .size(4.dp)
-                    .background(White, CircleShape)
-            )
+            Box(modifier = Modifier.size(4.dp).background(White, CircleShape))
         } else {
             Spacer(modifier = Modifier.height(4.dp))
         }
@@ -199,10 +165,7 @@ private fun NavIconItem(
 }
 
 @Composable
-private fun AddActionSheet(
-    onAddIncome: () -> Unit,
-    onAddExpense: () -> Unit
-) {
+private fun AddActionSheet(onAddIncome: () -> Unit, onAddExpense: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
