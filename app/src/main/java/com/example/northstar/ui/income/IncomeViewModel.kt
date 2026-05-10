@@ -6,7 +6,9 @@ import com.example.northstar.data.remote.CurrencyApiService
 import com.example.northstar.data.repository.IncomeRepository
 import com.example.northstar.domain.model.Income
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.util.UUID
 import javax.inject.Inject
@@ -35,7 +37,7 @@ class IncomeViewModel @Inject constructor(
         "Crypto" to listOf("USDT", "BTC", "ETH", "ALT"),
         "Digital Products" to listOf("USD"),
         "Tutoring" to listOf("LKR", "USD"),
-        "Other" to listOf("LKR", "USD")
+        "Other" to listOf("LKR", "USD", "EUR", "GBP", "JPY", "CHF", "CAD", "AUD", "INR", "CNY")
     )
 
     private val _uiState = MutableStateFlow<IncomeUiState>(IncomeUiState.Idle)
@@ -54,18 +56,12 @@ class IncomeViewModel @Inject constructor(
     val exchangeRate = _exchangeRate.asStateFlow()
 
     private val _isFetchingRate = MutableStateFlow(false)
+    val isFetchingRate = _isFetchingRate.asStateFlow()
 
+    private val _totalLkrEstimate = MutableStateFlow(0.0)
+    val totalLkrEstimate: StateFlow<Double> = _totalLkrEstimate.asStateFlow()
 
-    // --- STEP 4 ADDITION: LIVE CALCULATION ---
-    private val _liveAmount = MutableStateFlow(0.0)
-
-    val totalLkrEstimate: StateFlow<Double> = combine(_liveAmount, _exchangeRate) { amt, rate ->
-        amt * rate
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
-
-    fun updateLiveAmount(amtStr: String) {
-        _liveAmount.value = amtStr.toDoubleOrNull() ?: 0.0
-    }
+    private var currentAmountInput: String = ""
 
     fun onSourceSelected(source: String) {
         _selectedSource.value = source
@@ -78,12 +74,30 @@ class IncomeViewModel @Inject constructor(
         _selectedCurrency.value = currency
         if (currency == "LKR") {
             _exchangeRate.value = 1.0
+            updateLiveAmount(currentAmountInput)
         } else {
             fetchLatestRate(currency.lowercase())
         }
     }
 
+    fun updateExchangeRate(newRate: String) {
+        val rate = newRate.toDoubleOrNull() ?: 0.0
+        _exchangeRate.value = rate
+        updateLiveAmount(currentAmountInput)
+    }
 
+    fun updateLiveAmount(amountStr: String) {
+        currentAmountInput = amountStr
+        val amount = amountStr.toDoubleOrNull() ?: 0.0
+        _totalLkrEstimate.value = amount * _exchangeRate.value
+    }
+
+    fun refreshRate() {
+        val currency = _selectedCurrency.value
+        if (currency != "LKR") {
+            fetchLatestRate(currency.lowercase())
+        }
+    }
 
     private fun fetchLatestRate(base: String) {
         viewModelScope.launch {
@@ -91,7 +105,7 @@ class IncomeViewModel @Inject constructor(
             try {
                 val normalizedBase = base.trim().lowercase()
                 val response = apiService.getExchangeRates(normalizedBase)
-                val innerMap = response[normalizedBase] as? Map<*, *>
+                val innerMap = response[normalizedBase] as? Map<String, Any>
                 val lkrRateValue = innerMap?.get("lkr")
 
                 val lkrRate = when (lkrRateValue) {
@@ -102,8 +116,9 @@ class IncomeViewModel @Inject constructor(
 
                 if (lkrRate != null && lkrRate > 0) {
                     _exchangeRate.value = lkrRate
+                    updateLiveAmount(currentAmountInput)
                 }
-            } catch (_: Exception) {
+            } catch (ignored: Exception) { // Fix: Rename 'e' to 'ignored' or use it
                 _uiState.value = IncomeUiState.Error("Live rate unavailable.")
             } finally {
                 _isFetchingRate.value = false
@@ -111,26 +126,13 @@ class IncomeViewModel @Inject constructor(
         }
     }
 
-    fun addIncome(
-        sourceType: String,
-        projectName: String?,
-        amountStr: String,
-        currency: String,
-        exchangeRate: Double,
-        date: Long,
-        notes: String?
-    ) {
+    fun addIncome(sourceType: String, projectName: String?, amountStr: String, currency: String, exchangeRate: Double, date: Long, notes: String?) {
         val amountInCents = (amountStr.toDoubleOrNull() ?: 0.0).times(100).toLong()
-
-        if (amountInCents <= 0) {
-            _uiState.value = IncomeUiState.Error("Amount must be greater than zero.")
-            return
-        }
+        if (amountInCents <= 0) return
 
         viewModelScope.launch {
             _uiState.value = IncomeUiState.Loading
             val lkrAmountInCents = (amountInCents * exchangeRate).toLong()
-
             val income = Income(
                 id = UUID.randomUUID().toString(),
                 sourceType = sourceType,
@@ -144,13 +146,10 @@ class IncomeViewModel @Inject constructor(
                 createdAt = System.currentTimeMillis(),
                 updatedAt = System.currentTimeMillis()
             )
-
-            val result = repository.addIncome(income)
-            _uiState.value = if (result.isSuccess) IncomeUiState.Success else IncomeUiState.Error("Failed to save.")
+            repository.addIncome(income)
+            _uiState.value = IncomeUiState.Success
         }
     }
 
-    fun resetState() {
-        _uiState.value = IncomeUiState.Idle
-    }
+    fun resetState() { _uiState.value = IncomeUiState.Idle }
 }
