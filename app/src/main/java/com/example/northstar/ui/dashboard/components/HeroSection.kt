@@ -29,7 +29,10 @@ fun HeroSection(
     displayName: String,
     totalBalance: Long,
     income: Long,
-    expenses: Long
+    expenses: Long,
+    allTimeBalance: Long = totalBalance,
+    allTimeIncome: Long = income,
+    allTimeExpenses: Long = expenses
 ) {
     Box(
         modifier = Modifier
@@ -158,7 +161,7 @@ fun HeroSection(
                                         .background(IncomeGreen)
                                 )
                                 Text(
-                                    SimpleDateFormat("MMMM yyyy", Locale.US).format(Date()),
+                                    "All Time",
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.W600,
                                     color = White.copy(alpha = 0.75f),
@@ -168,7 +171,7 @@ fun HeroSection(
                         }
                     }
 
-                    val balance = totalBalance / 100.0
+                    val balance = allTimeBalance / 100.0
                     Text(
                         buildAnnotatedString {
                             append("LKR ")
@@ -199,7 +202,7 @@ fun HeroSection(
                                 modifier = Modifier.padding(bottom = 5.dp)
                             )
                             Text(
-                                String.format(Locale.US, "LKR %.2f", income / 100.0),
+                                String.format(Locale.US, "LKR %.2f", allTimeIncome / 100.0),
                                 fontSize = 17.sp,
                                 fontWeight = FontWeight.W700,
                                 color = White,
@@ -230,7 +233,7 @@ fun HeroSection(
                                 modifier = Modifier.padding(bottom = 5.dp)
                             )
                             Text(
-                                String.format(Locale.US, "LKR %.2f", expenses / 100.0),
+                                String.format(Locale.US, "LKR %.2f", allTimeExpenses / 100.0),
                                 fontSize = 17.sp,
                                 fontWeight = FontWeight.W700,
                                 color = White,

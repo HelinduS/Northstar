@@ -38,7 +38,7 @@ fun DashboardScreen(
             .fillMaxSize()
             .padding(bottom = 20.dp)
     ) {
-        item { HeroSection(uiState.displayName, uiState.netSavedLkr, uiState.totalIncomeLkr, uiState.totalExpensesLkr) }
+        item { HeroSection(uiState.displayName, uiState.netSavedLkr, uiState.totalIncomeLkr, uiState.totalExpensesLkr, uiState.allTimeNetSavedLkr, uiState.allTimeIncomeLkr, uiState.allTimeExpensesLkr) }
         item { Spacer(modifier = Modifier.height(8.dp)) }
         item { QuickActionsRow(navController) }
         item { SavingsGoalCard() }

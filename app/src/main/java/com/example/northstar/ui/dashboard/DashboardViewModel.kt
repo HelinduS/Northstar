@@ -20,6 +20,9 @@ data class DashboardUiState(
     val netSavedLkr: Long = 0L,
     val committedExpensesLkr: Long = 0L,
     val discretionaryExpensesLkr: Long = 0L,
+    val allTimeIncomeLkr: Long = 0L,
+    val allTimeExpensesLkr: Long = 0L,
+    val allTimeNetSavedLkr: Long = 0L,
     val recentTransactions: List<TransactionItem> = emptyList(),
     val isLoading: Boolean = false,
     val error: String? = null
@@ -122,6 +125,30 @@ class DashboardViewModel @Inject constructor(
                     .filter { it.getString("expenseType") == "DISCRETIONARY" }
                     .sumOf { it.getLong("amount") ?: 0L }
 
+                // Fetch all-time incomes (no date filter)
+                val allTimeIncomesSnapshot = firestore
+                    .collection("users")
+                    .document(user.uid)
+                    .collection("incomes")
+                    .get()
+                    .await()
+
+                val allTimeIncome = allTimeIncomesSnapshot.documents.sumOf {
+                    it.getLong("lkrAmount") ?: 0L
+                }
+
+                // Fetch all-time expenses (no date filter)
+                val allTimeExpensesSnapshot = firestore
+                    .collection("users")
+                    .document(user.uid)
+                    .collection("expenses")
+                    .get()
+                    .await()
+
+                val allTimeExpenses = allTimeExpensesSnapshot.documents.sumOf {
+                    it.getLong("amount") ?: 0L
+                }
+
                 // Build recent transactions list
                 val recentIncomes = incomesSnapshot.documents.map {
                     TransactionItem(
@@ -165,6 +192,9 @@ class DashboardViewModel @Inject constructor(
                     netSavedLkr = totalIncome - totalExpenses,
                     committedExpensesLkr = committedExpenses,
                     discretionaryExpensesLkr = discretionaryExpenses,
+                    allTimeIncomeLkr = allTimeIncome,
+                    allTimeExpensesLkr = allTimeExpenses,
+                    allTimeNetSavedLkr = allTimeIncome - allTimeExpenses,
                     recentTransactions = recentTransactions,
                     isLoading = false
                 )
