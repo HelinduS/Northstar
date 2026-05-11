@@ -9,13 +9,16 @@ import com.example.northstar.ui.auth.AuthScreen
 import com.example.northstar.ui.dashboard.DashboardScreen
 import com.example.northstar.ui.expense.ExpenseScreen
 import com.example.northstar.ui.goals.GoalsScreen
-import com.example.northstar.ui.income.IncomeScreen
 import com.example.northstar.ui.history.TransactionHistoryScreen
+import com.example.northstar.ui.income.IncomeScreen
+import com.example.northstar.ui.lock.PinLockManager
+import com.example.northstar.ui.profile.ProfileScreen
 
 @Composable
 fun NavGraph(
     navController: NavHostController,
-    startDestination: String = Screen.Login.route
+    startDestination: String = Screen.Login.route,
+    pinLockManager: PinLockManager
 ) {
     NavHost(
         navController = navController,
@@ -56,6 +59,12 @@ fun NavGraph(
         }
         composable(Screen.TransactionHistory.route) {
             TransactionHistoryScreen(navController = navController)
+        }
+        composable(Screen.Profile.route) {
+            ProfileScreen(
+                navController = navController,
+                pinLockManager = pinLockManager
+            )
         }
     }
 }
