@@ -20,6 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.northstar.domain.model.Goal
+import com.example.northstar.ui.theme.*
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.*
@@ -41,23 +42,6 @@ fun GoalCard(goal: Goal, viewModel: GoalViewModel) {
     val isReached      = viewModel.isGoalReached(goal)
     val percentComplete = (rawProgress * 100).toInt()
 
-    // ── Design tokens ─────────────────────────────────────────────────────────
-    val cardSurface        = Color(0xFFFFFFFF)
-    val cardBorder         = Color(0x12000000)
-    val textPrimary        = Color(0xFF111827)
-    val textMuted          = Color(0xFF9CA3AF)
-    val progressGreen      = Color(0xFF16A34A)
-    val progressGreenEnd   = Color(0xFF4ADE80)
-    val reachedBadgeBg     = Color(0xFFE8F5E9)
-    val reachedBadgeBorder = Color(0xFFA3E9C9)
-    val reachedBadgeText   = Color(0xFF16A34A)
-    val dividerColor       = Color(0xFFF3F4F6)
-    val deleteBg           = Color(0xFFFFF5F5)
-    val deleteBorder       = Color(0xFFFFC9C9)
-    val deleteText         = Color(0xFFDC2626)
-    val addBg              = Color(0xFF0D1117)
-    // ─────────────────────────────────────────────────────────────────────────
-
     val currencyFormat = remember { NumberFormat.getInstance(Locale.getDefault()) }
     val dateFormatter  = remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
     val date           = if (goal.targetDate > 0L) dateFormatter.format(Date(goal.targetDate)) else "No date set"
@@ -75,8 +59,8 @@ fun GoalCard(goal: Goal, viewModel: GoalViewModel) {
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
-            .background(cardSurface)
-            .border(0.5.dp, cardBorder, RoundedCornerShape(20.dp))
+            .background(White)
+            .border(1.dp, Border, RoundedCornerShape(20.dp))
             .padding(20.dp)
     ) {
         Column {
@@ -84,14 +68,15 @@ fun GoalCard(goal: Goal, viewModel: GoalViewModel) {
             // Name + Reached badge
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Top) {
                 Text(text = goal.name.replaceFirstChar { it.uppercase() }, fontSize = 17.sp,
-                    fontWeight = FontWeight.SemiBold, color = textPrimary, modifier = Modifier.weight(1f))
+                    fontWeight = FontWeight.SemiBold, color = TextPrimary, modifier = Modifier.weight(1f),
+                    fontFamily = InterFontFamily, letterSpacing = (-0.2).sp)
                 if (isReached) {
                     Box(
-                        modifier = Modifier.clip(RoundedCornerShape(20.dp)).background(reachedBadgeBg)
-                            .border(0.5.dp, reachedBadgeBorder, RoundedCornerShape(20.dp))
+                        modifier = Modifier.clip(RoundedCornerShape(20.dp)).background(Color(0xFFEBFBEE))
+                            .border(1.dp, Color(0xFFA3E9C9), RoundedCornerShape(20.dp))
                             .padding(horizontal = 10.dp, vertical = 4.dp)
                     ) {
-                        Text("✓ Reached", fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = reachedBadgeText)
+                        Text("✓ Reached", fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = Credit, fontFamily = InterFontFamily)
                     }
                 }
             }
@@ -100,17 +85,17 @@ fun GoalCard(goal: Goal, viewModel: GoalViewModel) {
 
             // Date
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(imageVector = Icons.Outlined.CalendarMonth, contentDescription = null, tint = textMuted, modifier = Modifier.size(13.dp))
+                Icon(imageVector = Icons.Outlined.CalendarMonth, contentDescription = null, tint = TextMuted, modifier = Modifier.size(13.dp))
                 Spacer(modifier = Modifier.width(4.dp))
-                Text(text = date, fontSize = 12.sp, color = textMuted)
+                Text(text = date, fontSize = 12.sp, color = TextMuted, fontFamily = InterFontFamily)
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
             // Amount hero
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Bottom) {
-                Text(text = "LKR ${currencyFormat.format(goal.savedAmount / 100)}", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = textPrimary)
-                Text(text = "of LKR ${currencyFormat.format(goal.targetAmount / 100)}", fontSize = 13.sp, color = textMuted)
+                Text(text = "LKR ${currencyFormat.format(goal.savedAmount / 100)}", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = TextPrimary, fontFamily = InterFontFamily)
+                Text(text = "of LKR ${currencyFormat.format(goal.targetAmount / 100)}", fontSize = 13.sp, color = TextMuted, fontFamily = InterFontFamily)
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -119,7 +104,7 @@ fun GoalCard(goal: Goal, viewModel: GoalViewModel) {
             Box(modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(100.dp)).background(Color(0xFFE5E7EB))) {
                 Box(
                     modifier = Modifier.fillMaxWidth(animatedProgress).height(8.dp).clip(RoundedCornerShape(100.dp))
-                        .background(Brush.horizontalGradient(colors = listOf(progressGreen, progressGreenEnd)))
+                        .background(Brush.horizontalGradient(colors = listOf(Navy900, PrimaryBlue)))
                 )
             }
 
@@ -127,14 +112,14 @@ fun GoalCard(goal: Goal, viewModel: GoalViewModel) {
 
             // Micro labels
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("$percentComplete% complete", fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = progressGreen)
+                Text("$percentComplete% complete", fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = PrimaryBlue, fontFamily = InterFontFamily)
                 daysRemaining?.let {
-                    Text(if (isReached) "Goal achieved!" else "$it days to go", fontSize = 11.sp, color = textMuted)
+                    Text(if (isReached) "Goal achieved!" else "$it days to go", fontSize = 11.sp, color = TextMuted, fontFamily = InterFontFamily)
                 }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-            Box(modifier = Modifier.fillMaxWidth().height(0.5.dp).background(dividerColor))
+            Box(modifier = Modifier.fillMaxWidth().height(0.5.dp).background(Separator))
             Spacer(modifier = Modifier.height(14.dp))
 
             // Action row
@@ -143,18 +128,18 @@ fun GoalCard(goal: Goal, viewModel: GoalViewModel) {
                     onClick = { if (isReached) showReachedDialog = true else showContributeDialog = true },
                     modifier = Modifier.weight(1f).height(40.dp),
                     shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = addBg, contentColor = Color.White),
+                    colors = ButtonDefaults.buttonColors(containerColor = Navy900, contentColor = White),
                     contentPadding = PaddingValues(0.dp)
                 ) {
-                    Text("Add funds", fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                    Text("Add funds", fontSize = 13.sp, fontWeight = FontWeight.Medium, fontFamily = InterFontFamily)
                 }
                 Box(
                     modifier = Modifier.weight(1f).height(40.dp).clip(RoundedCornerShape(12.dp))
-                        .background(deleteBg).border(0.5.dp, deleteBorder, RoundedCornerShape(12.dp)),
+                        .background(Color(0xFFFFF5F5)).border(0.5.dp, Color(0xFFFFC9C9), RoundedCornerShape(12.dp)),
                     contentAlignment = Alignment.Center
                 ) {
                     TextButton(onClick = { showDeleteDialog = true }, modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(0.dp)) {
-                        Text("Delete", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = deleteText)
+                        Text("Delete", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = Debit, fontFamily = InterFontFamily)
                     }
                 }
             }
@@ -174,15 +159,15 @@ fun GoalCard(goal: Goal, viewModel: GoalViewModel) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
             shape = RoundedCornerShape(20.dp),
-            title = { Text("Delete Goal", fontWeight = FontWeight.SemiBold) },
-            text  = { Text("Are you sure you want to delete \"${goal.name}\"?", color = textMuted) },
+            title = { Text("Delete Goal", fontWeight = FontWeight.SemiBold, fontFamily = InterFontFamily) },
+            text  = { Text("Are you sure you want to delete \"${goal.name}\"?", color = TextMuted, fontFamily = InterFontFamily) },
             confirmButton = {
                 Button(onClick = { viewModel.deleteGoal(goal.id); showDeleteDialog = false },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFDC2626)),
-                    shape = RoundedCornerShape(10.dp)) { Text("Delete") }
+                    shape = RoundedCornerShape(10.dp)) { Text("Delete", fontFamily = InterFontFamily) }
             },
             dismissButton = {
-                OutlinedButton(onClick = { showDeleteDialog = false }, shape = RoundedCornerShape(10.dp)) { Text("Cancel") }
+                OutlinedButton(onClick = { showDeleteDialog = false }, shape = RoundedCornerShape(10.dp)) { Text("Cancel", fontFamily = InterFontFamily) }
             }
         )
     }
@@ -195,12 +180,12 @@ fun GoalCard(goal: Goal, viewModel: GoalViewModel) {
                 Icon(imageVector = Icons.Outlined.CheckCircle, contentDescription = null,
                     tint = Color(0xFF16A34A), modifier = Modifier.size(36.dp))
             },
-            title = { Text("Goal Reached!", fontWeight = FontWeight.SemiBold) },
-            text  = { Text("You've already completed \"${goal.name}\"! No more savings needed.", color = textMuted) },
+            title = { Text("Goal Reached!", fontWeight = FontWeight.SemiBold, fontFamily = InterFontFamily) },
+            text  = { Text("You've already completed \"${goal.name}\"! No more savings needed.", color = TextMuted, fontFamily = InterFontFamily) },
             confirmButton = {
                 Button(onClick = { showReachedDialog = false },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0D1117)),
-                    shape = RoundedCornerShape(10.dp)) { Text("Great!") }
+                    shape = RoundedCornerShape(10.dp)) { Text("Great!", fontFamily = InterFontFamily) }
             }
         )
     }

@@ -3,63 +3,171 @@ package com.example.northstar.ui.goals
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
-// ── Model ─────────────────────────────────────────────────────────────────────
-
-data class InsightCard(
-    val icon: ImageVector,
-    val value: String,
-    val label: String,
-    val iconBg: Color,
-    val iconTint: Color
-)
-
-// ── InsightChip ───────────────────────────────────────────────────────────────
+import com.example.northstar.ui.theme.*
 
 @Composable
-fun InsightChip(insight: InsightCard, modifier: Modifier = Modifier) {
-    val cardBorder = Color(0xFFE1E4E8)
-    val textPri    = Color(0xFF0D1117)
-    val textMut    = Color(0xFF8E8E93)
-
-    Box(
+fun GoalInsightsRow(
+    totalRemaining: Long,
+    overallProgressPct: Int,
+    completedCount: Int,
+    modifier: Modifier = Modifier
+) {
+    Row(
         modifier = modifier
-            .clip(RoundedCornerShape(16.dp))
-            .background(Color.White)
-            .border(0.5.dp, cardBorder, RoundedCornerShape(16.dp))
-            .padding(14.dp)
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Column {
+        InsightTile(
+            dot = Debit,
+            label = "Remaining",
+            value = "${totalRemaining / 100 / 1000}K",
+            valueSuffix = "LKR",
+            valueColor = Debit,
+            sub = "to reach goals",
+            modifier = Modifier.weight(1.1f)
+        )
+
+        Column(
+            modifier = Modifier
+                .weight(1.8f)
+                .background(White, RoundedCornerShape(18.dp))
+                .border(1.dp, Border, RoundedCornerShape(18.dp))
+                .padding(14.dp)
+        ) {
             Box(
                 modifier = Modifier
-                    .size(36.dp)
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(insight.iconBg),
-                contentAlignment = Alignment.Center
+                    .size(8.dp)
+                    .clip(CircleShape)
+                    .background(Navy900)
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            Text(
+                "Overall",
+                fontSize = 10.sp,
+                fontWeight = FontWeight.W600,
+                color = TextMuted,
+                letterSpacing = 0.5.sp,
+                fontFamily = InterFontFamily
+            )
+            Spacer(modifier = Modifier.height(5.dp))
+            Text(
+                "$overallProgressPct%",
+                fontSize = 22.sp,
+                fontWeight = FontWeight.W900,
+                color = TextPrimary,
+                letterSpacing = (-1).sp,
+                fontFamily = InterFontFamily,
+                lineHeight = 22.sp
+            )
+            Spacer(modifier = Modifier.height(3.dp))
+            Text(
+                "all goals",
+                fontSize = 11.sp,
+                color = TextMuted,
+                fontFamily = InterFontFamily
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(4.dp)
+                    .clip(RoundedCornerShape(99.dp))
+                    .background(Separator)
             ) {
-                Icon(
-                    insight.icon,
-                    contentDescription = null,
-                    tint = insight.iconTint,
-                    modifier = Modifier.size(18.dp)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(
+                            (overallProgressPct / 100f).coerceIn(0f, 1f)
+                        )
+                        .height(4.dp)
+                        .clip(RoundedCornerShape(99.dp))
+                        .background(Navy900)
                 )
             }
-            Spacer(modifier = Modifier.height(10.dp))
-            Text(insight.value, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = textPri)
-            Spacer(modifier = Modifier.height(2.dp))
-            Text(insight.label, fontSize = 11.sp, color = textMut)
         }
+
+        InsightTile(
+            dot = Credit,
+            label = "Completed",
+            value = "$completedCount",
+            valueSuffix = "",
+            valueColor = if (completedCount > 0) Credit else TextPrimary,
+            sub = "goals done",
+            modifier = Modifier.weight(1.1f)
+        )
+    }
+}
+
+@Composable
+private fun InsightTile(
+    dot: Color,
+    label: String,
+    value: String,
+    valueSuffix: String,
+    valueColor: Color,
+    sub: String,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .background(White, RoundedCornerShape(18.dp))
+            .border(1.dp, Border, RoundedCornerShape(18.dp))
+            .padding(12.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(8.dp)
+                .clip(CircleShape)
+                .background(dot)
+        )
+        Spacer(modifier = Modifier.height(10.dp))
+        Text(
+            label,
+            fontSize = 10.sp,
+            fontWeight = FontWeight.W600,
+            color = TextMuted,
+            letterSpacing = 0.3.sp,
+            fontFamily = InterFontFamily,
+            maxLines = 1
+        )
+        Spacer(modifier = Modifier.height(5.dp))
+        if (valueSuffix.isNotBlank()) {
+            Text(
+                valueSuffix,
+                fontSize = 9.sp,
+                fontWeight = FontWeight.W500,
+                color = valueColor.copy(alpha = 0.6f),
+                fontFamily = InterFontFamily,
+                lineHeight = 10.sp
+            )
+        }
+        Text(
+            value,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.W900,
+            color = valueColor,
+            letterSpacing = (-0.8).sp,
+            fontFamily = InterFontFamily,
+            lineHeight = 18.sp
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            sub,
+            fontSize = 10.sp,
+            color = TextMuted,
+            fontFamily = InterFontFamily,
+            lineHeight = 12.sp
+        )
     }
 }

@@ -27,27 +27,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.example.northstar.ui.theme.Navy900
+import com.example.northstar.ui.theme.*
 import java.text.NumberFormat
 import java.util.*
 
-// ── Design tokens ─────────────────────────────────────────────────────────────
-private val NavyLight  = Color(0xFF161B27)
-private val NavyDeep   = Color(0xFF1A2035)
-private val Blue       = Color(0xFF2979FF)
-private val Indigo     = Color(0xFF3B5BDB)
-private val Purple     = Color(0xFF7048E8)
-private val BodyBg     = Color(0xFFF2F4F7)
-private val CardBorder = Color(0xFFE1E4E8)
-private val TextPri    = Color(0xFF0D1117)
-private val TextMut    = Color(0xFF8E8E93)
-private val Amber      = Color(0xFFF9A825)
-private val AmberBg    = Color(0xFFFFF8E1)
-private val RedAccent  = Color(0xFFE53935)
-private val RedBg      = Color(0xFFFFEBEE)
-private val BlueBg     = Color(0xFFE3F2FD)
-
-// ── GoalsScreen ───────────────────────────────────────────────────────────────
+private val Purple = Color(0xFF7048E8)
 
 @Composable
 fun GoalsScreen(
@@ -63,7 +47,6 @@ fun GoalsScreen(
 
     val currencyFormat = remember { NumberFormat.getInstance(Locale.getDefault()) }
 
-    // ── Derived stats ─────────────────────────────────────────────────────
     val totalSaved     = remember(goals) { goals.sumOf { it.savedAmount } }
     val totalTarget    = remember(goals) { goals.sumOf { it.targetAmount } }
     val completedCount = remember(goals) { goals.count { it.savedAmount >= it.targetAmount } }
@@ -81,26 +64,19 @@ fun GoalsScreen(
         } ?: 0
     }
     val overallProgressPct = remember(goals) {
-        if (totalTarget > 0) (totalSaved.toDouble() / totalTarget.toDouble() * 100).toInt().coerceIn(0, 100) else 0
+        if (totalTarget > 0)
+            (totalSaved.toDouble() / totalTarget.toDouble() * 100).toInt().coerceIn(0, 100)
+        else 0
     }
     val onTrackCount = remember(goals) {
         goals.count { it.savedAmount < it.targetAmount && it.targetAmount > 0 && it.savedAmount > 0 }
     }
 
-    // ── Insights list ─────────────────────────────────────────────────────
-    val insights = listOf(
-        InsightCard(Icons.Outlined.Savings,     if (goals.isEmpty()) "LKR 0" else "LKR ${currencyFormat.format(totalRemaining / 100)}", "Remaining",  RedBg,   RedAccent),
-        InsightCard(Icons.Outlined.TrendingUp,  "$overallProgressPct%",                                                                 "Overall",    BlueBg,  Blue),
-        InsightCard(Icons.Outlined.EmojiEvents, "$completedCount",                                                                      "Completed",  AmberBg, Amber)
-    )
-
     val visibleTemplates = if (showAllTemplates) allGoalTemplates else allGoalTemplates.take(5)
 
-    // ── Root ──────────────────────────────────────────────────────────────
-    Box(modifier = Modifier.fillMaxSize().background(BodyBg)) {
+    Box(modifier = Modifier.fillMaxSize().background(Surface)) {
         LazyColumn(modifier = Modifier.fillMaxSize()) {
 
-            // ── Header ───────────────────────────────────────────────────
             item {
                 GoalsHeader(
                     goals          = goals,
@@ -113,71 +89,120 @@ fun GoalsScreen(
                 )
             }
 
-            // ── Smart Insights ───────────────────────────────────────────
             item {
-                Column(
+                Box(
                     modifier = Modifier
-                        .background(BodyBg)
-                        .padding(top = 20.dp, start = 16.dp, end = 16.dp)
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
+                        .background(White)
+                        .padding(top = 8.dp, bottom = 8.dp)
                 ) {
-                    Text("Smart Insights", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = TextPri)
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        insights.forEach { insight ->
-                            InsightChip(insight = insight, modifier = Modifier.weight(1f))
+                    Column(modifier = Modifier.fillMaxWidth()) {
+
+                        // ── Smart Insights ──
+                        Column(
+                            modifier = Modifier.padding(
+                                top = 12.dp,
+                                start = 16.dp,
+                                end = 16.dp,
+                                bottom = 0.dp
+                            )
+                        ) {
+                            Text(
+                                "Smart Insights",
+                                fontSize = 17.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = TextPrimary,
+                                fontFamily = InterFontFamily,
+                                letterSpacing = (-0.2).sp
+                            )
+                            Spacer(modifier = Modifier.height(12.dp))
                         }
-                    }
-                }
-            }
 
-            // ── Goals list or empty state ─────────────────────────────────
-            if (isLoading) {
-                item {
-                    Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(color = Blue)
-                    }
-                }
-            } else if (goals.isEmpty()) {
-                item { GoalsEmptyState(onCreateClick = { prefilledTemplate = null; showAddDialog = true }) }
-            } else {
-                item {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().background(BodyBg).padding(horizontal = 16.dp, vertical = 16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text("My Goals", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = TextPri)
-                        TextButton(onClick = { prefilledTemplate = null; showAddDialog = true }) {
-                            Text("+ Add goal", fontSize = 13.sp, color = Blue, fontWeight = FontWeight.Medium)
+                        GoalInsightsRow(
+                            totalRemaining     = totalRemaining,
+                            overallProgressPct = overallProgressPct,
+                            completedCount     = completedCount
+                        )
+
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        if (isLoading) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(32.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator(color = PrimaryBlue)
+                            }
+                        } else if (goals.isEmpty()) {
+                            GoalsEmptyState(
+                                onCreateClick = {
+                                    prefilledTemplate = null
+                                    showAddDialog = true
+                                }
+                            )
+                        } else {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 16.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    "My Goals",
+                                    fontSize = 17.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = TextPrimary,
+                                    fontFamily = InterFontFamily,
+                                    letterSpacing = (-0.2).sp
+                                )
+                                TextButton(
+                                    onClick = {
+                                        prefilledTemplate = null
+                                        showAddDialog = true
+                                    }
+                                ) {
+                                    Text(
+                                        "+ Add goal",
+                                        fontSize = 13.sp,
+                                        color = PrimaryBlue,
+                                        fontWeight = FontWeight.Medium,
+                                        fontFamily = InterFontFamily
+                                    )
+                                }
+                            }
+                            goals.forEach { goal ->
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp)
+                                        .padding(bottom = 13.dp)
+                                ) {
+                                    GoalCard(goal = goal, viewModel = viewModel)
+                                }
+                            }
                         }
-                    }
-                }
-                items(goals) { goal ->
-                    Box(
-                        modifier = Modifier.fillMaxWidth().background(BodyBg)
-                            .padding(horizontal = 16.dp).padding(bottom = 13.dp)
-                    ) {
-                        GoalCard(goal = goal, viewModel = viewModel)
+
+                        GoalTemplatesSection(
+                            visibleTemplates = visibleTemplates,
+                            showAllTemplates = showAllTemplates,
+                            onToggleSeeAll   = { showAllTemplates = !showAllTemplates },
+                            onTemplateClick  = { template ->
+                                prefilledTemplate = template
+                                showAddDialog = true
+                            }
+                        )
                     }
                 }
             }
 
-            // ── Goal Templates ───────────────────────────────────────────
             item {
-                GoalTemplatesSection(
-                    visibleTemplates  = visibleTemplates,
-                    showAllTemplates  = showAllTemplates,
-                    onToggleSeeAll    = { showAllTemplates = !showAllTemplates },
-                    onTemplateClick   = { template -> prefilledTemplate = template; showAddDialog = true }
-                )
-            }
-
-            // Bottom spacer
-            item {
-                val navBarHeight = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+                val navBarHeight = WindowInsets.navigationBars
+                    .asPaddingValues()
+                    .calculateBottomPadding()
                 Spacer(Modifier.height(navBarHeight + 80.dp))
             }
         }
@@ -190,13 +215,12 @@ fun GoalsScreen(
             onDismiss     = { showAddDialog = false; prefilledTemplate = null },
             onConfirm     = { name, amount, date ->
                 viewModel.addGoal(name, amount, date)
-                showAddDialog = false; prefilledTemplate = null
+                showAddDialog = false
+                prefilledTemplate = null
             }
         )
     }
 }
-
-// ── GoalsHeader ───────────────────────────────────────────────────────────────
 
 @Composable
 private fun GoalsHeader(
@@ -211,31 +235,56 @@ private fun GoalsHeader(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Brush.verticalGradient(colors = listOf(Navy900, NavyLight, NavyDeep)))
+            .statusBarsPadding()
+            .background(Navy900)
     ) {
+        Box(
+            modifier = Modifier
+                .size(200.dp)
+                .offset(x = (-60).dp, y = (-60).dp)
+                .clip(CircleShape)
+                .background(Color.White.copy(alpha = 0.04f))
+        )
+        Box(
+            modifier = Modifier
+                .size(140.dp)
+                .align(Alignment.TopEnd)
+                .offset(x = 40.dp, y = (-30).dp)
+                .clip(CircleShape)
+                .background(Color.White.copy(alpha = 0.06f))
+        )
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 16.dp, end = 16.dp, top = 56.dp, bottom = 16.dp)
+                .padding(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 16.dp)
         ) {
-            // Nav row
-            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Box(
-                    modifier = Modifier.size(36.dp).clip(CircleShape)
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clip(CircleShape)
                         .background(Color.White.copy(alpha = 0.10f))
                         .clickable { onBack() },
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White, modifier = Modifier.size(18.dp))
+                    Icon(
+                        Icons.Default.ArrowBack,
+                        contentDescription = "Back",
+                        tint = Color.White,
+                        modifier = Modifier.size(18.dp)
+                    )
                 }
                 Spacer(modifier = Modifier.weight(1f))
                 if (goals.isNotEmpty()) {
                     GoalStatusPill(
                         icon      = Icons.Outlined.TrendingUp,
                         text      = "$onTrackCount of ${goals.size} on track",
-                        bg        = Blue.copy(alpha = 0.20f),
-                        border    = Blue.copy(alpha = 0.30f),
-                        tint      = Blue,
+                        bg        = PrimaryBlue.copy(alpha = 0.20f),
+                        border    = PrimaryBlue.copy(alpha = 0.30f),
+                        tint      = PrimaryBlue,
                         textColor = Color.White.copy(alpha = 0.9f)
                     )
                 }
@@ -243,13 +292,24 @@ private fun GoalsHeader(
 
             Spacer(modifier = Modifier.height(6.dp))
 
-            Text("Savings Goals", fontSize = 26.sp, fontWeight = FontWeight.Bold, color = Color.White, letterSpacing = (-0.5).sp)
+            Text(
+                "Savings Goals",
+                fontSize = 26.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                letterSpacing = (-0.5).sp,
+                fontFamily = InterFontFamily
+            )
             Spacer(modifier = Modifier.height(3.dp))
-            Text("Track and grow your wealth", fontSize = 13.sp, color = Color.White.copy(alpha = 0.50f))
+            Text(
+                "Track and grow your wealth",
+                fontSize = 13.sp,
+                color = Color.White.copy(alpha = 0.50f),
+                fontFamily = InterFontFamily
+            )
 
             Spacer(modifier = Modifier.height(14.dp))
 
-            // Balance card
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -264,60 +324,115 @@ private fun GoalsHeader(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("TOTAL SAVINGS", fontSize = 11.sp, fontWeight = FontWeight.SemiBold,
-                            color = Color.White.copy(alpha = 0.45f), letterSpacing = 1.sp)
+                        Text(
+                            "TOTAL SAVINGS",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color.White.copy(alpha = 0.45f),
+                            letterSpacing = 1.sp,
+                            fontFamily = InterFontFamily
+                        )
                         if (goals.isNotEmpty()) {
                             Box(
-                                modifier = Modifier.clip(RoundedCornerShape(20.dp))
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(20.dp))
                                     .background(Color.White.copy(alpha = 0.10f))
                                     .padding(horizontal = 10.dp, vertical = 3.dp)
                             ) {
-                                Text("${goals.size} active", fontSize = 11.sp,
-                                    fontWeight = FontWeight.Medium, color = Color.White.copy(alpha = 0.70f))
+                                Text(
+                                    "${goals.size} active",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = Color.White.copy(alpha = 0.70f),
+                                    fontFamily = InterFontFamily
+                                )
                             }
                         }
                     }
                     Spacer(modifier = Modifier.height(6.dp))
-                    Text("LKR ${currencyFormat.format(totalSaved / 100)}", fontSize = 32.sp,
-                        fontWeight = FontWeight.Bold, color = Color.White, letterSpacing = (-0.5).sp)
+                    Text(
+                        "LKR ${currencyFormat.format(totalSaved / 100)}",
+                        fontSize = 32.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        letterSpacing = (-0.5).sp,
+                        fontFamily = InterFontFamily
+                    )
 
                     if (nearestGoal != null) {
-                        HorizontalDivider(modifier = Modifier.padding(vertical = 14.dp),
-                            thickness = 0.5.dp, color = Color.White.copy(alpha = 0.10f))
-                        Row(modifier = Modifier.fillMaxWidth(),
+                        HorizontalDivider(
+                            modifier = Modifier.padding(vertical = 14.dp),
+                            thickness = 0.5.dp,
+                            color = Color.White.copy(alpha = 0.10f)
+                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Box(
-                                    modifier = Modifier.size(30.dp).clip(RoundedCornerShape(8.dp))
-                                        .background(Blue.copy(alpha = 0.20f)),
+                                    modifier = Modifier
+                                        .size(30.dp)
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(PrimaryBlue.copy(alpha = 0.20f)),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Icon(Icons.Outlined.TrendingUp, contentDescription = null, tint = Blue, modifier = Modifier.size(15.dp))
+                                    Icon(
+                                        Icons.Outlined.TrendingUp,
+                                        contentDescription = null,
+                                        tint = PrimaryBlue,
+                                        modifier = Modifier.size(15.dp)
+                                    )
                                 }
                                 Spacer(modifier = Modifier.width(10.dp))
                                 Column {
-                                    Text("Closest to complete", fontSize = 10.sp, color = Color.White.copy(alpha = 0.40f))
+                                    Text(
+                                        "Closest to complete",
+                                        fontSize = 10.sp,
+                                        color = Color.White.copy(alpha = 0.40f),
+                                        fontFamily = InterFontFamily
+                                    )
                                     Spacer(modifier = Modifier.height(1.dp))
-                                    Text(nearestGoal.name, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
+                                    Text(
+                                        nearestGoal.name,
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = Color.White,
+                                        fontFamily = InterFontFamily
+                                    )
                                 }
                             }
                             Box(
-                                modifier = Modifier.clip(RoundedCornerShape(10.dp))
-                                    .background(Blue.copy(alpha = 0.20f))
-                                    .border(0.5.dp, Blue.copy(alpha = 0.30f), RoundedCornerShape(10.dp))
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(PrimaryBlue.copy(alpha = 0.20f))
+                                    .border(
+                                        0.5.dp,
+                                        PrimaryBlue.copy(alpha = 0.30f),
+                                        RoundedCornerShape(10.dp)
+                                    )
                                     .padding(horizontal = 10.dp, vertical = 5.dp)
                             ) {
-                                Text("$nearestGoalPct%", fontSize = 11.sp, fontWeight = FontWeight.Medium, color = Blue)
+                                Text(
+                                    "$nearestGoalPct%",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = PrimaryBlue,
+                                    fontFamily = InterFontFamily
+                                )
                             }
                         }
                     } else {
                         Spacer(modifier = Modifier.height(6.dp))
                         Text(
-                            if (goals.isNotEmpty()) "Keep saving to see progress here" else "Add your first goal to start tracking",
+                            if (goals.isNotEmpty())
+                                "Keep saving to see progress here"
+                            else
+                                "Add your first goal to start tracking",
                             fontSize = if (goals.isNotEmpty()) 11.sp else 12.sp,
-                            color = Color.White.copy(alpha = 0.35f)
+                            color = Color.White.copy(alpha = 0.35f),
+                            fontFamily = InterFontFamily
                         )
                     }
                 }
@@ -326,34 +441,71 @@ private fun GoalsHeader(
     }
 }
 
-// ── GoalsEmptyState ───────────────────────────────────────────────────────────
-
 @Composable
 private fun GoalsEmptyState(onCreateClick: () -> Unit) {
-    Column(modifier = Modifier.fillMaxWidth().background(BodyBg).padding(16.dp)) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(White)
+            .padding(16.dp)
+    ) {
         Spacer(modifier = Modifier.height(9.dp))
-        Text("My Goals", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = TextPri)
+        Text(
+            "My Goals",
+            fontSize = 17.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = TextPrimary,
+            fontFamily = InterFontFamily,
+            letterSpacing = (-0.2).sp
+        )
         Spacer(modifier = Modifier.height(12.dp))
         Box(
-            modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp))
-                .background(Color.White).border(0.5.dp, CardBorder, RoundedCornerShape(20.dp))
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(20.dp))
+                .background(Color.White)
+                .border(0.5.dp, Border, RoundedCornerShape(20.dp))
                 .padding(32.dp),
             contentAlignment = Alignment.Center
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Box(
-                    modifier = Modifier.size(80.dp).clip(CircleShape)
-                        .background(Brush.radialGradient(listOf(Indigo.copy(alpha = 0.15f), Color.Transparent)))
-                        .border(1.dp, Indigo.copy(alpha = 0.2f), CircleShape),
+                    modifier = Modifier
+                        .size(80.dp)
+                        .clip(CircleShape)
+                        .background(
+                            Brush.radialGradient(
+                                listOf(PrimaryBlue.copy(alpha = 0.15f), Color.Transparent)
+                            )
+                        )
+                        .border(1.dp, PrimaryBlue.copy(alpha = 0.2f), CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Outlined.Flag, contentDescription = null, tint = Indigo.copy(alpha = 0.6f), modifier = Modifier.size(36.dp))
+                    Icon(
+                        Icons.Outlined.Flag,
+                        contentDescription = null,
+                        tint = PrimaryBlue.copy(alpha = 0.6f),
+                        modifier = Modifier.size(36.dp)
+                    )
                 }
                 Spacer(modifier = Modifier.height(16.dp))
-                Text("No savings goals yet", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = TextPri, textAlign = TextAlign.Center)
+                Text(
+                    "No savings goals yet",
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = TextPrimary,
+                    textAlign = TextAlign.Center,
+                    fontFamily = InterFontFamily
+                )
                 Spacer(modifier = Modifier.height(6.dp))
-                Text("Start building smarter savings habits\nby creating your first goal today.",
-                    fontSize = 13.sp, color = TextMut, textAlign = TextAlign.Center, lineHeight = 18.sp)
+                Text(
+                    "Start building smarter savings habits\nby creating your first goal today.",
+                    fontSize = 13.sp,
+                    color = TextMuted,
+                    textAlign = TextAlign.Center,
+                    lineHeight = 18.sp,
+                    fontFamily = InterFontFamily
+                )
                 Spacer(modifier = Modifier.height(20.dp))
                 Button(
                     onClick = onCreateClick,
@@ -363,14 +515,28 @@ private fun GoalsEmptyState(onCreateClick: () -> Unit) {
                     modifier = Modifier.height(44.dp)
                 ) {
                     Box(
-                        modifier = Modifier.clip(RoundedCornerShape(12.dp))
-                            .background(Brush.horizontalGradient(listOf(Blue, Purple)))
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(
+                                Brush.horizontalGradient(listOf(PrimaryBlue, Purple))
+                            )
                             .padding(horizontal = 24.dp, vertical = 12.dp)
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.Add, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+                            Icon(
+                                Icons.Default.Add,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(16.dp)
+                            )
                             Spacer(modifier = Modifier.width(6.dp))
-                            Text("Create first goal", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
+                            Text(
+                                "Create first goal",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color.White,
+                                fontFamily = InterFontFamily
+                            )
                         }
                     }
                 }
@@ -378,8 +544,6 @@ private fun GoalsEmptyState(onCreateClick: () -> Unit) {
         }
     }
 }
-
-// ── GoalTemplatesSection ──────────────────────────────────────────────────────
 
 @Composable
 private fun GoalTemplatesSection(
@@ -388,42 +552,76 @@ private fun GoalTemplatesSection(
     onToggleSeeAll: () -> Unit,
     onTemplateClick: (GoalTemplate) -> Unit
 ) {
-    Column(modifier = Modifier.background(BodyBg).padding(top = 9.dp, bottom = 9.dp)) {
+    Column(
+        modifier = Modifier
+            .background(White)
+            .padding(top = 9.dp, bottom = 9.dp)
+    ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Goal Templates", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = TextPri)
+            Text(
+                "Goal Templates",
+                fontSize = 17.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = TextPrimary,
+                fontFamily = InterFontFamily,
+                letterSpacing = (-0.2).sp
+            )
             TextButton(onClick = onToggleSeeAll) {
-                Text(if (showAllTemplates) "See less" else "See all",
-                    fontSize = 13.sp, color = Blue, fontWeight = FontWeight.Medium)
+                Text(
+                    if (showAllTemplates) "See less" else "See all",
+                    fontSize = 13.sp,
+                    color = PrimaryBlue,
+                    fontWeight = FontWeight.Medium,
+                    fontFamily = InterFontFamily
+                )
             }
         }
         Spacer(modifier = Modifier.height(12.dp))
 
         if (showAllTemplates) {
-            Column(modifier = Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Column(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
                 visibleTemplates.chunked(3).forEach { rowTemplates ->
-                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
                         rowTemplates.forEach { template ->
-                            GoalTemplateCard(template = template, modifier = Modifier.weight(1f), onClick = { onTemplateClick(template) })
+                            GoalTemplateCard(
+                                template = template,
+                                modifier = Modifier.weight(1f),
+                                onClick  = { onTemplateClick(template) }
+                            )
                         }
-                        repeat(3 - rowTemplates.size) { Spacer(modifier = Modifier.weight(1f)) }
+                        repeat(3 - rowTemplates.size) {
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
                     }
                 }
             }
         } else {
-            LazyRow(contentPadding = PaddingValues(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            LazyRow(
+                contentPadding = PaddingValues(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
                 items(visibleTemplates) { template ->
-                    GoalTemplateCard(template = template, onClick = { onTemplateClick(template) })
+                    GoalTemplateCard(
+                        template = template,
+                        onClick  = { onTemplateClick(template) }
+                    )
                 }
             }
         }
     }
 }
-
-// ── GoalStatusPill ────────────────────────────────────────────────────────────
 
 @Composable
 fun GoalStatusPill(
@@ -442,9 +640,20 @@ fun GoalStatusPill(
             .padding(horizontal = 14.dp, vertical = 7.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(13.dp))
+            Icon(
+                icon,
+                contentDescription = null,
+                tint = tint,
+                modifier = Modifier.size(13.dp)
+            )
             Spacer(modifier = Modifier.width(5.dp))
-            Text(text, fontSize = 12.sp, fontWeight = FontWeight.Medium, color = textColor)
+            Text(
+                text,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
+                color = textColor,
+                fontFamily = InterFontFamily
+            )
         }
     }
 }

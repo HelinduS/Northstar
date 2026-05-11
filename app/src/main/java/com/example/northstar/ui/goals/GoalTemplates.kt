@@ -19,6 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.northstar.ui.theme.*
 
 // ── Model ─────────────────────────────────────────────────────────────────────
 
@@ -74,16 +75,12 @@ fun GoalTemplateCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val cardBorder = Color(0xFFE1E4E8)
-    val textPri    = Color(0xFF0D1117)
-    val textMut    = Color(0xFF8E8E93)
-
     Box(
         modifier = modifier
             .width(90.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(Color.White)
-            .border(0.5.dp, cardBorder, RoundedCornerShape(16.dp))
+            .background(White)
+            .border(1.dp, Border, RoundedCornerShape(16.dp))
             .clickable { onClick() }
             .padding(12.dp)
     ) {
@@ -107,16 +104,18 @@ fun GoalTemplateCard(
                 template.label,
                 fontSize = 11.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = textPri,
+                color = TextPrimary,
                 textAlign = TextAlign.Center,
-                lineHeight = 14.sp
+                lineHeight = 14.sp,
+                fontFamily = InterFontFamily
             )
             Spacer(modifier = Modifier.height(2.dp))
             Text(
                 template.sub,
                 fontSize = 10.sp,
-                color = textMut,
-                textAlign = TextAlign.Center
+                color = TextMuted,
+                textAlign = TextAlign.Center,
+                fontFamily = InterFontFamily
             )
         }
     }
