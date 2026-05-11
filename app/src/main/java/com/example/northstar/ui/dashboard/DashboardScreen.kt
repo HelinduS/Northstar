@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -39,11 +40,22 @@ fun DashboardScreen(
             .padding(bottom = 20.dp)
     ) {
         item { HeroSection(uiState.displayName, uiState.netSavedLkr, uiState.totalIncomeLkr, uiState.totalExpensesLkr, uiState.allTimeNetSavedLkr, uiState.allTimeIncomeLkr, uiState.allTimeExpensesLkr) }
-        item { QuickActionsRow(navController) }
-        item { SavingsGoalCard() }
-        item { ThisMonthCard(uiState.totalIncomeLkr, uiState.totalExpensesLkr) }
-        item { TransactionsList(uiState.recentTransactions) { navController.navigate(Screen.TransactionHistory.route) } }
-        item { Spacer(modifier = Modifier.height(20.dp)) }
+        item {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
+                    .background(White)
+                    .padding(top = 8.dp, bottom = 20.dp)
+            ) {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    QuickActionsRow(navController)
+                    SavingsGoalCard(goals = uiState.goals)
+                    ThisMonthCard(uiState.totalIncomeLkr, uiState.totalExpensesLkr)
+                    TransactionsList(uiState.recentTransactions) { navController.navigate(Screen.TransactionHistory.route) }
+                }
+            }
+        }
     }
 }
 

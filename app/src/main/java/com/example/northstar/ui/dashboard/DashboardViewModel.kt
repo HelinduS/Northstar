@@ -2,6 +2,8 @@ package com.example.northstar.ui.dashboard
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.northstar.data.repository.GoalRepository
+import com.example.northstar.domain.model.Goal
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -24,6 +26,7 @@ data class DashboardUiState(
     val allTimeExpensesLkr: Long = 0L,
     val allTimeNetSavedLkr: Long = 0L,
     val recentTransactions: List<TransactionItem> = emptyList(),
+    val goals: List<Goal> = emptyList(),
     val isLoading: Boolean = false,
     val error: String? = null
 )
@@ -50,7 +53,8 @@ data class TransactionItem(
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
     private val firebaseAuth: FirebaseAuth,
-    private val firestore: FirebaseFirestore
+    private val firestore: FirebaseFirestore,
+    private val goalRepository: GoalRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(DashboardUiState())
@@ -58,6 +62,15 @@ class DashboardViewModel @Inject constructor(
 
     init {
         loadDashboardData()
+        loadGoals()
+    }
+
+    private fun loadGoals() {
+        viewModelScope.launch {
+            goalRepository.getAllGoals().collect { goals ->
+                _uiState.value = _uiState.value.copy(goals = goals)
+            }
+        }
     }
 
     fun loadDashboardData() {
@@ -184,7 +197,7 @@ class DashboardViewModel @Inject constructor(
                     .sortedByDescending { it.date }
                     .take(20)
 
-                _uiState.value = DashboardUiState(
+                _uiState.value = _uiState.value.copy(
                     displayName = displayName,
                     email = email,
                     totalIncomeLkr = totalIncome,
