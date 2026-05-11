@@ -24,6 +24,8 @@ import androidx.navigation.NavController
 import com.example.northstar.Screen
 import com.example.northstar.ui.dashboard.components.*
 import com.example.northstar.ui.theme.*
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -33,26 +35,33 @@ fun DashboardScreen(
     dashboardViewModel: DashboardViewModel = hiltViewModel()
 ) {
     val uiState by dashboardViewModel.uiState.collectAsState()
+    val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = uiState.isLoading)
 
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(bottom = 20.dp)
+    SwipeRefresh(
+        state = swipeRefreshState,
+        onRefresh = { dashboardViewModel.loadDashboardData() },
+        modifier = Modifier.fillMaxSize()
     ) {
-        item { HeroSection(uiState.displayName, uiState.netSavedLkr, uiState.totalIncomeLkr, uiState.totalExpensesLkr, uiState.allTimeNetSavedLkr, uiState.allTimeIncomeLkr, uiState.allTimeExpensesLkr) }
-        item {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
-                    .background(White)
-                    .padding(top = 8.dp, bottom = 20.dp)
-            ) {
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    QuickActionsRow(navController)
-                    SavingsGoalCard(goals = uiState.goals)
-                    ThisMonthCard(uiState.totalIncomeLkr, uiState.totalExpensesLkr)
-                    TransactionsList(uiState.recentTransactions) { navController.navigate(Screen.TransactionHistory.route) }
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(bottom = 20.dp)
+        ) {
+            item { HeroSection(uiState.displayName, uiState.netSavedLkr, uiState.totalIncomeLkr, uiState.totalExpensesLkr, uiState.allTimeNetSavedLkr, uiState.allTimeIncomeLkr, uiState.allTimeExpensesLkr) }
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
+                        .background(White)
+                        .padding(top = 8.dp, bottom = 20.dp)
+                ) {
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        QuickActionsRow(navController)
+                        SavingsGoalCard(goals = uiState.goals)
+                        ThisMonthCard(uiState.totalIncomeLkr, uiState.totalExpensesLkr)
+                        TransactionsList(uiState.recentTransactions) { navController.navigate(Screen.TransactionHistory.route) }
+                    }
                 }
             }
         }

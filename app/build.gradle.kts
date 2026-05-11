@@ -65,6 +65,7 @@ dependencies {
     implementation(libs.hilt.android)
     implementation(libs.androidx.compose.ui.text.google.fonts)
     implementation(libs.androidx.lifecycle.process)
+    implementation(libs.accompanist.swiperefresh)
     ksp(libs.hilt.compiler)
 
     // Firebase
