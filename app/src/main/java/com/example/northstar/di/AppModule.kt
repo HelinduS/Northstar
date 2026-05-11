@@ -1,5 +1,6 @@
 package com.example.northstar.di
 
+import android.app.Application
 import android.content.Context
 import androidx.room.Room
 import com.example.northstar.data.local.NorthStarDatabase
@@ -13,6 +14,7 @@ import com.example.northstar.data.repository.ExpenseRepository
 import com.example.northstar.data.repository.ExpenseRepositoryImpl
 import com.example.northstar.data.repository.IncomeRepository
 import com.example.northstar.data.repository.IncomeRepositoryImpl
+import com.example.northstar.ui.lock.PinLockManager
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.Module
@@ -97,4 +99,10 @@ object AppModule {
         firebaseAuth: FirebaseAuth,
         firestore: FirebaseFirestore
     ): ExpenseRepository = ExpenseRepositoryImpl(firebaseAuth, firestore)
+
+    @Provides
+    @Singleton
+    fun providePinLockManager(application: Application): PinLockManager {
+        return PinLockManager(application)
+    }
 }

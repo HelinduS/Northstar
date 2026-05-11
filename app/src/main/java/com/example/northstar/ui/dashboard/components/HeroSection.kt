@@ -21,7 +21,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.northstar.ui.theme.*
-import java.text.SimpleDateFormat
 import java.util.*
 
 @Composable
@@ -37,6 +36,7 @@ fun HeroSection(
     Box(
         modifier = Modifier
             .fillMaxWidth()
+            .statusBarsPadding()
             .clip(RoundedCornerShape(bottomStart = 28.dp, bottomEnd = 28.dp))
             .background(Navy900)
     ) {
@@ -44,6 +44,7 @@ fun HeroSection(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp)
+                .padding(top = 6.dp)
                 .padding(bottom = 28.dp)
         ) {
             // ── Header row ──

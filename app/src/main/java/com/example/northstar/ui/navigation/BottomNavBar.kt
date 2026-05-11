@@ -76,7 +76,7 @@ fun BottomNavBar(navController: NavHostController) {
                     icon = item.icon,
                     onClick = {
                         navController.navigate(item.route) {
-                            popUpTo(Screen.Dashboard.route) { saveState = true }
+                            popUpTo(navController.graph.startDestinationId) { saveState = true }
                             launchSingleTop = true
                             restoreState = true
                         }
@@ -117,7 +117,7 @@ fun BottomNavBar(navController: NavHostController) {
                     icon = item.icon,
                     onClick = {
                         navController.navigate(item.route) {
-                            popUpTo(Screen.Dashboard.route) { saveState = true }
+                            popUpTo(navController.graph.startDestinationId) { saveState = true }
                             launchSingleTop = true
                             restoreState = true
                         }

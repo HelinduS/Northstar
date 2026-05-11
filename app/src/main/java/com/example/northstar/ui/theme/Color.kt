@@ -5,6 +5,11 @@ import androidx.compose.ui.graphics.Color
 // UI Design Tokens
 val Navy900    = Color(0xFF0D1117)  // hero background
 val Navy800    = Color(0xFF1E3A8A)  // avatar background
+
+val Navy700 = Color(0xFF1a2332)
+val Navy600 = Color(0xFF252F40)
+val Navy500 = Color(0xFF3B4858)
+
 val White      = Color(0xFFFFFFFF)
 val Surface    = Color(0xFFF7F7F8)  // page background
 val Border     = Color(0x12000000)  // 1px card border
