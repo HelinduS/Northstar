@@ -3,6 +3,7 @@ package com.example.northstar.ui.history
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -20,6 +21,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -37,6 +40,10 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+private enum class HistoryFilter {
+    ALL, INCOME, EXPENSES
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TransactionHistoryScreen(
@@ -44,6 +51,20 @@ fun TransactionHistoryScreen(
     viewModel: DashboardViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    var selectedFilter by remember { mutableStateOf(HistoryFilter.ALL) }
+    val filteredTransactions = remember(uiState.recentTransactions, selectedFilter) {
+        when (selectedFilter) {
+            HistoryFilter.ALL -> uiState.recentTransactions
+            HistoryFilter.INCOME -> uiState.recentTransactions.filter { it.isIncome }
+            HistoryFilter.EXPENSES -> uiState.recentTransactions.filter { !it.isIncome }
+        }
+    }
+    val sectionTitle = when (selectedFilter) {
+        HistoryFilter.ALL -> "All Transactions"
+        HistoryFilter.INCOME -> "All Incomes"
+        HistoryFilter.EXPENSES -> "All Expenses"
+    }
+
     var selectedTransaction by remember { mutableStateOf<TransactionItem?>(null) }
     var showDeleteDialog by remember { mutableStateOf<TransactionItem?>(null) }
     val listState = rememberLazyListState()
@@ -229,7 +250,7 @@ fun TransactionHistoryScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // ── Summary Banner ────────────────────────────────────────────
+            // ── Summary Banner ──────
             val totalIncome = uiState.recentTransactions
                 .filter { it.isIncome }.sumOf { it.amount }
             val totalExpense = uiState.recentTransactions
@@ -289,44 +310,53 @@ fun TransactionHistoryScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // ── Income & Expense — text only, no card ──
+                    // ── ALL | INCOME | EXPENSES filter tabs (measured underline) ──
+                    val density = LocalDensity.current
+                    val allWidthPx = remember { mutableStateOf(0) }
+                    val incomeWidthPx = remember { mutableStateOf(0) }
+                    val expensesWidthPx = remember { mutableStateOf(0) }
+
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Income stat
+                        // All tab with measured underline width
                         Column(
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable { selectedFilter = HistoryFilter.ALL }
+                                .padding(vertical = 8.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(5.dp)
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(9.dp)
-                                        .clip(CircleShape)
-                                        .background(Credit)
-                                )
-                                Text(
-                                    text = "INCOME",
-                                    color = Color.White,
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.ExtraBold,
-                                    letterSpacing = 1.sp
-                                )
+                            Box(modifier = Modifier.onGloballyPositioned { allWidthPx.value = it.size.width }) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(5.dp)
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(9.dp)
+                                            .clip(CircleShape)
+                                            .background(Color.White)
+                                    )
+                                    Text(
+                                        text = "ALL",
+                                        color = if (selectedFilter == HistoryFilter.ALL) Color.White else Color.White.copy(alpha = 0.65f),
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        letterSpacing = 1.sp
+                                    )
+                                }
                             }
                             Spacer(modifier = Modifier.height(6.dp))
-                            Text(
-                                text = "+ LKR ${
-                                    String.format(Locale.US, "%,.2f", totalIncome / 100.0)
-                                }",
-                                color = IncomeGreen,
-                                fontWeight = FontWeight.ExtraBold,
-                                fontSize = 19.sp,
-                                maxLines = 1,
-                                softWrap = false
+                            Box(
+                                modifier = Modifier
+                                    .height(2.dp)
+                                    .width(with(density) { allWidthPx.value.toDp() })
+                                    .background(
+                                        color = if (selectedFilter == HistoryFilter.ALL) Color.White else Color.Transparent,
+                                        shape = RoundedCornerShape(50)
+                                    )
                             )
                         }
 
@@ -338,39 +368,91 @@ fun TransactionHistoryScreen(
                                 .background(Color.White.copy(alpha = 0.40f))
                         )
 
-                        // Expense stat
+                        // Income tab with measured underline width
                         Column(
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable { selectedFilter = HistoryFilter.INCOME }
+                                .padding(vertical = 8.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(5.dp)
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(9.dp)
-                                        .clip(CircleShape)
-                                        .background(Debit)
-                                )
-                                Text(
-                                    text = "EXPENSES",
-                                    color = Color.White,
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.ExtraBold,
-                                    letterSpacing = 1.sp
-                                )
+                            Box(modifier = Modifier.onGloballyPositioned { incomeWidthPx.value = it.size.width }) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(5.dp)
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(9.dp)
+                                            .clip(CircleShape)
+                                            .background(Credit)
+                                    )
+                                    Text(
+                                        text = "INCOME",
+                                        color = if (selectedFilter == HistoryFilter.INCOME) Color.White else Color.White.copy(alpha = 0.65f),
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        letterSpacing = 1.sp
+                                    )
+                                }
                             }
                             Spacer(modifier = Modifier.height(6.dp))
-                            Text(
-                                text = "- LKR ${
-                                    String.format(Locale.US, "%,.2f", totalExpense / 100.0)
-                                }",
-                                color = ExpenseRed,
-                                fontWeight = FontWeight.ExtraBold,
-                                fontSize = 19.sp,
-                                maxLines = 1,
-                                softWrap = false
+                            Box(
+                                modifier = Modifier
+                                    .height(2.dp)
+                                    .width(with(density) { incomeWidthPx.value.toDp() })
+                                    .background(
+                                        color = if (selectedFilter == HistoryFilter.INCOME) Color.White else Color.Transparent,
+                                        shape = RoundedCornerShape(50)
+                                    )
+                            )
+                        }
+
+                        // Vertical divider
+                        Box(
+                            modifier = Modifier
+                                .width(1.dp)
+                                .height(40.dp)
+                                .background(Color.White.copy(alpha = 0.40f))
+                        )
+
+                        // Expenses tab with measured underline width
+                        Column(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable { selectedFilter = HistoryFilter.EXPENSES }
+                                .padding(vertical = 8.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Box(modifier = Modifier.onGloballyPositioned { expensesWidthPx.value = it.size.width }) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(5.dp)
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(9.dp)
+                                            .clip(CircleShape)
+                                            .background(Debit)
+                                    )
+                                    Text(
+                                        text = "EXPENSES",
+                                        color = if (selectedFilter == HistoryFilter.EXPENSES) Color.White else Color.White.copy(alpha = 0.65f),
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        letterSpacing = 1.sp
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Box(
+                                modifier = Modifier
+                                    .height(2.dp)
+                                    .width(with(density) { expensesWidthPx.value.toDp() })
+                                    .background(
+                                        color = if (selectedFilter == HistoryFilter.EXPENSES) Color.White else Color.Transparent,
+                                        shape = RoundedCornerShape(50)
+                                    )
                             )
                         }
                     }
@@ -388,7 +470,7 @@ fun TransactionHistoryScreen(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "All Transactions",
+                    text = sectionTitle,
                     fontWeight = FontWeight.Bold,
                     fontSize = 15.sp,
                     color = TextPrimary,
@@ -399,7 +481,7 @@ fun TransactionHistoryScreen(
                     color = Navy900.copy(alpha = 0.08f)
                 ) {
                     Text(
-                        text = "${uiState.recentTransactions.size} records",
+                        text = "${filteredTransactions.size} records",
                         fontSize = 11.sp,
                         color = Navy900,
                         fontWeight = FontWeight.SemiBold,
@@ -407,6 +489,8 @@ fun TransactionHistoryScreen(
                     )
                 }
             }
+
+            // duplicate filter UI removed — the interactive tabs are rendered above the section header
 
             // ── Transaction list ──────────────────────────────────────────
             LazyColumn(
@@ -417,7 +501,7 @@ fun TransactionHistoryScreen(
                 verticalArrangement = Arrangement.spacedBy(10.dp),
                 contentPadding = PaddingValues(bottom = 24.dp)
             ) {
-                items(uiState.recentTransactions) { transaction ->
+                items(filteredTransactions) { transaction ->
                     TransactionHistoryItem(
                         transaction = transaction,
                         onViewClick = { selectedTransaction = transaction },
@@ -444,8 +528,8 @@ fun TransactionHistoryItem(
     }"
     val accentColor = if (transaction.isIncome) Credit else Debit
 
-    val dateFormat = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
-    val timeFormat = SimpleDateFormat("hh:mm a", Locale.getDefault())
+    val dateFormat = remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
+    val timeFormat = remember { SimpleDateFormat("hh:mm a", Locale.getDefault()) }
     val formattedDate = if (transaction.date > 0)
         dateFormat.format(Date(transaction.date)) else "—"
     val formattedTime = if (transaction.date > 0)
@@ -691,7 +775,7 @@ fun TransactionDetailDialog(
     onDismiss: () -> Unit,
     onDelete: () -> Unit
 ) {
-    val dateFormat = SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault())
+    val dateFormat = remember { SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault()) }
     val formattedDate = if (transaction.date > 0)
         dateFormat.format(Date(transaction.date))
     else "N/A"
