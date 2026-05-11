@@ -121,7 +121,8 @@ fun TransactionHistoryScreen(
                         color = Color.White,
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp,
-                        letterSpacing = (-0.3).sp
+                        letterSpacing = (-0.3).sp,
+                        modifier = Modifier.padding(start = 12.dp)
                     )
                 },
                 navigationIcon = {
@@ -260,15 +261,18 @@ fun TransactionHistoryScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 20.dp, vertical = 20.dp)
+                        .padding(horizontal = 20.dp, vertical = 20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // Net balance label
+                    // Net balance — centered
                     Text(
                         text = "Net Balance",
                         color = Color.White.copy(alpha = 0.6f),
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Medium,
-                        letterSpacing = 0.8.sp
+                        letterSpacing = 0.8.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
@@ -278,7 +282,9 @@ fun TransactionHistoryScreen(
                         color = Color.White,
                         fontWeight = FontWeight.Bold,
                         fontSize = 26.sp,
-                        letterSpacing = (-0.5).sp
+                        letterSpacing = (-0.5).sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -313,7 +319,9 @@ fun TransactionHistoryScreen(
                             }
                             Spacer(modifier = Modifier.height(6.dp))
                             Text(
-                                text = "+ LKR ${String.format(Locale.US, "%,.2f", totalIncome / 100.0)}",
+                                text = "+ LKR ${
+                                    String.format(Locale.US, "%,.2f", totalIncome / 100.0)
+                                }",
                                 color = IncomeGreen,
                                 fontWeight = FontWeight.ExtraBold,
                                 fontSize = 19.sp,
@@ -355,7 +363,9 @@ fun TransactionHistoryScreen(
                             }
                             Spacer(modifier = Modifier.height(6.dp))
                             Text(
-                                text = "- LKR ${String.format(Locale.US, "%,.2f", totalExpense / 100.0)}",
+                                text = "- LKR ${
+                                    String.format(Locale.US, "%,.2f", totalExpense / 100.0)
+                                }",
                                 color = ExpenseRed,
                                 fontWeight = FontWeight.ExtraBold,
                                 fontSize = 19.sp,
@@ -436,8 +446,10 @@ fun TransactionHistoryItem(
 
     val dateFormat = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
     val timeFormat = SimpleDateFormat("hh:mm a", Locale.getDefault())
-    val formattedDate = if (transaction.date > 0) dateFormat.format(Date(transaction.date)) else "—"
-    val formattedTime = if (transaction.date > 0) timeFormat.format(Date(transaction.date)) else ""
+    val formattedDate = if (transaction.date > 0)
+        dateFormat.format(Date(transaction.date)) else "—"
+    val formattedTime = if (transaction.date > 0)
+        timeFormat.format(Date(transaction.date)) else ""
 
     Card(
         modifier = Modifier
@@ -754,14 +766,20 @@ fun TransactionDetailDialog(
                                 fontSize = 10.sp,
                                 fontWeight = FontWeight.ExtraBold,
                                 letterSpacing = 1.2.sp,
-                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 5.dp)
+                                modifier = Modifier.padding(
+                                    horizontal = 14.dp,
+                                    vertical = 5.dp
+                                )
                             )
                         }
 
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             text = "${if (transaction.isIncome) "+" else "-"} LKR ${
-                                String.format(Locale.US, "%,.2f", transaction.amount / 100.0)
+                                String.format(
+                                    Locale.US, "%,.2f",
+                                    transaction.amount / 100.0
+                                )
                             }",
                             color = Color.White,
                             fontWeight = FontWeight.ExtraBold,
@@ -798,7 +816,10 @@ fun TransactionDetailDialog(
                         }
                         if (transaction.description.isNotEmpty()) {
                             DetailDivider()
-                            DetailRow(label = "Description", value = transaction.description)
+                            DetailRow(
+                                label = "Description",
+                                value = transaction.description
+                            )
                         }
                     } else {
                         if (transaction.originalCurrency != "LKR") {
@@ -816,7 +837,10 @@ fun TransactionDetailDialog(
                             DetailRow(
                                 label = "Exchange Rate",
                                 value = "1 ${transaction.originalCurrency} = LKR ${
-                                    String.format(Locale.US, "%.2f", transaction.exchangeRate)
+                                    String.format(
+                                        Locale.US, "%.2f",
+                                        transaction.exchangeRate
+                                    )
                                 }"
                             )
                         }
@@ -854,7 +878,9 @@ fun TransactionDetailDialog(
                                 containerColor = Debit
                             ),
                             shape = RoundedCornerShape(14.dp),
-                            elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
+                            elevation = ButtonDefaults.buttonElevation(
+                                defaultElevation = 4.dp
+                            )
                         ) {
                             Icon(
                                 Icons.Default.Delete,
