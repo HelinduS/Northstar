@@ -1,5 +1,6 @@
 package com.example.northstar.data.repository
 
+import com.example.northstar.data.local.dao.ExpenseDao
 import com.example.northstar.data.remote.FirestoreConstants
 import com.example.northstar.domain.model.Expense
 import com.google.firebase.auth.FirebaseAuth
@@ -13,6 +14,7 @@ import javax.inject.Singleton
 
 @Singleton
 class ExpenseRepositoryImpl @Inject constructor(
+    private val expenseDao: ExpenseDao, // ADDED THIS
     private val firebaseAuth: FirebaseAuth,
     private val firestore: FirebaseFirestore
 ) : ExpenseRepository {
