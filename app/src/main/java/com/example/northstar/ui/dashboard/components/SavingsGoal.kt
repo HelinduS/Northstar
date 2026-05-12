@@ -1,5 +1,8 @@
 package com.example.northstar.ui.dashboard.components
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.EaseOutCubic
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -8,12 +11,12 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
@@ -35,8 +38,20 @@ fun SavingsGoalCard(goals: List<Goal> = emptyList()) {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Savings Goal", fontSize = 15.sp, fontWeight = FontWeight.W700, color = TextPrimary, fontFamily = InterFontFamily)
-            Text("${goals.size}", fontSize = 11.sp, fontWeight = FontWeight.W600, color = TextSecondary, fontFamily = InterFontFamily)
+            Text(
+                "Savings Goal",
+                fontSize = 15.sp,
+                fontWeight = FontWeight.W700,
+                color = TextPrimary,
+                fontFamily = InterFontFamily
+            )
+            Text(
+                "${goals.size}",
+                fontSize = 11.sp,
+                fontWeight = FontWeight.W600,
+                color = TextSecondary,
+                fontFamily = InterFontFamily
+            )
         }
 
         if (goals.isEmpty()) {
@@ -90,24 +105,52 @@ fun SavingsGoalCard(goals: List<Goal> = emptyList()) {
 private fun GoalCardItem(goal: Goal) {
     val dateFormatter = remember { SimpleDateFormat("MMM yyyy", Locale.US) }
     val targetDate = if (goal.targetDate > 0L) dateFormatter.format(Date(goal.targetDate)) else "No date"
-    
+
     val daysRemaining = if (goal.targetDate > 0L) {
         val diff = goal.targetDate - System.currentTimeMillis()
         (diff / (1000 * 60 * 60 * 24)).toInt().coerceAtLeast(0)
     } else 0
-    
+
     val monthsRemaining = (daysRemaining / 30.0).toInt().coerceAtLeast(0)
-    
+
     val monthlyNeeded = if (goal.targetDate > 0L && daysRemaining > 0) {
         val remaining = (goal.targetAmount - goal.savedAmount).coerceAtLeast(0L)
         (remaining / (daysRemaining / 30.0)).toLong()
     } else 0L
-    
+
+    val targetProgress = if (goal.targetAmount > 0)
+        (goal.savedAmount.toFloat() / goal.targetAmount).coerceIn(0f, 1f)
+    else 0f
+
+    val isComplete = targetProgress >= 1f
+
+    // Animated progress
+    val animatedProgress = remember { Animatable(0f) }
+    LaunchedEffect(targetProgress) {
+        animatedProgress.animateTo(
+            targetValue = targetProgress,
+            animationSpec = tween(durationMillis = 1200, easing = EaseOutCubic)
+        )
+    }
+
+    // Animated progress bar
+    val animatedBarProgress = remember { Animatable(0f) }
+    LaunchedEffect(targetProgress) {
+        animatedBarProgress.animateTo(
+            targetValue = targetProgress,
+            animationSpec = tween(durationMillis = 1000, delayMillis = 200, easing = EaseOutCubic)
+        )
+    }
+
     Box(
         modifier = Modifier
             .width(280.dp)
             .background(White, RoundedCornerShape(20.dp))
-            .border(1.dp, Border, RoundedCornerShape(20.dp))
+            .border(
+                width = if (isComplete) 1.5.dp else 1.dp,
+                color = if (isComplete) IncomeGreen.copy(alpha = 0.5f) else Border,
+                shape = RoundedCornerShape(20.dp)
+            )
             .padding(18.dp)
     ) {
         Column {
@@ -116,7 +159,7 @@ private fun GoalCardItem(goal: Goal) {
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // ── Goal ring ──
+                // ── Animated goal ring ──
                 Box(
                     modifier = Modifier.size(70.dp),
                     contentAlignment = Alignment.Center
@@ -127,7 +170,29 @@ private fun GoalCardItem(goal: Goal) {
                         val arcSize = Size(size.width - stroke, size.height - stroke)
                         val topLeft = Offset(inset, inset)
 
-                        // track
+                        // Glow effect when complete
+                        if (isComplete) {
+                            drawArc(
+                                brush = Brush.sweepGradient(
+                                    colors = listOf(
+                                        IncomeGreen.copy(alpha = 0f),
+                                        IncomeGreen.copy(alpha = 0.3f),
+                                        IncomeGreen.copy(alpha = 0f)
+                                    )
+                                ),
+                                startAngle = -90f,
+                                sweepAngle = 360f,
+                                useCenter = false,
+                                topLeft = Offset(inset - 4.dp.toPx(), inset - 4.dp.toPx()),
+                                size = Size(
+                                    size.width - stroke + 8.dp.toPx(),
+                                    size.height - stroke + 8.dp.toPx()
+                                ),
+                                style = Stroke(width = stroke + 8.dp.toPx())
+                            )
+                        }
+
+                        // Track
                         drawArc(
                             color = Separator,
                             startAngle = -90f,
@@ -137,11 +202,11 @@ private fun GoalCardItem(goal: Goal) {
                             size = arcSize,
                             style = Stroke(width = stroke)
                         )
-                        // progress
-                        val progress = if (goal.targetAmount > 0) (goal.savedAmount.toFloat() / goal.targetAmount) else 0f
-                        val sweepAngle = progress * 360f
+
+                        // Animated progress arc
+                        val sweepAngle = animatedProgress.value * 360f
                         drawArc(
-                            color = Navy900,
+                            color = if (isComplete) IncomeGreen else Navy900,
                             startAngle = -90f,
                             sweepAngle = sweepAngle,
                             useCenter = false,
@@ -153,10 +218,10 @@ private fun GoalCardItem(goal: Goal) {
 
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
-                            "${(if (goal.targetAmount > 0) (goal.savedAmount.toFloat() / goal.targetAmount * 100).toInt() else 0)}%",
+                            "${(animatedProgress.value * 100).toInt()}%",
                             fontSize = 14.sp,
                             fontWeight = FontWeight.W800,
-                            color = TextPrimary,
+                            color = if (isComplete) IncomeGreen else TextPrimary,
                             fontFamily = InterFontFamily
                         )
                         Text(
@@ -200,23 +265,26 @@ private fun GoalCardItem(goal: Goal) {
                             fontFamily = InterFontFamily
                         )
                     }
+                    // Animated progress bar
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(4.dp)
                             .background(Separator, RoundedCornerShape(99.dp))
                     ) {
-                        val progress = if (goal.targetAmount > 0) goal.savedAmount.toFloat() / goal.targetAmount else 0f
                         Box(
                             modifier = Modifier
-                                .fillMaxWidth(progress.coerceIn(0f, 1f))
+                                .fillMaxWidth(animatedBarProgress.value.coerceIn(0f, 1f))
                                 .height(4.dp)
-                                .background(Navy900, RoundedCornerShape(99.dp))
+                                .background(
+                                    if (isComplete) IncomeGreen else Navy900,
+                                    RoundedCornerShape(99.dp)
+                                )
                         )
                     }
                 }
             }
-            
+
             Spacer(modifier = Modifier.height(12.dp))
             Box(
                 modifier = Modifier
@@ -225,7 +293,7 @@ private fun GoalCardItem(goal: Goal) {
                     .background(Separator)
             )
             Spacer(modifier = Modifier.height(12.dp))
-            
+
             // Stat cells
             Row(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.weight(1f)) {
@@ -252,7 +320,10 @@ private fun GoalCardItem(goal: Goal) {
                         .height(34.dp)
                         .background(Separator)
                 )
-                Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                Column(
+                    modifier = Modifier.weight(1f),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
                     Text(
                         "$monthsRemaining mo",
                         fontSize = 13.sp,
@@ -276,7 +347,10 @@ private fun GoalCardItem(goal: Goal) {
                         .height(34.dp)
                         .background(Separator)
                 )
-                Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.End) {
+                Column(
+                    modifier = Modifier.weight(1f),
+                    horizontalAlignment = Alignment.End
+                ) {
                     Text(
                         targetDate,
                         fontSize = 13.sp,
