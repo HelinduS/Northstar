@@ -1,5 +1,6 @@
 package com.example.northstar.ui.analytics
 
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -24,9 +25,8 @@ import com.example.northstar.ui.theme.*
 fun AnalyticsScreen(navController: NavController, viewModel: AnalyticsViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    //Custom Date Range Picker
+    // Date range picker state management
     var showDatePicker by remember { mutableStateOf(false) }
-
     var tempStart by remember { mutableStateOf<Long?>(null) }
     val datePickerState = rememberDatePickerState()
 
@@ -60,15 +60,21 @@ fun AnalyticsScreen(navController: NavController, viewModel: AnalyticsViewModel 
     ) { padding ->
         LazyColumn(modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp)) {
 
-           // Header Section
             item {
                 AnalyticsHeader(uiState.allTimeSummary.totalIncome, uiState.allTimeSummary.totalExpenses, uiState.allTimeSummary.netSaved)
                 Spacer(modifier = Modifier.height(24.dp))
-                AnalyticsControls(uiState.selectedTab, uiState.selectedFilter, { viewModel.selectTab(it) }, { if (it == TimeFilter.CUSTOM) showDatePicker = true else viewModel.selectFilter(it) })
+
+
+                AnalyticsControls(
+                    selectedTab = uiState.selectedTab,
+                    selectedFilter = uiState.selectedFilter,
+                    onTabChanged = { viewModel.selectTab(it) },
+                    onFilterChanged = {
+                        if (it == TimeFilter.CUSTOM) showDatePicker = true else viewModel.selectFilter(it)
+                    }
+                )
                 Spacer(modifier = Modifier.height(24.dp))
             }
-
-            // Controls Section:
 
             if (uiState.isLoading) {
                 item { Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = Navy900) } }
@@ -76,7 +82,8 @@ fun AnalyticsScreen(navController: NavController, viewModel: AnalyticsViewModel 
                 item { Box(Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) { Text("No data found") } }
             } else {
                 item {
-                    if (uiState.selectedTab == AnalyticsTab.COMPARISON && uiState.selectedFilter != TimeFilter.CUSTOM) {
+
+                    if (uiState.selectedTab == AnalyticsTab.COMPARISON) {
                         ComparisonBarChart(trendData = uiState.trendData)
                     } else {
                         val total = uiState.breakdownList.sumOf { it.totalAmount }
@@ -102,7 +109,6 @@ fun AnalyticsScreen(navController: NavController, viewModel: AnalyticsViewModel 
 
 @Composable
 fun AnalyticsBreakdown(item: CategoryBreakdown) {
-
     val percentageLabel = String.format("%.1f", item.percentage * 100)
 
     Column(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
@@ -120,11 +126,7 @@ fun AnalyticsBreakdown(item: CategoryBreakdown) {
                     fontSize = 14.sp
                 )
                 Spacer(modifier = Modifier.width(6.dp))
-                Text(
-                    text = "($percentageLabel%)",
-                    fontSize = 12.sp,
-                    color = TextSecondary
-                )
+                Text(text = "($percentageLabel%)", fontSize = 12.sp, color = TextSecondary)
             }
         }
         Spacer(modifier = Modifier.height(8.dp))

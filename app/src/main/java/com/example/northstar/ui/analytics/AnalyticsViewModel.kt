@@ -82,7 +82,7 @@ class AnalyticsViewModel @Inject constructor(
         _customDateRange.value = Pair(start, cal.timeInMillis)
         _selectedFilter.value = TimeFilter.CUSTOM
     }
-//Maps Expense categories
+    //Maps Expense categories
     private fun getExpenseColor(cat: String): Color = when (cat.uppercase()) {
         "RENT" -> Color(0xFF3498DB)
         "FOOD" -> Color(0xFFE67E22)
@@ -103,12 +103,12 @@ class AnalyticsViewModel @Inject constructor(
         "FREELANCE" -> Color(0xFF2980B9)
         "SOCIAL MEDIA" -> Color(0xFFE1306C)
         "GOOGLE ADSENSE" -> Color(0xFFF39C12)
-        "INVESTMENTS" -> Color(0xFF16A085)
+        "INVESTMENTS" -> Color(0xFFB5E18B)
         "E-COMMERCE" -> Color(0xFFD35400)
         "AFFILIATE" -> Color(0xFFC0392B)
         "CRYPTO" -> Color(0xFF2C3E50)
         "DIGITAL PRODUCTS" -> Color(0xFF8E44AD)
-        "TUTORING" -> Color(0xFFF39C12)
+        "TUTORING" -> Color(0xFF5DF8D8)
         "OTHER" -> Color(0xFF7F8C8D)
         else -> generateVibrantColor(src)
     }
@@ -142,7 +142,7 @@ class AnalyticsViewModel @Inject constructor(
         val labels = when(filter) {
             TimeFilter.YEARLY -> listOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
             TimeFilter.WEEKLY -> listOf("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")
-            else -> listOf("W1", "W2", "W3", "W4")
+            else -> listOf("WEEK1", "WEEK2", "WEEK3", "WEEK4")
         }
         return labels.mapIndexed { i, label ->
             val inc = incs.filter { cal.apply { timeInMillis = it.date }.run { if(filter == TimeFilter.YEARLY) get(Calendar.MONTH) == i else get(Calendar.DAY_OF_WEEK) == i + 1 } }.sumOf { it.lkrAmount }

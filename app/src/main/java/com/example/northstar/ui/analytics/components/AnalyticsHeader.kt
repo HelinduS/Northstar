@@ -30,7 +30,13 @@ private fun HeaderCard(label: String, amount: Long, color: Color, modifier: Modi
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Text(label, fontSize = 11.sp, color = TextSecondary)
-            Text("Rs.${amount / 100}", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = color, maxLines = 1)
+
+            Text(
+                text = "Rs.${String.format("%.2f", amount / 100.0)}",
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Bold,
+                color = color
+            )
         }
     }
 }
