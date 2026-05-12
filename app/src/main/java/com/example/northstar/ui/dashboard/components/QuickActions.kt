@@ -6,10 +6,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material.icons.outlined.Payments
+import androidx.compose.material.icons.outlined.Receipt
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,8 +32,8 @@ fun QuickActionsRow(navController: NavController) {
             .padding(start = 16.dp, end = 16.dp, top = 14.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        QuickAction(label = "Add Money", icon = Icons.Outlined.Add, modifier = Modifier.weight(1f), onClick = { navController.navigate(Screen.AddIncome.route) })
-        QuickAction(label = "Add Expense", icon = Icons.Outlined.Add, modifier = Modifier.weight(1f), onClick = { navController.navigate(Screen.AddExpense.route) })
+        QuickAction(label = "Add Money", icon = Icons.Outlined.Payments, modifier = Modifier.weight(1f), onClick = { navController.navigate(Screen.AddIncome.route) })
+        QuickAction(label = "Add Expense", icon = Icons.Outlined.Receipt, modifier = Modifier.weight(1f), onClick = { navController.navigate(Screen.AddExpense.route) })
         QuickAction(label = "Goal",      icon = Icons.Outlined.FavoriteBorder, modifier = Modifier.weight(1f), onClick = { navController.navigate(Screen.Goals.route) })
         QuickAction(label = "Analytics", icon = Icons.Outlined.MoreVert, modifier = Modifier.weight(1f), onClick = { navController.navigate(Screen.Analytics.route) })
         QuickAction(label = "History",   icon = Icons.Outlined.DateRange, modifier = Modifier.weight(1f), onClick = { navController.navigate(Screen.TransactionHistory.route) })
