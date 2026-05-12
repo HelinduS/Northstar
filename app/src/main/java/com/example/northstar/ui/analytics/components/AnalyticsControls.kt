@@ -48,13 +48,12 @@ fun AnalyticsControls(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 2. Time Period Filters
+        //  Time Period Filters
         LazyRow(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // Standard Filters (Values from Enum)
-            // We filter out CUSTOM here so we can handle it specially at the end of the row
+            // Standard Filters
             items(TimeFilter.values().filter { it != TimeFilter.CUSTOM }) { filter ->
                 FilterChip(
                     selected = selectedFilter == filter,
