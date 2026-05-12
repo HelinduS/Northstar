@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -15,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -31,7 +33,9 @@ fun HeroSection(
     expenses: Long,
     allTimeBalance: Long = totalBalance,
     allTimeIncome: Long = income,
-    allTimeExpenses: Long = expenses
+    allTimeExpenses: Long = expenses,
+    greetingText: String = "Good morning,",
+    greetingIcon: ImageVector = Icons.Filled.WbSunny
 ) {
     Box(
         modifier = Modifier
@@ -81,12 +85,22 @@ fun HeroSection(
                         .weight(1f)
                         .padding(horizontal = 11.dp)
                 ) {
-                    Text(
-                        "Good evening,",
-                        fontSize = 11.sp,
-                        color = White.copy(alpha = 0.38f),
-                        fontFamily = InterFontFamily
-                    )
+                    // ── Dynamic greeting with icon ──
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = greetingIcon,
+                            contentDescription = null,
+                            tint = White.copy(alpha = 0.55f),
+                            modifier = Modifier.size(12.dp)
+                        )
+                        Spacer(Modifier.width(4.dp))
+                        Text(
+                            text = greetingText,
+                            fontSize = 11.sp,
+                            color = White.copy(alpha = 0.38f),
+                            fontFamily = InterFontFamily
+                        )
+                    }
                     Text(
                         displayName.ifBlank { "User" },
                         fontSize = 15.sp,

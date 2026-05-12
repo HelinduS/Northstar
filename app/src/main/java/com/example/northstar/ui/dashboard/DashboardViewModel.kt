@@ -1,5 +1,10 @@
 package com.example.northstar.ui.dashboard
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bedtime
+import androidx.compose.material.icons.filled.WbSunny
+import androidx.compose.material.icons.filled.WbTwilight
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.northstar.data.repository.GoalRepository
@@ -12,6 +17,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import java.util.Calendar
 import javax.inject.Inject
 
 data class DashboardUiState(
@@ -38,11 +44,9 @@ data class TransactionItem(
     val isIncome: Boolean = false,
     val date: Long = 0L,
     val category: String = "",
-    // Expense specific fields
     val expenseType: String = "",
     val paymentMethod: String = "",
     val description: String = "",
-    // Income specific fields
     val sourceType: String = "",
     val originalCurrency: String = "",
     val originalAmount: Long = 0L,
@@ -59,6 +63,18 @@ class DashboardViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(DashboardUiState())
     val uiState: StateFlow<DashboardUiState> = _uiState.asStateFlow()
+
+    // Time-based greeting — recomputed every time it's accessed
+    val greeting: Pair<String, ImageVector>
+        get() {
+            val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+            return when (hour) {
+                in 5..11  -> Pair("Good morning,",  Icons.Filled.WbSunny)
+                in 12..16 -> Pair("Good afternoon,", Icons.Filled.WbSunny)
+                in 17..20 -> Pair("Good evening,",  Icons.Filled.WbTwilight)
+                else      -> Pair("Good night,",    Icons.Filled.Bedtime)
+            }
+        }
 
     init {
         loadDashboardData()
@@ -86,7 +102,6 @@ class DashboardViewModel @Inject constructor(
                     return@launch
                 }
 
-                // Get user display name and email
                 val userDoc = firestore
                     .collection("users")
                     .document(user.uid)
@@ -96,7 +111,6 @@ class DashboardViewModel @Inject constructor(
                 val displayName = userDoc.getString("displayName") ?: ""
                 val email = userDoc.getString("email") ?: ""
 
-                // Get current month range
                 val calendar = java.util.Calendar.getInstance()
                 calendar.set(java.util.Calendar.DAY_OF_MONTH, 1)
                 calendar.set(java.util.Calendar.HOUR_OF_DAY, 0)
@@ -104,7 +118,6 @@ class DashboardViewModel @Inject constructor(
                 calendar.set(java.util.Calendar.SECOND, 0)
                 val startOfMonth = calendar.time
 
-                // Fetch incomes for current month
                 val incomesSnapshot = firestore
                     .collection("users")
                     .document(user.uid)
@@ -117,7 +130,6 @@ class DashboardViewModel @Inject constructor(
                     it.getLong("lkrAmount") ?: 0L
                 }
 
-                // Fetch expenses for current month
                 val expensesSnapshot = firestore
                     .collection("users")
                     .document(user.uid)
@@ -138,7 +150,6 @@ class DashboardViewModel @Inject constructor(
                     .filter { it.getString("expenseType") == "DISCRETIONARY" }
                     .sumOf { it.getLong("amount") ?: 0L }
 
-                // Fetch all-time incomes (no date filter)
                 val allTimeIncomesSnapshot = firestore
                     .collection("users")
                     .document(user.uid)
@@ -150,7 +161,6 @@ class DashboardViewModel @Inject constructor(
                     it.getLong("lkrAmount") ?: 0L
                 }
 
-                // Fetch all-time expenses (no date filter)
                 val allTimeExpensesSnapshot = firestore
                     .collection("users")
                     .document(user.uid)
@@ -162,7 +172,6 @@ class DashboardViewModel @Inject constructor(
                     it.getLong("amount") ?: 0L
                 }
 
-                // Build recent transactions list
                 val recentIncomes = incomesSnapshot.documents.map {
                     TransactionItem(
                         id = it.id,
