@@ -18,27 +18,26 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-// Color is still used in TransactionRow function
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.northstar.Screen
 import com.example.northstar.ui.dashboard.components.*
 import com.example.northstar.ui.theme.*
-import com.google.accompanist.swiperefresh.SwipeRefresh
-import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import java.text.SimpleDateFormat
 import java.util.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(
     navController: NavController,
     dashboardViewModel: DashboardViewModel = hiltViewModel()
 ) {
     val uiState by dashboardViewModel.uiState.collectAsState()
-    val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = uiState.isLoading)
+    val (greetingText, greetingIcon) = remember { dashboardViewModel.greeting }
 
-    SwipeRefresh(
-        state = swipeRefreshState,
+    PullToRefreshBox(
+        isRefreshing = uiState.isLoading,
         onRefresh = { dashboardViewModel.loadDashboardData() },
         modifier = Modifier.fillMaxSize()
     ) {
@@ -47,7 +46,19 @@ fun DashboardScreen(
                 .fillMaxSize()
                 .padding(bottom = 20.dp)
         ) {
-            item { HeroSection(uiState.displayName, uiState.netSavedLkr, uiState.totalIncomeLkr, uiState.totalExpensesLkr, uiState.allTimeNetSavedLkr, uiState.allTimeIncomeLkr, uiState.allTimeExpensesLkr) }
+            item {
+                HeroSection(
+                    displayName = uiState.displayName,
+                    totalBalance = uiState.netSavedLkr,
+                    income = uiState.totalIncomeLkr,
+                    expenses = uiState.totalExpensesLkr,
+                    allTimeBalance = uiState.allTimeNetSavedLkr,
+                    allTimeIncome = uiState.allTimeIncomeLkr,
+                    allTimeExpenses = uiState.allTimeExpensesLkr,
+                    greetingText = greetingText,
+                    greetingIcon = greetingIcon
+                )
+            }
             item {
                 Box(
                     modifier = Modifier
@@ -60,7 +71,9 @@ fun DashboardScreen(
                         QuickActionsRow(navController)
                         SavingsGoalCard(goals = uiState.goals)
                         ThisMonthCard(uiState.totalIncomeLkr, uiState.totalExpensesLkr)
-                        TransactionsList(uiState.recentTransactions) { navController.navigate(Screen.TransactionHistory.route) }
+                        TransactionsList(uiState.recentTransactions) {
+                            navController.navigate(Screen.TransactionHistory.route)
+                        }
                     }
                 }
             }
