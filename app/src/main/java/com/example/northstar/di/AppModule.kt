@@ -93,12 +93,15 @@ object AppModule {
         firestore: FirebaseFirestore
     ): GoalRepository = GoalRepositoryImpl(firebaseAuth, firestore)
 
+    // --- Repository Providers ---
+
     @Provides
     @Singleton
     fun provideExpenseRepository(
-        firebaseAuth: FirebaseAuth,
-        firestore: FirebaseFirestore
-    ): ExpenseRepository = ExpenseRepositoryImpl(firebaseAuth, firestore)
+        expenseDao: ExpenseDao,           // 1. Needs Dao first
+        firebaseAuth: FirebaseAuth,       // 2. Then Auth
+        firestore: FirebaseFirestore      // 3. Then Firestore
+    ): ExpenseRepository = ExpenseRepositoryImpl(expenseDao, firebaseAuth, firestore)
 
     @Provides
     @Singleton
