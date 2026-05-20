@@ -47,7 +47,6 @@ fun ProfileScreen(
     var showSignOutDialog by remember { mutableStateOf(false) }
     var showPinSetup by remember { mutableStateOf(false) }
 
-    // PIN setup overlay
     if (showPinSetup) {
         PinScreen(
             mode = PinMode.SETUP,
@@ -57,7 +56,6 @@ fun ProfileScreen(
         return
     }
 
-    // Edit name dialog
     if (showEditName) {
         EditFieldDialog(
             title = "Update Name",
@@ -80,7 +78,6 @@ fun ProfileScreen(
         )
     }
 
-    // Edit email dialog
     if (showEditEmail) {
         EditFieldDialog(
             title = "Update Email",
@@ -104,7 +101,6 @@ fun ProfileScreen(
         )
     }
 
-    // Sign out confirm dialog
     if (showSignOutDialog) {
         AlertDialog(
             onDismissRequest = { showSignOutDialog = false },
@@ -141,7 +137,11 @@ fun ProfileScreen(
                     colors = ButtonDefaults.buttonColors(containerColor = Debit),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("Sign Out", fontWeight = FontWeight.W600, fontFamily = InterFontFamily)
+                    Text(
+                        "Sign Out",
+                        fontWeight = FontWeight.W600,
+                        fontFamily = InterFontFamily
+                    )
                 }
             },
             dismissButton = {
@@ -164,8 +164,7 @@ fun ProfileScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(bottom = 100.dp)
         ) {
-
-            // ── Dark header ──
+            // Dark header
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -176,7 +175,6 @@ fun ProfileScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    // Avatar circle
                     Box(
                         modifier = Modifier
                             .size(72.dp)
@@ -190,7 +188,9 @@ fun ProfileScreen(
                                 .split(" ")
                                 .filter { it.isNotBlank() }
                                 .take(2)
-                                .joinToString("") { it.first().uppercaseChar().toString() }
+                                .joinToString("") {
+                                    it.first().uppercaseChar().toString()
+                                }
                                 .ifBlank { "?" },
                             fontSize = 24.sp,
                             fontWeight = FontWeight.W800,
@@ -224,7 +224,7 @@ fun ProfileScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // ── Account section ──
+            // Account section
             ProfileSectionHeader("Account")
 
             ProfileCard {
@@ -245,7 +245,7 @@ fun ProfileScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // ── Preferences section ──
+            // Preferences section
             ProfileSectionHeader("Preferences")
 
             ProfileCard {
@@ -253,13 +253,20 @@ fun ProfileScreen(
                     icon = Icons.Outlined.CurrencyExchange,
                     label = "Default Currency",
                     value = "LKR",
-                    onClick = null // read-only
+                    onClick = null
+                )
+                ProfileDivider()
+                ProfileRow(
+                    icon = Icons.Outlined.Settings,
+                    label = "Settings",
+                    value = "",
+                    onClick = { navController.navigate(Screen.Settings.route) }
                 )
             }
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // ── Security section ──
+            // Security section
             ProfileSectionHeader("Security")
 
             ProfileCard {
@@ -285,7 +292,7 @@ fun ProfileScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // ── Sign out ──
+            // Sign out
             ProfileCard {
                 ProfileRow(
                     icon = Icons.Outlined.Logout,
@@ -299,7 +306,6 @@ fun ProfileScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // App version
             Text(
                 "NorthStar · Version 1.0",
                 fontSize = 11.sp,
@@ -314,7 +320,6 @@ fun ProfileScreen(
     }
 }
 
-// ── Section header ──
 @Composable
 private fun ProfileSectionHeader(title: String) {
     Text(
@@ -328,7 +333,6 @@ private fun ProfileSectionHeader(title: String) {
     )
 }
 
-// ── Card wrapper ──
 @Composable
 private fun ProfileCard(content: @Composable ColumnScope.() -> Unit) {
     Column(
@@ -341,7 +345,6 @@ private fun ProfileCard(content: @Composable ColumnScope.() -> Unit) {
     )
 }
 
-// ── Divider ──
 @Composable
 private fun ProfileDivider() {
     HorizontalDivider(
@@ -351,7 +354,6 @@ private fun ProfileDivider() {
     )
 }
 
-// ── Row ──
 @Composable
 private fun ProfileRow(
     icon: ImageVector,
@@ -414,7 +416,6 @@ private fun ProfileRow(
     }
 }
 
-// ── Edit field dialog ──
 @Composable
 private fun EditFieldDialog(
     title: String,
@@ -457,8 +458,10 @@ private fun EditFieldDialog(
                 onValueChange = { fieldValue = it },
                 label = fieldLabel,
                 keyboardOptions = KeyboardOptions(
-                    keyboardType = if (requiresPassword) KeyboardType.Email else KeyboardType.Text,
-                    imeAction = if (requiresPassword) ImeAction.Next else ImeAction.Done
+                    keyboardType = if (requiresPassword)
+                        KeyboardType.Email else KeyboardType.Text,
+                    imeAction = if (requiresPassword)
+                        ImeAction.Next else ImeAction.Done
                 )
             )
 
@@ -527,7 +530,11 @@ private fun EditFieldDialog(
                             strokeWidth = 2.dp
                         )
                     } else {
-                        Text("Save", fontFamily = InterFontFamily, fontWeight = FontWeight.W600)
+                        Text(
+                            "Save",
+                            fontFamily = InterFontFamily,
+                            fontWeight = FontWeight.W600
+                        )
                     }
                 }
             }
