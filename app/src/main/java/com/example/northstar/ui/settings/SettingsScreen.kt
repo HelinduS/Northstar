@@ -22,17 +22,81 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.northstar.Screen
 import com.example.northstar.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(navController: NavController) {
+fun SettingsScreen(
+    navController: NavController,
+    viewModel: SettingsViewModel = hiltViewModel()
+) {
+    val uiState by viewModel.uiState.collectAsState()
 
     var notificationsEnabled by remember { mutableStateOf(true) }
     var reminderEnabled by remember { mutableStateOf(true) }
     var darkModeEnabled by remember { mutableStateOf(false) }
+    var showClearDialog by remember { mutableStateOf(false) }
+
+    // Clear data confirm dialog
+    if (showClearDialog) {
+        AlertDialog(
+            onDismissRequest = { showClearDialog = false },
+            containerColor = White,
+            shape = RoundedCornerShape(20.dp),
+            title = {
+                Text(
+                    "Clear All Data",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 17.sp,
+                    color = TextPrimary
+                )
+            },
+            text = {
+                Text(
+                    "This will permanently delete all your income, expense, and goal records. This action cannot be undone.",
+                    fontSize = 14.sp,
+                    color = TextSecondary,
+                    lineHeight = 20.sp
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.clearAllData()
+                        showClearDialog = false
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Debit),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("Delete All", fontWeight = FontWeight.SemiBold)
+                }
+            },
+            dismissButton = {
+                OutlinedButton(
+                    onClick = { showClearDialog = false },
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+    // Success snackbar
+    LaunchedEffect(uiState.exportSuccess) {
+        if (uiState.exportSuccess) {
+            viewModel.resetState()
+        }
+    }
+
+    LaunchedEffect(uiState.clearSuccess) {
+        if (uiState.clearSuccess) {
+            viewModel.resetState()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -85,6 +149,58 @@ fun SettingsScreen(navController: NavController) {
         ) {
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Loading indicator
+            if (uiState.isLoading) {
+                LinearProgressIndicator(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = Navy900,
+                    trackColor = Navy900.copy(alpha = 0.1f)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+
+            // Error message
+            if (uiState.error != null) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Debit.copy(alpha = 0.08f)
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text(
+                        text = uiState.error!!,
+                        color = Debit,
+                        fontSize = 13.sp,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+
+            // Success message
+            if (uiState.clearSuccess) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Credit.copy(alpha = 0.08f)
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text(
+                        text = "All data cleared successfully",
+                        color = Credit,
+                        fontSize = 13.sp,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+
             // Notifications section
             SettingsSectionHeader(title = "Notifications")
 
@@ -131,7 +247,7 @@ fun SettingsScreen(navController: NavController) {
                     icon = Icons.Outlined.Download,
                     label = "Export Data",
                     description = "Download your financial data",
-                    onClick = { }
+                    onClick = { viewModel.exportData() }
                 )
                 SettingsDivider()
                 SettingsNavigationRow(
@@ -140,7 +256,7 @@ fun SettingsScreen(navController: NavController) {
                     description = "Permanently delete all records",
                     labelColor = Debit,
                     iconTint = Debit,
-                    onClick = { }
+                    onClick = { showClearDialog = true }
                 )
             }
 
