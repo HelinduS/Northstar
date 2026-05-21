@@ -48,7 +48,8 @@ class AuthRepository @Inject constructor(
                 "displayName" to displayName,
                 "email" to email,
                 "createdAt" to com.google.firebase.Timestamp.now(),
-                "defaultCurrency" to "LKR",
+                "currency" to "LKR",
+                "updatedAt" to com.google.firebase.Timestamp.now(),
                 "activeGoalId" to null
             )
             firestore

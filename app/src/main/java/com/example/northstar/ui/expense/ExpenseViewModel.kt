@@ -10,6 +10,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import javax.inject.Inject
 
 data class ExpenseUiState(
@@ -70,8 +73,8 @@ class ExpenseViewModel @Inject constructor(
                         amount = it.getLong("amount") ?: 0L,
                         category = it.getString("category") ?: "",
                         expenseType = it.getString("expenseType") ?: "",
-                        paymentMethod = it.getString("paymentMethod") ?: "",
-                        description = it.getString("description") ?: "",
+                        paymentMethod = it.getString("paymentSource") ?: "",
+                        description = it.getString("note") ?: "",
                         date = it.getTimestamp("date")?.toDate()?.time ?: 0L
                     )
                 }
@@ -121,13 +124,16 @@ class ExpenseViewModel @Inject constructor(
                     return@launch
                 }
 
+                val month = SimpleDateFormat("yyyy-MM", Locale.US).format(Date(date))
                 val expense = hashMapOf(
                     "amount" to amount,
+                    "currency" to "LKR",
                     "category" to category,
                     "expenseType" to expenseType,
-                    "paymentMethod" to paymentMethod,
-                    "description" to description,
-                    "date" to com.google.firebase.Timestamp(java.util.Date(date)),
+                    "paymentSource" to paymentMethod,
+                    "note" to description,
+                    "date" to com.google.firebase.Timestamp(Date(date)),
+                    "month" to month,
                     "createdAt" to com.google.firebase.Timestamp.now(),
                     "updatedAt" to com.google.firebase.Timestamp.now()
                 )

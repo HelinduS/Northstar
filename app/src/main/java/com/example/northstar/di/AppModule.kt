@@ -59,7 +59,7 @@ object AppModule {
             context,
             NorthStarDatabase::class.java,
             "northstar_database"
-        ).build()
+        ).fallbackToDestructiveMigration().build()
 
     @Provides
     @Singleton

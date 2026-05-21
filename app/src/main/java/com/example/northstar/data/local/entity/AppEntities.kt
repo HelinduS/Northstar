@@ -9,12 +9,13 @@ data class IncomeEntity(
     val id: String,
     val sourceType: String,
     val projectName: String?,
-    val originalAmount: Long,
-    val originalCurrency: String,
-    val lkrAmount: Long,
+    val amount: Long,
+    val currency: String,
+    val amountLKR: Long,
     val exchangeRate: Double,
-    val date: Long,
-    val notes: String?,
+    val receivedDate: Long,
+    val month: String,
+    val note: String?,
     val createdAt: Long,
     val updatedAt: Long
 )
@@ -24,11 +25,13 @@ data class ExpenseEntity(
     @PrimaryKey
     val id: String,
     val amount: Long,
+    val currency: String,
     val category: String,
     val expenseType: String,
-    val paymentMethod: String,
-    val description: String?,
+    val paymentSource: String,
+    val note: String?,
     val date: Long,
+    val month: String,
     val createdAt: Long,
     val updatedAt: Long
 )
@@ -41,6 +44,7 @@ data class GoalEntity(
     val targetAmount: Long,
     val savedAmount: Long,
     val targetDate: Long,
+    val currency: String = "LKR",
     val isActive: Boolean,
     val createdAt: Long
 )

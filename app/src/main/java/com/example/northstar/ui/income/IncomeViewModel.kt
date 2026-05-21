@@ -10,6 +10,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import java.util.UUID
 import javax.inject.Inject
 
@@ -133,16 +136,18 @@ class IncomeViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = IncomeUiState.Loading
             val lkrAmountInCents = (amountInCents * exchangeRate).toLong()
+            val month = SimpleDateFormat("yyyy-MM", Locale.US).format(Date(date))
             val income = Income(
                 id = UUID.randomUUID().toString(),
                 sourceType = sourceType,
                 projectName = projectName,
-                originalAmount = amountInCents,
-                originalCurrency = currency,
-                lkrAmount = lkrAmountInCents,
+                amount = amountInCents,
+                currency = currency,
+                amountLKR = lkrAmountInCents,
                 exchangeRate = exchangeRate,
-                date = date,
-                notes = notes,
+                receivedDate = date,
+                month = month,
+                note = notes,
                 createdAt = System.currentTimeMillis(),
                 updatedAt = System.currentTimeMillis()
             )

@@ -9,12 +9,15 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class ExpenseRepositoryImpl @Inject constructor(
-    private val expenseDao: ExpenseDao, // ADDED THIS
+    private val expenseDao: ExpenseDao,
     private val firebaseAuth: FirebaseAuth,
     private val firestore: FirebaseFirestore
 ) : ExpenseRepository {
@@ -26,17 +29,21 @@ class ExpenseRepositoryImpl @Inject constructor(
         .document(userId)
         .collection(FirestoreConstants.COLLECTION_EXPENSES)
 
+    private val monthFmt = SimpleDateFormat("yyyy-MM", Locale.US)
+
     override suspend fun addExpense(expense: Expense): Result<Unit> {
         return try {
             val userId = getUserIdOrNull()
                 ?: return Result.failure(IllegalStateException("User is not signed in"))
             val data = mapOf<String, Any>(
                 "amount" to expense.amount,
+                "currency" to expense.currency,
                 "category" to expense.category,
                 "expenseType" to expense.expenseType,
-                "paymentMethod" to expense.paymentMethod,
-                "description" to (expense.description ?: ""),
-                "date" to com.google.firebase.Timestamp(java.util.Date(expense.date)),
+                "paymentSource" to expense.paymentSource,
+                "note" to (expense.note ?: ""),
+                "date" to com.google.firebase.Timestamp(Date(expense.date)),
+                "month" to expense.month,
                 "createdAt" to com.google.firebase.Timestamp.now(),
                 "updatedAt" to com.google.firebase.Timestamp.now()
             )
@@ -53,10 +60,11 @@ class ExpenseRepositoryImpl @Inject constructor(
                 ?: return Result.failure(IllegalStateException("User is not signed in"))
             val data = mapOf<String, Any>(
                 "amount" to expense.amount,
+                "currency" to expense.currency,
                 "category" to expense.category,
                 "expenseType" to expense.expenseType,
-                "paymentMethod" to expense.paymentMethod,
-                "description" to (expense.description ?: ""),
+                "paymentSource" to expense.paymentSource,
+                "note" to (expense.note ?: ""),
                 "updatedAt" to com.google.firebase.Timestamp.now()
             )
             expensesCollection(userId)
@@ -95,11 +103,13 @@ class ExpenseRepositoryImpl @Inject constructor(
                     Expense(
                         id = doc.id,
                         amount = doc.getLong("amount") ?: 0L,
+                        currency = doc.getString("currency") ?: "LKR",
                         category = doc.getString("category") ?: "",
                         expenseType = doc.getString("expenseType") ?: "",
-                        paymentMethod = doc.getString("paymentMethod") ?: "",
-                        description = doc.getString("description") ?: "",
+                        paymentSource = doc.getString("paymentSource") ?: "",
+                        note = doc.getString("note"),
                         date = doc.getTimestamp("date")?.toDate()?.time ?: 0L,
+                        month = doc.getString("month") ?: "",
                         createdAt = doc.getTimestamp("createdAt")?.toDate()?.time ?: 0L,
                         updatedAt = doc.getTimestamp("updatedAt")?.toDate()?.time ?: 0L
                     )
@@ -114,8 +124,8 @@ class ExpenseRepositoryImpl @Inject constructor(
         endDate: Long
     ): Flow<List<Expense>> = callbackFlow {
         val userId = getUserIdOrNull() ?: return@callbackFlow
-        val start = java.util.Date(startDate)
-        val end = java.util.Date(endDate)
+        val start = Date(startDate)
+        val end = Date(endDate)
         val listener = expensesCollection(userId)
             .whereGreaterThanOrEqualTo("date", start)
             .whereLessThanOrEqualTo("date", end)
@@ -128,11 +138,13 @@ class ExpenseRepositoryImpl @Inject constructor(
                     Expense(
                         id = doc.id,
                         amount = doc.getLong("amount") ?: 0L,
+                        currency = doc.getString("currency") ?: "LKR",
                         category = doc.getString("category") ?: "",
                         expenseType = doc.getString("expenseType") ?: "",
-                        paymentMethod = doc.getString("paymentMethod") ?: "",
-                        description = doc.getString("description") ?: "",
+                        paymentSource = doc.getString("paymentSource") ?: "",
+                        note = doc.getString("note"),
                         date = doc.getTimestamp("date")?.toDate()?.time ?: 0L,
+                        month = doc.getString("month") ?: "",
                         createdAt = doc.getTimestamp("createdAt")?.toDate()?.time ?: 0L,
                         updatedAt = doc.getTimestamp("updatedAt")?.toDate()?.time ?: 0L
                     )
@@ -155,11 +167,13 @@ class ExpenseRepositoryImpl @Inject constructor(
                     Expense(
                         id = doc.id,
                         amount = doc.getLong("amount") ?: 0L,
+                        currency = doc.getString("currency") ?: "LKR",
                         category = doc.getString("category") ?: "",
                         expenseType = doc.getString("expenseType") ?: "",
-                        paymentMethod = doc.getString("paymentMethod") ?: "",
-                        description = doc.getString("description") ?: "",
+                        paymentSource = doc.getString("paymentSource") ?: "",
+                        note = doc.getString("note"),
                         date = doc.getTimestamp("date")?.toDate()?.time ?: 0L,
+                        month = doc.getString("month") ?: "",
                         createdAt = doc.getTimestamp("createdAt")?.toDate()?.time ?: 0L,
                         updatedAt = doc.getTimestamp("updatedAt")?.toDate()?.time ?: 0L
                     )
@@ -182,11 +196,13 @@ class ExpenseRepositoryImpl @Inject constructor(
                     Expense(
                         id = doc.id,
                         amount = doc.getLong("amount") ?: 0L,
+                        currency = doc.getString("currency") ?: "LKR",
                         category = doc.getString("category") ?: "",
                         expenseType = doc.getString("expenseType") ?: "",
-                        paymentMethod = doc.getString("paymentMethod") ?: "",
-                        description = doc.getString("description") ?: "",
+                        paymentSource = doc.getString("paymentSource") ?: "",
+                        note = doc.getString("note"),
                         date = doc.getTimestamp("date")?.toDate()?.time ?: 0L,
+                        month = doc.getString("month") ?: "",
                         createdAt = doc.getTimestamp("createdAt")?.toDate()?.time ?: 0L,
                         updatedAt = doc.getTimestamp("updatedAt")?.toDate()?.time ?: 0L
                     )
