@@ -2,6 +2,7 @@ package com.example.northstar.ui.dashboard.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -35,7 +36,9 @@ fun HeroSection(
     allTimeIncome: Long = income,
     allTimeExpenses: Long = expenses,
     greetingText: String = "Good morning,",
-    greetingIcon: ImageVector = Icons.Filled.WbSunny
+    greetingIcon: ImageVector = Icons.Filled.WbSunny,
+    unreadNotificationCount: Int = 0,
+    onNotificationClick: () -> Unit = {}
 ) {
     Box(
         modifier = Modifier
@@ -58,6 +61,7 @@ fun HeroSection(
                     .padding(top = 10.dp, bottom = 24.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                // Avatar
                 Box(
                     modifier = Modifier
                         .size(38.dp)
@@ -80,12 +84,12 @@ fun HeroSection(
                     )
                 }
 
+                // Greeting + Name
                 Column(
                     modifier = Modifier
                         .weight(1f)
                         .padding(horizontal = 11.dp)
                 ) {
-                    // ── Dynamic greeting with icon ──
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             imageVector = greetingIcon,
@@ -113,28 +117,47 @@ fun HeroSection(
                     )
                 }
 
-                Box(
-                    modifier = Modifier
-                        .size(36.dp)
-                        .clip(CircleShape)
-                        .background(White.copy(alpha = 0.06f))
-                        .border(1.dp, White.copy(alpha = 0.08f), CircleShape),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        Icons.Outlined.Notifications,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp),
-                        tint = White.copy(alpha = 0.7f)
-                    )
+                // ── Bell icon with badge overlapping top-right ──
+                Box(modifier = Modifier.size(36.dp)) {
+                    // Bell button
                     Box(
                         modifier = Modifier
-                            .size(7.dp)
+                            .size(36.dp)
                             .clip(CircleShape)
-                            .background(Color(0xFFEF4444))
-                            .border(1.5.dp, Navy900, CircleShape)
-                            .align(Alignment.TopEnd)
-                    )
+                            .background(White.copy(alpha = 0.06f))
+                            .border(1.dp, White.copy(alpha = 0.08f), CircleShape)
+                            .clickable { onNotificationClick() },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            Icons.Outlined.Notifications,
+                            contentDescription = "Notifications",
+                            modifier = Modifier.size(18.dp),
+                            tint = White.copy(alpha = 0.7f)
+                        )
+                    }
+
+                    // Red badge overlapping top-right corner
+                    if (unreadNotificationCount > 0) {
+                        Box(
+                            modifier = Modifier
+                                .size(if (unreadNotificationCount > 9) 16.dp else 12.dp)
+                                .clip(CircleShape)
+                                .background(Color(0xFFEF4444))
+                                .border(1.5.dp, Navy900, CircleShape)
+                                .align(Alignment.TopEnd),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (unreadNotificationCount > 9) {
+                                Text(
+                                    "9+",
+                                    color = Color.White,
+                                    fontSize = 6.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
                 }
             }
 

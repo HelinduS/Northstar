@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.Timestamp
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,7 +20,13 @@ data class ExpenseUiState(
     val discretionaryExpensesLkr: Long = 0L,
     val isLoading: Boolean = false,
     val isSaved: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+
+    // NEW VALUES
+    val savedAmount: Long = 0L,
+    val savedCategory: String = "",
+    val budgetPercent: Int = 0,
+    val isLargeExpense: Boolean = false
 )
 
 data class ExpenseItem(
@@ -46,14 +53,23 @@ class ExpenseViewModel @Inject constructor(
     }
 
     fun loadExpenses() {
+
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+
+            _uiState.value = _uiState.value.copy(
+                isLoading = true,
+                error = null
+            )
+
             try {
+
                 val user = firebaseAuth.currentUser ?: run {
+
                     _uiState.value = ExpenseUiState(
                         isLoading = false,
                         error = "User not logged in"
                     )
+
                     return@launch
                 }
 
@@ -65,6 +81,7 @@ class ExpenseViewModel @Inject constructor(
                     .await()
 
                 val expenses = snapshot.documents.map {
+
                     ExpenseItem(
                         id = it.id,
                         amount = it.getLong("amount") ?: 0L,
@@ -72,19 +89,23 @@ class ExpenseViewModel @Inject constructor(
                         expenseType = it.getString("expenseType") ?: "",
                         paymentMethod = it.getString("paymentMethod") ?: "",
                         description = it.getString("description") ?: "",
-                        date = it.getTimestamp("date")?.toDate()?.time ?: 0L
+                        date = it.getTimestamp("date")
+                            ?.toDate()
+                            ?.time ?: 0L
                     )
                 }
 
                 val total = expenses.sumOf { it.amount }
+
                 val committed = expenses
                     .filter { it.expenseType == "COMMITTED" }
                     .sumOf { it.amount }
+
                 val discretionary = expenses
                     .filter { it.expenseType == "DISCRETIONARY" }
                     .sumOf { it.amount }
 
-                _uiState.value = ExpenseUiState(
+                _uiState.value = _uiState.value.copy(
                     expenses = expenses,
                     totalExpensesLkr = total,
                     committedExpensesLkr = committed,
@@ -93,6 +114,7 @@ class ExpenseViewModel @Inject constructor(
                 )
 
             } catch (e: Exception) {
+
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     error = e.message ?: "Failed to load expenses"
@@ -109,17 +131,37 @@ class ExpenseViewModel @Inject constructor(
         description: String,
         date: Long
     ) {
+
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+
+            _uiState.value = _uiState.value.copy(
+                isLoading = true,
+                error = null
+            )
+
             try {
+
                 val user = firebaseAuth.currentUser ?: run {
+
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         error = "User not logged in",
                         isSaved = false
                     )
+
                     return@launch
                 }
+
+                // LARGE EXPENSE DETECTION
+                val currentExpenses = _uiState.value.expenses
+
+                val avgExpense = if (currentExpenses.isEmpty()) {
+                    0.0
+                } else {
+                    currentExpenses.map { it.amount }.average()
+                }
+
+                val isLarge = amount > avgExpense * 2 && avgExpense > 0
 
                 val expense = hashMapOf(
                     "amount" to amount,
@@ -127,9 +169,9 @@ class ExpenseViewModel @Inject constructor(
                     "expenseType" to expenseType,
                     "paymentMethod" to paymentMethod,
                     "description" to description,
-                    "date" to com.google.firebase.Timestamp(java.util.Date(date)),
-                    "createdAt" to com.google.firebase.Timestamp.now(),
-                    "updatedAt" to com.google.firebase.Timestamp.now()
+                    "date" to Timestamp(java.util.Date(date)),
+                    "createdAt" to Timestamp.now(),
+                    "updatedAt" to Timestamp.now()
                 )
 
                 firestore
@@ -139,14 +181,20 @@ class ExpenseViewModel @Inject constructor(
                     .add(expense)
                     .await()
 
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    isSaved = true
-                )
-
+                // RELOAD EXPENSES
                 loadExpenses()
 
+                // UPDATE STATE
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    isSaved = true,
+                    savedAmount = amount,
+                    savedCategory = category,
+                    isLargeExpense = isLarge
+                )
+
             } catch (e: Exception) {
+
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     error = e.message ?: "Failed to add expense"
@@ -156,12 +204,17 @@ class ExpenseViewModel @Inject constructor(
     }
 
     fun deleteExpense(expenseId: String) {
+
         viewModelScope.launch {
+
             try {
+
                 val user = firebaseAuth.currentUser ?: run {
+
                     _uiState.value = _uiState.value.copy(
                         error = "User not logged in"
                     )
+
                     return@launch
                 }
 
@@ -176,6 +229,7 @@ class ExpenseViewModel @Inject constructor(
                 loadExpenses()
 
             } catch (e: Exception) {
+
                 _uiState.value = _uiState.value.copy(
                     error = e.message ?: "Failed to delete expense"
                 )
@@ -184,6 +238,13 @@ class ExpenseViewModel @Inject constructor(
     }
 
     fun resetSavedState() {
-        _uiState.value = _uiState.value.copy(isSaved = false)
+
+        _uiState.value = _uiState.value.copy(
+            isSaved = false,
+            savedAmount = 0L,
+            savedCategory = "",
+            budgetPercent = 0,
+            isLargeExpense = false
+        )
     }
 }
