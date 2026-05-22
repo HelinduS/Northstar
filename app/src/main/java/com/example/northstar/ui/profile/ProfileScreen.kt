@@ -44,6 +44,8 @@ fun ProfileScreen(
     val uiState by viewModel.uiState.collectAsState()
     var showEditName by remember { mutableStateOf(false) }
     var showEditEmail by remember { mutableStateOf(false) }
+    var showEditPhone by remember { mutableStateOf(false) }
+    var showEditAddress by remember { mutableStateOf(false) }
     var showSignOutDialog by remember { mutableStateOf(false) }
     var showPinSetup by remember { mutableStateOf(false) }
 
@@ -96,6 +98,51 @@ fun ProfileScreen(
             errorMessage = uiState.errorMessage,
             onSuccess = {
                 showEditEmail = false
+                viewModel.clearMessages()
+            }
+        )
+    }
+
+    if (showEditPhone) {
+        EditFieldDialog(
+            title = "Update Phone Number",
+            fieldLabel = "Phone number",
+            currentValue = uiState.phone,
+            keyboardType = KeyboardType.Phone,
+            onDismiss = {
+                showEditPhone = false
+                viewModel.clearMessages()
+            },
+            onConfirm = { newValue, _ ->
+                viewModel.updatePhone(newValue)
+            },
+            isLoading = uiState.isLoading,
+            successMessage = uiState.successMessage,
+            errorMessage = uiState.errorMessage,
+            onSuccess = {
+                showEditPhone = false
+                viewModel.clearMessages()
+            }
+        )
+    }
+
+    if (showEditAddress) {
+        EditFieldDialog(
+            title = "Update Address",
+            fieldLabel = "Address",
+            currentValue = uiState.address,
+            onDismiss = {
+                showEditAddress = false
+                viewModel.clearMessages()
+            },
+            onConfirm = { newValue, _ ->
+                viewModel.updateAddress(newValue)
+            },
+            isLoading = uiState.isLoading,
+            successMessage = uiState.successMessage,
+            errorMessage = uiState.errorMessage,
+            onSuccess = {
+                showEditAddress = false
                 viewModel.clearMessages()
             }
         )
@@ -240,6 +287,20 @@ fun ProfileScreen(
                     label = "Email Address",
                     value = uiState.email,
                     onClick = { showEditEmail = true }
+                )
+                ProfileDivider()
+                ProfileRow(
+                    icon = Icons.Outlined.Phone,
+                    label = "Phone Number",
+                    value = uiState.phone.ifBlank { "Not set" },
+                    onClick = { showEditPhone = true }
+                )
+                ProfileDivider()
+                ProfileRow(
+                    icon = Icons.Outlined.Home,
+                    label = "Address",
+                    value = uiState.address.ifBlank { "Not set" },
+                    onClick = { showEditAddress = true }
                 )
             }
 
@@ -422,6 +483,7 @@ private fun EditFieldDialog(
     fieldLabel: String,
     currentValue: String,
     requiresPassword: Boolean = false,
+    keyboardType: KeyboardType = KeyboardType.Text,
     onDismiss: () -> Unit,
     onConfirm: (String, String) -> Unit,
     isLoading: Boolean,
@@ -458,10 +520,8 @@ private fun EditFieldDialog(
                 onValueChange = { fieldValue = it },
                 label = fieldLabel,
                 keyboardOptions = KeyboardOptions(
-                    keyboardType = if (requiresPassword)
-                        KeyboardType.Email else KeyboardType.Text,
-                    imeAction = if (requiresPassword)
-                        ImeAction.Next else ImeAction.Done
+                    keyboardType = if (requiresPassword) KeyboardType.Email else keyboardType,
+                    imeAction = if (requiresPassword) ImeAction.Next else ImeAction.Done
                 )
             )
 

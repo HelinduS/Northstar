@@ -31,7 +31,9 @@ class AuthRepository @Inject constructor(
     suspend fun register(
         email: String,
         password: String,
-        displayName: String
+        displayName: String,
+        phone: String = "",
+        address: String = ""
     ): Result<FirebaseUser> {
         var createdUser: FirebaseUser? = null
         return try {
@@ -47,6 +49,8 @@ class AuthRepository @Inject constructor(
                 "uid" to user.uid,
                 "displayName" to displayName,
                 "email" to email,
+                "phone" to phone,
+                "address" to address,
                 "createdAt" to com.google.firebase.Timestamp.now(),
                 "currency" to "LKR",
                 "updatedAt" to com.google.firebase.Timestamp.now(),
@@ -118,6 +122,31 @@ class AuthRepository @Inject constructor(
         }
     }
 
-    fun signOut() = firebaseAuth.signOut()
+    suspend fun getUserProfile(uid: String): Result<Map<String, Any>> {
+        return try {
+            val doc = firestore
+                .collection(FirestoreConstants.COLLECTION_USERS)
+                .document(uid)
+                .get()
+                .await()
+            Result.success(doc.data ?: emptyMap())
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 
+    suspend fun updateUserField(uid: String, field: String, value: String): Result<Unit> {
+        return try {
+            firestore
+                .collection(FirestoreConstants.COLLECTION_USERS)
+                .document(uid)
+                .update(field, value)
+                .await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    fun signOut() = firebaseAuth.signOut()
 }
