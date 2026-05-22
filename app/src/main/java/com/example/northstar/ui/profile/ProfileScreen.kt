@@ -41,6 +41,7 @@ fun ProfileScreen(
     pinLockManager: PinLockManager,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
+    val cs = MaterialTheme.colorScheme
     val uiState by viewModel.uiState.collectAsState()
     var showEditName by remember { mutableStateOf(false) }
     var showEditEmail by remember { mutableStateOf(false) }
@@ -104,14 +105,14 @@ fun ProfileScreen(
     if (showSignOutDialog) {
         AlertDialog(
             onDismissRequest = { showSignOutDialog = false },
-            containerColor = White,
+            containerColor = cs.surface,
             shape = RoundedCornerShape(20.dp),
             title = {
                 Text(
                     "Sign Out",
                     fontWeight = FontWeight.W700,
                     fontSize = 17.sp,
-                    color = TextPrimary,
+                    color = cs.onSurface,
                     fontFamily = InterFontFamily
                 )
             },
@@ -119,7 +120,7 @@ fun ProfileScreen(
                 Text(
                     "Are you sure you want to sign out of NorthStar?",
                     fontSize = 14.sp,
-                    color = TextSecondary,
+                    color = cs.onSurfaceVariant,
                     fontFamily = InterFontFamily,
                     lineHeight = 20.sp
                 )
@@ -159,7 +160,7 @@ fun ProfileScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Surface)
+                .background(cs.background)
                 .padding(top = padding.calculateTopPadding())
                 .verticalScroll(rememberScrollState())
                 .padding(bottom = 100.dp)
@@ -169,7 +170,7 @@ fun ProfileScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(bottomStart = 28.dp, bottomEnd = 28.dp))
-                    .background(Navy900)
+                    .background(GreenDeep)
                     .padding(horizontal = 20.dp)
                     .padding(top = 52.dp, bottom = 28.dp),
                 contentAlignment = Alignment.Center
@@ -179,7 +180,7 @@ fun ProfileScreen(
                         modifier = Modifier
                             .size(72.dp)
                             .clip(CircleShape)
-                            .background(Navy800)
+                            .background(GreenMid)
                             .border(2.dp, White.copy(alpha = 0.12f), CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
@@ -274,7 +275,7 @@ fun ProfileScreen(
                     icon = Icons.Outlined.Lock,
                     label = if (pinLockManager.hasPin()) "Change PIN" else "Set App PIN",
                     value = if (pinLockManager.hasPin()) "Enabled" else "Not set",
-                    valueColor = if (pinLockManager.hasPin()) Credit else TextMuted,
+                    valueColor = if (pinLockManager.hasPin()) Credit else null,
                     onClick = { showPinSetup = true }
                 )
                 if (pinLockManager.hasPin()) {
@@ -309,7 +310,7 @@ fun ProfileScreen(
             Text(
                 "NorthStar · Version 1.0",
                 fontSize = 11.sp,
-                color = TextHint,
+                color = cs.onSurfaceVariant,
                 fontFamily = InterFontFamily,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -322,11 +323,12 @@ fun ProfileScreen(
 
 @Composable
 private fun ProfileSectionHeader(title: String) {
+    val cs = MaterialTheme.colorScheme
     Text(
         title,
         fontSize = 12.sp,
         fontWeight = FontWeight.W600,
-        color = TextMuted,
+        color = cs.onSurfaceVariant,
         letterSpacing = 0.5.sp,
         fontFamily = InterFontFamily,
         modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp)
@@ -335,20 +337,22 @@ private fun ProfileSectionHeader(title: String) {
 
 @Composable
 private fun ProfileCard(content: @Composable ColumnScope.() -> Unit) {
+    val cs = MaterialTheme.colorScheme
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
-            .background(White, RoundedCornerShape(20.dp))
-            .border(1.dp, Border, RoundedCornerShape(20.dp)),
+            .background(cs.surface, RoundedCornerShape(20.dp))
+            .border(1.dp, cs.outline, RoundedCornerShape(20.dp)),
         content = content
     )
 }
 
 @Composable
 private fun ProfileDivider() {
+    val cs = MaterialTheme.colorScheme
     HorizontalDivider(
-        color = Separator,
+        color = cs.outlineVariant,
         thickness = 1.dp,
         modifier = Modifier.padding(horizontal = 16.dp)
     )
@@ -359,11 +363,16 @@ private fun ProfileRow(
     icon: ImageVector,
     label: String,
     value: String,
-    labelColor: Color = TextPrimary,
-    valueColor: Color = TextSecondary,
-    iconTint: Color = Navy900,
+    labelColor: Color? = null,
+    valueColor: Color? = null,
+    iconTint: Color? = null,
     onClick: (() -> Unit)?
 ) {
+    val cs = MaterialTheme.colorScheme
+    val resolvedLabelColor = labelColor ?: cs.onSurface
+    val resolvedValueColor = valueColor ?: cs.onSurfaceVariant
+    val resolvedIconTint   = iconTint   ?: cs.primary
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -375,14 +384,14 @@ private fun ProfileRow(
         Box(
             modifier = Modifier
                 .size(34.dp)
-                .background(iconTint.copy(alpha = 0.08f), RoundedCornerShape(10.dp)),
+                .background(resolvedIconTint.copy(alpha = 0.08f), RoundedCornerShape(10.dp)),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 icon,
                 contentDescription = null,
                 modifier = Modifier.size(17.dp),
-                tint = iconTint
+                tint = resolvedIconTint
             )
         }
 
@@ -390,7 +399,7 @@ private fun ProfileRow(
             label,
             fontSize = 14.sp,
             fontWeight = FontWeight.W500,
-            color = labelColor,
+            color = resolvedLabelColor,
             fontFamily = InterFontFamily,
             modifier = Modifier.weight(1f)
         )
@@ -400,7 +409,7 @@ private fun ProfileRow(
                 value,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.W500,
-                color = valueColor,
+                color = resolvedValueColor,
                 fontFamily = InterFontFamily
             )
         }
@@ -410,7 +419,7 @@ private fun ProfileRow(
                 Icons.Outlined.ChevronRight,
                 contentDescription = null,
                 modifier = Modifier.size(16.dp),
-                tint = TextHint
+                tint = cs.onSurfaceVariant
             )
         }
     }
@@ -429,6 +438,7 @@ private fun EditFieldDialog(
     errorMessage: String,
     onSuccess: () -> Unit
 ) {
+    val cs = MaterialTheme.colorScheme
     var fieldValue by remember { mutableStateOf(currentValue) }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
@@ -441,14 +451,14 @@ private fun EditFieldDialog(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(White, RoundedCornerShape(24.dp))
+                .background(cs.surface, RoundedCornerShape(24.dp))
                 .padding(24.dp)
         ) {
             Text(
                 title,
                 fontSize = 17.sp,
                 fontWeight = FontWeight.W700,
-                color = TextPrimary,
+                color = cs.onSurface,
                 fontFamily = InterFontFamily,
                 modifier = Modifier.padding(bottom = 20.dp)
             )
@@ -482,7 +492,7 @@ private fun EditFieldDialog(
                                 else Icons.Outlined.Visibility,
                                 contentDescription = null,
                                 modifier = Modifier.size(18.dp),
-                                tint = TextMuted
+                                tint = cs.onSurfaceVariant
                             )
                         }
                     },
@@ -520,7 +530,7 @@ private fun EditFieldDialog(
                     onClick = { onConfirm(fieldValue, password) },
                     modifier = Modifier.weight(1f),
                     enabled = !isLoading,
-                    colors = ButtonDefaults.buttonColors(containerColor = Navy900),
+                    colors = ButtonDefaults.buttonColors(containerColor = GreenDeep),
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     if (isLoading) {

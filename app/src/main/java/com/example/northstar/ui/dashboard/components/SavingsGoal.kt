@@ -147,7 +147,7 @@ private fun GoalCardItem(goal: Goal) {
     val accentBrush = if (isComplete)
         Brush.verticalGradient(listOf(GreenAccent, IncomeGreen))
     else
-        Brush.verticalGradient(listOf(GreenDeep, GreenMid))
+        Brush.verticalGradient(listOf(GreenDeep, GreenAccent))
 
     // ── Card shell ──────────────────────────────────────────────────────────────
     Column(
@@ -167,7 +167,7 @@ private fun GoalCardItem(goal: Goal) {
             // 4dp left accent bar — only as tall as the body content
             Box(
                 modifier = Modifier
-                    .width(4.dp)
+                    .width(5.dp)
                     .fillMaxHeight()
                     .background(accentBrush)
             )
@@ -181,16 +181,16 @@ private fun GoalCardItem(goal: Goal) {
                     horizontalArrangement = Arrangement.spacedBy(14.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // ── 64dp ring (matching prototype SVG size) ─────────────────
                     Box(
                         modifier = Modifier.size(64.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         val trackColor = cs.outlineVariant
                         Canvas(modifier = Modifier.size(64.dp)) {
-                            val stroke = 5.dp.toPx()
-                            val inset  = stroke / 2f
-                            val arcSize = Size(size.width - stroke, size.height - stroke)
+                            val stroke  = 5.dp.toPx()
+                            // r=26 in a 64px container → 6dp inset each side (matches prototype SVG)
+                            val inset   = 6.dp.toPx()
+                            val arcSize = Size(size.width - inset * 2, size.height - inset * 2)
                             val topLeft = Offset(inset, inset)
 
                             // Track
@@ -219,6 +219,7 @@ private fun GoalCardItem(goal: Goal) {
                                 "${(animatedProgress.value * 100).toInt()}%",
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.W800,
+                                lineHeight = 13.sp,
                                 color = if (isComplete) IncomeGreen else cs.onSurface,
                                 fontFamily = InterFontFamily
                             )
@@ -226,6 +227,7 @@ private fun GoalCardItem(goal: Goal) {
                                 "saved",
                                 fontSize = 8.sp,
                                 fontWeight = FontWeight.W500,
+                                lineHeight = 8.sp,
                                 color = cs.onSurfaceVariant,
                                 fontFamily = InterFontFamily
                             )

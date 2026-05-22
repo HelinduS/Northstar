@@ -13,7 +13,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -59,6 +58,7 @@ fun ExpenseScreen(
     navController: NavController,
     viewModel: ExpenseViewModel = hiltViewModel()
 ) {
+    val cs = MaterialTheme.colorScheme
     val uiState by viewModel.uiState.collectAsState()
 
     var amount by remember { mutableStateOf("") }
@@ -116,11 +116,11 @@ fun ExpenseScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Navy900
+                    containerColor = GreenDeep
                 )
             )
         },
-        containerColor = Surface
+        containerColor = cs.background
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -132,7 +132,7 @@ fun ExpenseScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(color = Navy900)
+                    .background(color = GreenDeep)
                     .padding(horizontal = 24.dp, vertical = 28.dp),
                 contentAlignment = Alignment.Center
             ) {
@@ -222,9 +222,9 @@ fun ExpenseScreen(
                     .shadow(
                         elevation = 8.dp,
                         shape = RoundedCornerShape(20.dp),
-                        spotColor = Navy900.copy(alpha = 0.08f)
+                        spotColor = cs.primary.copy(alpha = 0.08f)
                     ),
-                colors = CardDefaults.cardColors(containerColor = White),
+                colors = CardDefaults.cardColors(containerColor = cs.surface),
                 elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
                 shape = RoundedCornerShape(20.dp)
             ) {
@@ -248,7 +248,7 @@ fun ExpenseScreen(
                             text = "Expense Details",
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp,
-                            color = TextPrimary,
+                            color = cs.onSurface,
                             letterSpacing = (-0.2).sp
                         )
                     }
@@ -276,14 +276,14 @@ fun ExpenseScreen(
                                         Icon(
                                             category.icon,
                                             contentDescription = null,
-                                            tint = Navy900,
+                                            tint = cs.primary,
                                             modifier = Modifier.size(18.dp)
                                         )
                                         Text(
                                             category.label,
                                             fontSize = 14.sp,
                                             fontWeight = FontWeight.Medium,
-                                            color = TextPrimary
+                                            color = cs.onSurface
                                         )
                                     }
                                 },
@@ -295,7 +295,7 @@ fun ExpenseScreen(
                         }
                     }
 
-                    HorizontalDivider(color = Separator, thickness = 0.8.dp)
+                    HorizontalDivider(color = cs.outlineVariant, thickness = 0.8.dp)
 
                     // Expense Type dropdown
                     DropdownField(
@@ -320,7 +320,7 @@ fun ExpenseScreen(
                                         Icon(
                                             type.icon,
                                             contentDescription = null,
-                                            tint = Navy900,
+                                            tint = cs.primary,
                                             modifier = Modifier.size(18.dp)
                                         )
                                         Column {
@@ -328,7 +328,7 @@ fun ExpenseScreen(
                                                 text = type.label,
                                                 fontWeight = FontWeight.SemiBold,
                                                 fontSize = 14.sp,
-                                                color = TextPrimary
+                                                color = cs.onSurface
                                             )
                                             Text(
                                                 text = if (type.value == "COMMITTED")
@@ -336,7 +336,7 @@ fun ExpenseScreen(
                                                 else
                                                     "Variable optional (dining, shopping)",
                                                 fontSize = 11.sp,
-                                                color = TextMuted
+                                                color = cs.onSurfaceVariant
                                             )
                                         }
                                     }
@@ -349,7 +349,7 @@ fun ExpenseScreen(
                         }
                     }
 
-                    HorizontalDivider(color = Separator, thickness = 0.8.dp)
+                    HorizontalDivider(color = cs.outlineVariant, thickness = 0.8.dp)
 
                     // Payment Method dropdown
                     DropdownField(
@@ -374,14 +374,14 @@ fun ExpenseScreen(
                                         Icon(
                                             method.icon,
                                             contentDescription = null,
-                                            tint = Navy900,
+                                            tint = cs.primary,
                                             modifier = Modifier.size(18.dp)
                                         )
                                         Text(
                                             method.label,
                                             fontSize = 14.sp,
                                             fontWeight = FontWeight.Medium,
-                                            color = TextPrimary
+                                            color = cs.onSurface
                                         )
                                     }
                                 },
@@ -393,7 +393,7 @@ fun ExpenseScreen(
                         }
                     }
 
-                    HorizontalDivider(color = Separator, thickness = 0.8.dp)
+                    HorizontalDivider(color = cs.outlineVariant, thickness = 0.8.dp)
 
                     // Description field
                     Column {
@@ -401,7 +401,7 @@ fun ExpenseScreen(
                             text = "Description",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.SemiBold,
-                            color = TextSecondary,
+                            color = cs.onSurfaceVariant,
                             letterSpacing = 0.3.sp,
                             modifier = Modifier.padding(bottom = 8.dp)
                         )
@@ -411,7 +411,7 @@ fun ExpenseScreen(
                             placeholder = {
                                 Text(
                                     "Add a note (optional)",
-                                    color = TextHint,
+                                    color = cs.onSurfaceVariant,
                                     fontSize = 14.sp
                                 )
                             },
@@ -422,12 +422,12 @@ fun ExpenseScreen(
                                 Icon(
                                     Icons.Default.Create,
                                     contentDescription = null,
-                                    tint = TextMuted
+                                    tint = cs.onSurfaceVariant
                                 )
                             },
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = Navy900.copy(alpha = 0.5f),
-                                unfocusedBorderColor = Border
+                                focusedBorderColor = cs.primary.copy(alpha = 0.5f),
+                                unfocusedBorderColor = cs.outline
                             )
                         )
                     }
@@ -483,8 +483,8 @@ fun ExpenseScreen(
                         selectedExpenseType.isNotEmpty() &&
                         selectedPaymentMethod.isNotEmpty(),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Navy900,
-                    disabledContainerColor = Navy900.copy(alpha = 0.35f)
+                    containerColor = GreenDeep,
+                    disabledContainerColor = GreenDeep.copy(alpha = 0.35f)
                 ),
                 shape = RoundedCornerShape(16.dp),
                 elevation = ButtonDefaults.buttonElevation(defaultElevation = 6.dp)
@@ -533,12 +533,13 @@ fun DropdownField(
     onExpandedChange: (Boolean) -> Unit,
     content: @Composable () -> Unit
 ) {
+    val cs = MaterialTheme.colorScheme
     Column {
         Text(
             text = label,
             fontSize = 12.sp,
             fontWeight = FontWeight.SemiBold,
-            color = TextSecondary,
+            color = cs.onSurfaceVariant,
             letterSpacing = 0.3.sp,
             modifier = Modifier.padding(bottom = 8.dp)
         )
@@ -553,7 +554,7 @@ fun DropdownField(
                 placeholder = {
                     Text(
                         placeholder,
-                        color = TextHint,
+                        color = cs.onSurfaceVariant,
                         fontSize = 14.sp
                     )
                 },
@@ -561,7 +562,7 @@ fun DropdownField(
                     Icon(
                         leadingIcon,
                         contentDescription = null,
-                        tint = if (value.isEmpty()) TextMuted else Navy900,
+                        tint = if (value.isEmpty()) cs.onSurfaceVariant else cs.primary,
                         modifier = Modifier.size(20.dp)
                     )
                 },
@@ -573,10 +574,10 @@ fun DropdownField(
                     .menuAnchor(),
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = TextPrimary,
-                    unfocusedTextColor = TextPrimary,
-                    focusedBorderColor = Navy900.copy(alpha = 0.5f),
-                    unfocusedBorderColor = Border
+                    focusedTextColor = cs.onSurface,
+                    unfocusedTextColor = cs.onSurface,
+                    focusedBorderColor = cs.primary.copy(alpha = 0.5f),
+                    unfocusedBorderColor = cs.outline
                 )
             )
             ExposedDropdownMenu(

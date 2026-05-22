@@ -4,6 +4,7 @@ import android.graphics.Paint
 import android.graphics.Rect
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -169,7 +170,7 @@ fun ComparisonBarChart(trendData: List<TrendData>) {
                 Text(
                     text = it.label,
                     fontSize = if(trendData.size > 7) 8.sp else 10.sp,
-                    color = TextSecondary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.width(if(trendData.size > 7) 22.dp else 30.dp),
                     textAlign = TextAlign.Center
@@ -181,6 +182,7 @@ fun ComparisonBarChart(trendData: List<TrendData>) {
 
 @Composable
 fun AnalyticsCharts(data: List<CategoryBreakdown>, tab: AnalyticsTab, totalIncome: Long, totalExpense: Long) {
+    val cs = MaterialTheme.colorScheme
     val label = when(tab) {
         AnalyticsTab.INCOME -> "Total Income"
         AnalyticsTab.EXPENSE -> "Total Expense"
@@ -199,12 +201,12 @@ fun AnalyticsCharts(data: List<CategoryBreakdown>, tab: AnalyticsTab, totalIncom
             }
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(label, fontSize = 12.sp, color = TextSecondary)
+            Text(label, fontSize = 12.sp, color = cs.onSurfaceVariant)
             Text(
                 text = "Rs. ${String.format("%.2f", amount / 100.0)}",
                 fontWeight = FontWeight.Bold,
                 fontSize = 20.sp,
-                color = if(tab == AnalyticsTab.COMPARISON && amount < 0) Color(0xFFE74C3C) else Navy900
+                color = if(tab == AnalyticsTab.COMPARISON && amount < 0) Color(0xFFE74C3C) else cs.onSurface
             )
         }
     }

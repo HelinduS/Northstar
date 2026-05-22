@@ -29,8 +29,10 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.northstar.Screen
-import com.example.northstar.ui.theme.InterFontFamily
+import androidx.compose.ui.draw.clip
+import com.example.northstar.ui.theme.GreenAccent
 import com.example.northstar.ui.theme.GreenDeep
+import com.example.northstar.ui.theme.InterFontFamily
 import com.example.northstar.ui.theme.White
 import androidx.compose.foundation.layout.navigationBarsPadding
 sealed class BottomNavItem(val route: String, val icon: ImageVector, val label: String) {
@@ -96,7 +98,12 @@ fun BottomNavBar(navController: NavHostController) {
                 modifier = Modifier
                     .size(56.dp)
                     .shadow(elevation = 8.dp, shape = CircleShape)
-                    .background(GreenDeep, CircleShape)
+                    .clip(CircleShape)
+                    .background(
+                        brush = androidx.compose.ui.graphics.Brush.linearGradient(
+                            listOf(GreenDeep, GreenAccent)
+                        )
+                    )
                     .clickable { showAddSheet = true },
                 contentAlignment = Alignment.Center
             ) {
@@ -194,7 +201,7 @@ private fun AddActionSheet(onAddIncome: () -> Unit, onAddExpense: () -> Unit) {
             .padding(horizontal = 20.dp, vertical = 8.dp)
     ) {
         SheetOption(label = "Add Income",  onClick = onAddIncome)
-        HorizontalDivider(color = Color.Black.copy(alpha = 0.06f))
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
         SheetOption(label = "Add Expense", onClick = onAddExpense)
         Spacer(modifier = Modifier.height(12.dp))
     }

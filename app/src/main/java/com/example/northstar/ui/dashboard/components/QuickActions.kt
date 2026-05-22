@@ -122,7 +122,7 @@ private fun PrimaryActionCard(
     ) {
         Box(
             modifier = Modifier
-                .size(38.dp)
+                .size(36.dp)
                 .background(iconBg, RoundedCornerShape(10.dp)),
             contentAlignment = Alignment.Center
         ) {
@@ -130,19 +130,21 @@ private fun PrimaryActionCard(
                 icon,
                 contentDescription = title,
                 tint = iconTint,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(18.dp)
             )
         }
         Text(
             title,
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
+            lineHeight = 14.sp,
             color = titleColor,
             fontFamily = InterFontFamily
         )
         Text(
             subtitle,
             fontSize = 11.sp,
+            lineHeight = 11.sp,
             color = subtitleColor,
             fontFamily = InterFontFamily
         )
@@ -163,7 +165,7 @@ private fun SecondaryActionCard(
             .background(cs.surface, RoundedCornerShape(16.dp))
             .border(1.dp, cs.outline, RoundedCornerShape(16.dp))
             .clickable(onClick = onClick)
-            .padding(vertical = 14.dp),
+            .padding(vertical = 14.dp, horizontal = 10.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
@@ -176,7 +178,7 @@ private fun SecondaryActionCard(
             Icon(
                 icon,
                 contentDescription = label,
-                modifier = Modifier.size(20.dp),
+                modifier = Modifier.size(18.dp),
                 tint = GreenDeep
             )
         }
@@ -184,6 +186,7 @@ private fun SecondaryActionCard(
             label,
             fontSize = 11.sp,
             fontWeight = FontWeight.Medium,
+            lineHeight = 11.sp,
             color = cs.onSurfaceVariant,
             fontFamily = InterFontFamily
         )

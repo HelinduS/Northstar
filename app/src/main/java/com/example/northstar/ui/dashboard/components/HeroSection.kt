@@ -74,13 +74,13 @@ fun HeroSection(
             .background(heroBrush, RoundedCornerShape(bottomStart = 32.dp, bottomEnd = 32.dp))
             .statusBarsPadding()
             .padding(horizontal = 20.dp)
-            .padding(top = 12.dp, bottom = 28.dp)
+            .padding(top = 12.dp, bottom = 22.dp)
     ) {
         // ── Greeting row ──────────────────────────────────────────────────────
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 28.dp),
+                .padding(bottom = 20.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
@@ -150,7 +150,7 @@ fun HeroSection(
         Text(
             "NET SAVED",
             fontSize = 11.sp,
-            fontWeight = FontWeight.SemiBold,
+            fontWeight = FontWeight.Bold,
             color = White.copy(alpha = 0.55f),
             letterSpacing = 1.sp,
             fontFamily = InterFontFamily
@@ -163,7 +163,8 @@ fun HeroSection(
             fontWeight = FontWeight.ExtraBold,
             color = White,
             letterSpacing = (-1.5).sp,
-            modifier = Modifier.padding(top = 4.dp, bottom = 20.dp),
+            lineHeight = 36.sp,           // matches prototype's line-height: 1
+            modifier = Modifier.padding(top = 4.dp, bottom = 14.dp),
             fontFamily = InterFontFamily
         )
 
@@ -172,7 +173,7 @@ fun HeroSection(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(White.copy(alpha = 0.10f), RoundedCornerShape(16.dp))
-                .padding(horizontal = 16.dp, vertical = 14.dp),
+                .padding(horizontal = 16.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
@@ -182,6 +183,7 @@ fun HeroSection(
                     fontWeight = FontWeight.Medium,
                     color = White.copy(alpha = 0.5f),
                     letterSpacing = 0.5.sp,
+                    lineHeight = 13.sp,
                     fontFamily = InterFontFamily
                 )
                 Text(
@@ -190,6 +192,7 @@ fun HeroSection(
                     fontWeight = FontWeight.Bold,
                     color = GreenBright,
                     letterSpacing = (-0.3).sp,
+                    lineHeight = 15.sp,
                     modifier = Modifier.padding(top = 3.dp),
                     fontFamily = InterFontFamily
                 )
@@ -213,6 +216,7 @@ fun HeroSection(
                     fontWeight = FontWeight.Medium,
                     color = White.copy(alpha = 0.5f),
                     letterSpacing = 0.5.sp,
+                    lineHeight = 13.sp,
                     fontFamily = InterFontFamily
                 )
                 Text(
@@ -221,13 +225,14 @@ fun HeroSection(
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFFFF8A80),
                     letterSpacing = (-0.3).sp,
+                    lineHeight = 15.sp,
                     modifier = Modifier.padding(top = 3.dp),
                     fontFamily = InterFontFamily
                 )
             }
         }
 
-        Spacer(Modifier.height(18.dp))
+        Spacer(Modifier.height(14.dp))
 
         // ── Spend progress bar ────────────────────────────────────────────────
         Row(
