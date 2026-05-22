@@ -13,6 +13,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import com.example.northstar.ui.theme.ThemePreferenceManager
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -35,11 +36,15 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var pinLockManager: PinLockManager
 
+    @Inject
+    lateinit var themePreferenceManager: ThemePreferenceManager
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            NorthStarTheme {
+            val isDarkMode by themePreferenceManager.isDarkMode.collectAsState()
+            NorthStarTheme(darkTheme = isDarkMode) {
                 val navController = rememberNavController()
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = navBackStackEntry?.destination?.route

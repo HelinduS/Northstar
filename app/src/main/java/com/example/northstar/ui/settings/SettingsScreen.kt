@@ -33,32 +33,33 @@ fun SettingsScreen(
     navController: NavController,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
+    val cs = MaterialTheme.colorScheme
     val uiState by viewModel.uiState.collectAsState()
+    val isDarkMode by viewModel.isDarkMode.collectAsState()
 
     var notificationsEnabled by remember { mutableStateOf(true) }
     var reminderEnabled by remember { mutableStateOf(true) }
-    var darkModeEnabled by remember { mutableStateOf(false) }
     var showClearDialog by remember { mutableStateOf(false) }
 
     // Clear data confirm dialog
     if (showClearDialog) {
         AlertDialog(
             onDismissRequest = { showClearDialog = false },
-            containerColor = White,
+            containerColor = cs.surface,
             shape = RoundedCornerShape(20.dp),
             title = {
                 Text(
                     "Clear All Data",
                     fontWeight = FontWeight.Bold,
                     fontSize = 17.sp,
-                    color = TextPrimary
+                    color = cs.onSurface
                 )
             },
             text = {
                 Text(
                     "This will permanently delete all your income, expense, and goal records. This action cannot be undone.",
                     fontSize = 14.sp,
-                    color = TextSecondary,
+                    color = cs.onSurfaceVariant,
                     lineHeight = 20.sp
                 )
             },
@@ -85,17 +86,11 @@ fun SettingsScreen(
         )
     }
 
-    // Success snackbar
     LaunchedEffect(uiState.exportSuccess) {
-        if (uiState.exportSuccess) {
-            viewModel.resetState()
-        }
+        if (uiState.exportSuccess) viewModel.resetState()
     }
-
     LaunchedEffect(uiState.clearSuccess) {
-        if (uiState.clearSuccess) {
-            viewModel.resetState()
-        }
+        if (uiState.clearSuccess) viewModel.resetState()
     }
 
     Scaffold(
@@ -134,11 +129,11 @@ fun SettingsScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Navy900
+                    containerColor = GreenDeep
                 )
             )
         },
-        containerColor = Surface
+        containerColor = cs.background
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -153,8 +148,8 @@ fun SettingsScreen(
             if (uiState.isLoading) {
                 LinearProgressIndicator(
                     modifier = Modifier.fillMaxWidth(),
-                    color = Navy900,
-                    trackColor = Navy900.copy(alpha = 0.1f)
+                    color = cs.primary,
+                    trackColor = cs.primary.copy(alpha = 0.1f)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
             }
@@ -201,9 +196,8 @@ fun SettingsScreen(
                 Spacer(modifier = Modifier.height(12.dp))
             }
 
-            // Notifications section
+            // ── Notifications ─────────────────────────────────────────────────
             SettingsSectionHeader(title = "Notifications")
-
             SettingsCard {
                 SettingsToggleRow(
                     icon = Icons.Outlined.Notifications,
@@ -224,24 +218,22 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Appearance section
+            // ── Appearance ────────────────────────────────────────────────────
             SettingsSectionHeader(title = "Appearance")
-
             SettingsCard {
                 SettingsToggleRow(
                     icon = Icons.Outlined.DarkMode,
                     label = "Dark Mode",
                     description = "Switch to dark theme",
-                    checked = darkModeEnabled,
-                    onCheckedChange = { darkModeEnabled = it }
+                    checked = isDarkMode,
+                    onCheckedChange = { viewModel.setDarkMode(it) }
                 )
             }
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Data section
+            // ── Data & Privacy ────────────────────────────────────────────────
             SettingsSectionHeader(title = "Data & Privacy")
-
             SettingsCard {
                 SettingsNavigationRow(
                     icon = Icons.Outlined.Download,
@@ -262,9 +254,8 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // About section
+            // ── About ─────────────────────────────────────────────────────────
             SettingsSectionHeader(title = "About")
-
             SettingsCard {
                 SettingsNavigationRow(
                     icon = Icons.Outlined.Info,
@@ -293,7 +284,7 @@ fun SettingsScreen(
             Text(
                 text = "NorthStar · Personal Finance Management",
                 fontSize = 11.sp,
-                color = TextHint,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -309,7 +300,7 @@ private fun SettingsSectionHeader(title: String) {
         text = title,
         fontSize = 12.sp,
         fontWeight = FontWeight.SemiBold,
-        color = TextMuted,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
         letterSpacing = 0.5.sp,
         modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp)
     )
@@ -317,12 +308,13 @@ private fun SettingsSectionHeader(title: String) {
 
 @Composable
 private fun SettingsCard(content: @Composable ColumnScope.() -> Unit) {
+    val cs = MaterialTheme.colorScheme
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
-            .background(White, RoundedCornerShape(20.dp))
-            .border(1.dp, Border, RoundedCornerShape(20.dp)),
+            .background(cs.surface, RoundedCornerShape(20.dp))
+            .border(1.dp, cs.outline, RoundedCornerShape(20.dp)),
         content = content
     )
 }
@@ -330,7 +322,7 @@ private fun SettingsCard(content: @Composable ColumnScope.() -> Unit) {
 @Composable
 private fun SettingsDivider() {
     HorizontalDivider(
-        color = Separator,
+        color = MaterialTheme.colorScheme.outlineVariant,
         thickness = 1.dp,
         modifier = Modifier.padding(horizontal = 16.dp)
     )
@@ -344,6 +336,7 @@ private fun SettingsToggleRow(
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit
 ) {
+    val cs = MaterialTheme.colorScheme
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -354,14 +347,14 @@ private fun SettingsToggleRow(
         Box(
             modifier = Modifier
                 .size(34.dp)
-                .background(Navy900.copy(alpha = 0.08f), RoundedCornerShape(10.dp)),
+                .background(cs.primary.copy(alpha = 0.10f), RoundedCornerShape(10.dp)),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 icon,
                 contentDescription = null,
                 modifier = Modifier.size(17.dp),
-                tint = Navy900
+                tint = cs.primary
             )
         }
 
@@ -370,12 +363,14 @@ private fun SettingsToggleRow(
                 text = label,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
-                color = TextPrimary
+                color = cs.onSurface,
+                fontFamily = InterFontFamily
             )
             Text(
                 text = description,
                 fontSize = 12.sp,
-                color = TextMuted
+                color = cs.onSurfaceVariant,
+                fontFamily = InterFontFamily
             )
         }
 
@@ -384,9 +379,9 @@ private fun SettingsToggleRow(
             onCheckedChange = onCheckedChange,
             colors = SwitchDefaults.colors(
                 checkedThumbColor = White,
-                checkedTrackColor = Navy900,
-                uncheckedThumbColor = White,
-                uncheckedTrackColor = TextHint
+                checkedTrackColor = cs.primary,
+                uncheckedThumbColor = cs.onSurfaceVariant,
+                uncheckedTrackColor = cs.surfaceVariant
             )
         )
     }
@@ -397,10 +392,14 @@ private fun SettingsNavigationRow(
     icon: ImageVector,
     label: String,
     description: String,
-    labelColor: Color = TextPrimary,
-    iconTint: Color = Navy900,
+    labelColor: Color? = null,
+    iconTint: Color? = null,
     onClick: (() -> Unit)?
 ) {
+    val cs = MaterialTheme.colorScheme
+    val effectiveLabelColor = labelColor ?: cs.onSurface
+    val effectiveIconTint = iconTint ?: cs.primary
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -412,14 +411,14 @@ private fun SettingsNavigationRow(
         Box(
             modifier = Modifier
                 .size(34.dp)
-                .background(iconTint.copy(alpha = 0.08f), RoundedCornerShape(10.dp)),
+                .background(effectiveIconTint.copy(alpha = 0.10f), RoundedCornerShape(10.dp)),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 icon,
                 contentDescription = null,
                 modifier = Modifier.size(17.dp),
-                tint = iconTint
+                tint = effectiveIconTint
             )
         }
 
@@ -428,13 +427,15 @@ private fun SettingsNavigationRow(
                 text = label,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
-                color = labelColor
+                color = effectiveLabelColor,
+                fontFamily = InterFontFamily
             )
             if (description.isNotEmpty()) {
                 Text(
                     text = description,
                     fontSize = 12.sp,
-                    color = TextMuted
+                    color = cs.onSurfaceVariant,
+                    fontFamily = InterFontFamily
                 )
             }
         }
@@ -444,7 +445,7 @@ private fun SettingsNavigationRow(
                 Icons.Outlined.ChevronRight,
                 contentDescription = null,
                 modifier = Modifier.size(16.dp),
-                tint = TextHint
+                tint = cs.onSurfaceVariant
             )
         }
     }
