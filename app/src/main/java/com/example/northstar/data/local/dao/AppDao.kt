@@ -14,10 +14,10 @@ import kotlinx.coroutines.flow.Flow
 interface IncomeDao {
 
 
-        @Query("SELECT * FROM incomes ORDER BY date DESC LIMIT :limit")
+        @Query("SELECT * FROM incomes ORDER BY receivedDate DESC LIMIT :limit")
         fun getLatestIncomes(limit: Int): Flow<List<IncomeEntity>>
 
-        @Query("SELECT SUM(lkrAmount) FROM incomes WHERE date BETWEEN :startTime AND :endTime")
+        @Query("SELECT SUM(amountLKR) FROM incomes WHERE receivedDate BETWEEN :startTime AND :endTime")
         fun getTotalIncomeForMonth(startTime: Long, endTime: Long): Flow<Long>
 
 
@@ -28,13 +28,13 @@ interface IncomeDao {
     @Delete
     suspend fun deleteIncome(income: IncomeEntity)
 
-    @Query("SELECT * FROM incomes ORDER BY date DESC")
+    @Query("SELECT * FROM incomes ORDER BY receivedDate DESC")
     fun getAllIncomes(): Flow<List<IncomeEntity>>
 
-    @Query("SELECT * FROM incomes WHERE date >= :startDate AND date <= :endDate ORDER BY date DESC")
+    @Query("SELECT * FROM incomes WHERE receivedDate >= :startDate AND receivedDate <= :endDate ORDER BY receivedDate DESC")
     fun getIncomesByDateRange(startDate: Long, endDate: Long): Flow<List<IncomeEntity>>
 
-    @Query("SELECT * FROM incomes WHERE sourceType = :sourceType ORDER BY date DESC")
+    @Query("SELECT * FROM incomes WHERE sourceType = :sourceType ORDER BY receivedDate DESC")
     fun getIncomesBySource(sourceType: String): Flow<List<IncomeEntity>>
 }
 

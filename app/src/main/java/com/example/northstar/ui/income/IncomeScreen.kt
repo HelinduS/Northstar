@@ -1,6 +1,7 @@
 package com.example.northstar.ui.income
 
 import android.app.DatePickerDialog
+import android.view.ContextThemeWrapper
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -24,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.northstar.ui.theme.GreenDeep
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -35,12 +37,13 @@ fun IncomeScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
+    val cs = MaterialTheme.colorScheme
 
     val selectedSource by viewModel.selectedSource.collectAsState()
     val selectedCurrency by viewModel.selectedCurrency.collectAsState()
     val availableCurrencies by viewModel.availableCurrencies.collectAsState()
     val currentRate by viewModel.exchangeRate.collectAsState()
-
+    val isFetching by viewModel.isFetchingRate.collectAsState()
     val totalLkrEstimate by viewModel.totalLkrEstimate.collectAsState()
 
     var amount by remember { mutableStateOf("") }
@@ -61,8 +64,12 @@ fun IncomeScreen(
     }
 
     Scaffold(
+        containerColor = cs.background,
         bottomBar = {
-            Surface(shadowElevation = 8.dp) {
+            Surface(
+                shadowElevation = 8.dp,
+                color = cs.surface
+            ) {
                 Button(
                     onClick = {
                         if (amount.isNotEmpty()) {
@@ -77,9 +84,15 @@ fun IncomeScreen(
                             )
                         }
                     },
-                    modifier = Modifier.fillMaxWidth().padding(16.dp).height(56.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                        .height(56.dp),
                     shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1A56B4)),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = GreenDeep,
+                        contentColor = Color.White
+                    ),
                     enabled = uiState !is IncomeUiState.Loading && amount.isNotEmpty() && selectedSource.isNotEmpty() && selectedDate != 0L
                 ) {
                     if (uiState is IncomeUiState.Loading) {
@@ -92,32 +105,72 @@ fun IncomeScreen(
         }
     ) { padding ->
         Column(
-            modifier = Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).background(Color(0xFFF8F9FB))
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .verticalScroll(rememberScrollState())
+                .background(cs.background)
         ) {
-            // Header
-            Box(modifier = Modifier.fillMaxWidth().background(Color(0xFF1A56B4)).padding(bottom = 40.dp)) {
+            // Header Section
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(GreenDeep)
+                    .padding(bottom = 40.dp)
+            ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Row(modifier = Modifier.fillMaxWidth().padding(top = 12.dp, start = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(onClick = { navController.popBackStack() }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = Color.White) }
-                        Text("Add Income", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 12.dp, start = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        IconButton(onClick = { navController.popBackStack() }) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = Color.White)
+                        }
+                        Text(
+                            "Add Income",
+                            color = Color.White,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                     Spacer(modifier = Modifier.height(24.dp))
-                    Text("How much did you earn?", color = Color.White.copy(alpha = 0.8f))
+                    Text("How much did you earn?", color = Color.White.copy(alpha = 0.7f))
                     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 8.dp)) {
-                        Text(selectedCurrency, color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                        Text(
+                            selectedCurrency,
+                            color = Color.White,
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold
+                        )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text(text = if (amount.isEmpty()) "0" else amount, color = Color.White, fontSize = 44.sp, fontWeight = FontWeight.ExtraBold)
+                        Text(
+                            text = if (amount.isEmpty()) "0" else amount,
+                            color = Color.White,
+                            fontSize = 44.sp,
+                            fontWeight = FontWeight.ExtraBold
+                        )
                     }
                 }
             }
 
+            // Form Container
             Column(
-                modifier = Modifier.offset(y = (-24).dp).padding(horizontal = 16.dp).background(Color.White, RoundedCornerShape(16.dp)).padding(20.dp),
+                modifier = Modifier
+                    .offset(y = (-24).dp)
+                    .padding(horizontal = 16.dp)
+                    .background(cs.surface, RoundedCornerShape(16.dp))
+                    .padding(20.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Text("Income Details", fontWeight = FontWeight.Bold, color = Color(0xFF1A56B4))
+                Text(
+                    "Income Details",
+                    fontWeight = FontWeight.Bold,
+                    color = cs.onSurface
+                )
 
-                // Source Selection
+                // 1. Source Selection
                 Box {
                     DetailDropdown(
                         label = "Income Source",
@@ -125,12 +178,18 @@ fun IncomeScreen(
                         icon = Icons.Default.List,
                         onClick = { showSourceMenu = true }
                     )
-                    DropdownMenu(expanded = showSourceMenu, onDismissRequest = { showSourceMenu = false }, modifier = Modifier.fillMaxWidth(0.85f)) {
+                    DropdownMenu(
+                        expanded = showSourceMenu,
+                        onDismissRequest = { showSourceMenu = false },
+                        modifier = Modifier
+                            .fillMaxWidth(0.85f)
+                            .background(cs.surface)
+                    ) {
                         val sources = listOf("Salary", "Freelance", "Social Media", "Google AdSense", "Investments", "E-commerce", "Affiliate", "Crypto", "Digital Products", "Tutoring", "Other")
                         sources.forEach { title ->
                             DropdownMenuItem(
-                                text = { Text(title) },
-                                leadingIcon = { Icon(Icons.Default.Add, null, tint = Color(0xFF1A56B4)) },
+                                text = { Text(title, color = cs.onSurface) },
+                                leadingIcon = { Icon(Icons.Default.Add, null, tint = cs.onSurfaceVariant) },
                                 onClick = { viewModel.onSourceSelected(title); showSourceMenu = false }
                             )
                         }
@@ -138,23 +197,45 @@ fun IncomeScreen(
                 }
 
                 if (selectedSource == "Freelance") {
-                    OutlinedTextField(value = projectName, onValueChange = { projectName = it }, label = { Text("Project Name") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp))
+                    OutlinedTextField(
+                        value = projectName,
+                        onValueChange = { projectName = it },
+                        label = { Text("Project Name") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp)
+                    )
                 }
 
-                // Currency Selection
+                // 2. Currency Selection
                 Box {
-                    DetailDropdown(label = "Currency", selected = selectedCurrency, icon = Icons.Default.Info, onClick = { showCurrencyMenu = true })
-                    DropdownMenu(expanded = showCurrencyMenu, onDismissRequest = { showCurrencyMenu = false }, modifier = Modifier.fillMaxWidth(0.8f)) {
+                    DetailDropdown(
+                        label = "Currency",
+                        selected = "$selectedCurrency (${getCurrencyName(selectedCurrency)})",
+                        icon = Icons.Default.Info,
+                        onClick = { showCurrencyMenu = true }
+                    )
+                    DropdownMenu(
+                        expanded = showCurrencyMenu,
+                        onDismissRequest = { showCurrencyMenu = false },
+                        modifier = Modifier
+                            .fillMaxWidth(0.8f)
+                            .background(cs.surface)
+                    ) {
                         availableCurrencies.forEach { currency ->
                             DropdownMenuItem(
-                                text = { Text(currency) },
+                                text = {
+                                    Row {
+                                        Text(currency, fontWeight = FontWeight.Bold, modifier = Modifier.width(50.dp), color = cs.onSurface)
+                                        Text(getCurrencyName(currency), color = cs.onSurfaceVariant, fontSize = 14.sp)
+                                    }
+                                },
                                 onClick = { viewModel.onCurrencySelected(currency); showCurrencyMenu = false }
                             )
                         }
                     }
                 }
 
-                // Amount & Estimate
+                // 3. Amount Field
                 OutlinedTextField(
                     value = amount,
                     onValueChange = {
@@ -164,63 +245,132 @@ fun IncomeScreen(
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Amount") },
-                    prefix = { Text("$selectedCurrency ", color = Color(0xFF1A56B4), fontWeight = FontWeight.Bold) },
+                    label = { Text("Amount", color = cs.onSurfaceVariant) },
+                    prefix = { Text("$selectedCurrency ", color = cs.onSurface, fontWeight = FontWeight.Bold) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = cs.primary,
+                        unfocusedBorderColor = cs.outline,
+                        cursorColor = cs.primary
+                    )
                 )
 
+                // 4. Estimated Total Card
                 if (selectedCurrency != "LKR" && amount.isNotEmpty()) {
-                    Card(colors = CardDefaults.cardColors(containerColor = Color(0xFFF0F4FF)), shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()) {
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFE8F5E9)),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .border(1.dp, Color(0xFFC8E6C9), RoundedCornerShape(12.dp))
+                    ) {
                         Column(modifier = Modifier.padding(16.dp)) {
-                            Text("Estimated Total", fontSize = 12.sp, color = Color.Gray)
-                            Text("LKR ${String.format(Locale.US, "%.2f", totalLkrEstimate)}", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1A56B4))
+                            Text("Estimated Total (LKR)", fontSize = 13.sp, color = Color.Gray, fontWeight = FontWeight.Medium)
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text("Rs. ${String.format(Locale.US, "%,.2f", totalLkrEstimate)}", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color(0xFF388E3C))
                         }
                     }
                 }
 
-                // Date
+                // 5. Exchange Rate Bar
+                if (selectedCurrency != "LKR") {
+                    OutlinedTextField(
+                        value = currentRate.toString(),
+                        onValueChange = { viewModel.updateExchangeRate(it) },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text("Exchange Rate (1 $selectedCurrency to LKR)") },
+                        shape = RoundedCornerShape(12.dp),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        trailingIcon = {
+                            IconButton(onClick = { viewModel.refreshRate() }) {
+                                if (isFetching) {
+                                    CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                                } else {
+                                    Icon(Icons.Default.Refresh, null)
+                                }
+                            }
+                        }
+                    )
+                }
+
+                // 6. Date Selection
                 DetailDropdown(
                     label = "Date Received",
                     selected = if (selectedDate == 0L) "Select Date" else dateFormatter.format(Date(selectedDate)),
                     icon = Icons.Default.DateRange,
                     onClick = {
                         val cal = Calendar.getInstance()
-                        DatePickerDialog(context, { _, y, m, d -> cal.set(y, m, d); selectedDate = cal.timeInMillis }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)).show()
+                        val themedContext = ContextThemeWrapper(context, android.R.style.Theme_DeviceDefault_Dialog_Alert)
+
+                        DatePickerDialog(
+                            themedContext,
+                            { _, y, m, d ->
+                                cal.set(y, m, d)
+                                selectedDate = cal.timeInMillis
+                            },
+                            cal.get(Calendar.YEAR),
+                            cal.get(Calendar.MONTH),
+                            cal.get(Calendar.DAY_OF_MONTH)
+                        ).show()
                     }
                 )
 
-                OutlinedTextField(value = notes, onValueChange = { notes = it }, label = { Text("Add a note...") }, leadingIcon = { Icon(Icons.Default.Edit, null) }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp))
+                // 7. Notes
+                OutlinedTextField(
+                    value = notes,
+                    onValueChange = { notes = it },
+                    label = { Text("Add a note...") },
+                    leadingIcon = { Icon(Icons.Default.Edit, null, tint = cs.onSurfaceVariant) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                )
             }
         }
     }
 }
 
-// --- RESTORED HELPER COMPOSABLES ---
-
 @Composable
-fun DetailDropdown(
-    label: String,
-    selected: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    onClick: () -> Unit
-) {
+fun DetailDropdown(label: String, selected: String, icon: androidx.compose.ui.graphics.vector.ImageVector, onClick: () -> Unit) {
+    val cs = MaterialTheme.colorScheme
     Column(modifier = Modifier.fillMaxWidth().clickable { onClick() }) {
-        Text(text = label, fontSize = 12.sp, color = Color.Gray, modifier = Modifier.padding(start = 4.dp, bottom = 4.dp))
+        Text(text = label, fontSize = 12.sp, color = cs.onSurfaceVariant, modifier = Modifier.padding(start = 4.dp, bottom = 4.dp))
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .border(1.dp, Color(0xFFE0E0E0), RoundedCornerShape(12.dp))
+                .border(1.dp, cs.outline, RoundedCornerShape(12.dp))
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(icon, null, tint = Color(0xFF1A56B4), modifier = Modifier.size(20.dp))
+                Icon(icon, null, tint = cs.onSurface, modifier = Modifier.size(20.dp))
                 Spacer(modifier = Modifier.width(12.dp))
-                Text(text = selected, fontSize = 16.sp, color = if (selected.contains("Select")) Color.LightGray else Color.Black)
+                Text(
+                    text = selected,
+                    fontSize = 16.sp,
+                    color = if (selected.contains("Select")) cs.onSurfaceVariant else cs.onSurface
+                )
             }
-            Icon(Icons.Default.ArrowDropDown, null, tint = Color.Gray)
+            Icon(Icons.Default.ArrowDropDown, null, tint = cs.onSurfaceVariant)
         }
     }
+}
+
+fun getCurrencyName(code: String): String = when(code) {
+    "LKR" -> "Sri Lankan Rupee"
+    "USD" -> "US Dollar"
+    "EUR" -> "Euro"
+    "GBP" -> "British Pound"
+    "JPY" -> "Japanese Yen"
+    "CHF" -> "Swiss Franc"
+    "CAD" -> "Canadian Dollar"
+    "AUD" -> "Australian Dollar"
+    "INR" -> "Indian Rupee"
+    "CNY" -> "Chinese Yuan"
+    "USDT" -> "Tether"
+    "BTC" -> "Bitcoin"
+    "ETH" -> "Ethereum"
+    "ALT" -> "Altcoins"
+    else -> "Currency"
 }

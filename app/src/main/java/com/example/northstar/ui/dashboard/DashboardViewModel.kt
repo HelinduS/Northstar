@@ -1,16 +1,23 @@
 package com.example.northstar.ui.dashboard
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bedtime
+import androidx.compose.material.icons.filled.WbSunny
+import androidx.compose.material.icons.filled.WbTwilight
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.northstar.data.repository.GoalRepository
+import com.example.northstar.domain.model.Goal
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.ListenerRegistration // Added for real-time listener
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import java.util.Calendar
 import javax.inject.Inject
 
 data class DashboardUiState(
@@ -21,7 +28,11 @@ data class DashboardUiState(
     val netSavedLkr: Long = 0L,
     val committedExpensesLkr: Long = 0L,
     val discretionaryExpensesLkr: Long = 0L,
+    val allTimeIncomeLkr: Long = 0L,
+    val allTimeExpensesLkr: Long = 0L,
+    val allTimeNetSavedLkr: Long = 0L,
     val recentTransactions: List<TransactionItem> = emptyList(),
+    val goals: List<Goal> = emptyList(),
     val isLoading: Boolean = false,
     val error: String? = null
 )
@@ -32,24 +43,50 @@ data class TransactionItem(
     val amount: Long = 0L,
     val isIncome: Boolean = false,
     val date: Long = 0L,
-    val category: String = ""
+    val category: String = "",
+    val expenseType: String = "",
+    val paymentMethod: String = "",
+    val description: String = "",
+    val sourceType: String = "",
+    val originalCurrency: String = "",
+    val originalAmount: Long = 0L,
+    val exchangeRate: Double = 1.0,
+    val notes: String = ""
 )
 
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
     private val firebaseAuth: FirebaseAuth,
-    private val firestore: FirebaseFirestore
+    private val firestore: FirebaseFirestore,
+    private val goalRepository: GoalRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(DashboardUiState())
     val uiState: StateFlow<DashboardUiState> = _uiState.asStateFlow()
 
-    // --- CHANGE START: Added listener variable ---
-    private var incomeListener: ListenerRegistration? = null
-    // --- CHANGE END ---
+    // Time-based greeting — recomputed every time it's accessed
+    val greeting: Pair<String, ImageVector>
+        get() {
+            val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+            return when (hour) {
+                in 5..11  -> Pair("Good morning,",  Icons.Filled.WbSunny)
+                in 12..16 -> Pair("Good afternoon,", Icons.Filled.WbSunny)
+                in 17..20 -> Pair("Good evening,",  Icons.Filled.WbTwilight)
+                else      -> Pair("Good night,",    Icons.Filled.Bedtime)
+            }
+        }
 
     init {
         loadDashboardData()
+        loadGoals()
+    }
+
+    private fun loadGoals() {
+        viewModelScope.launch {
+            goalRepository.getAllGoals().collect { goals ->
+                _uiState.value = _uiState.value.copy(goals = goals)
+            }
+        }
     }
 
     fun loadDashboardData() {
@@ -65,7 +102,6 @@ class DashboardViewModel @Inject constructor(
                     return@launch
                 }
 
-                // Get user display name and email
                 val userDoc = firestore
                     .collection("users")
                     .document(user.uid)
@@ -75,7 +111,6 @@ class DashboardViewModel @Inject constructor(
                 val displayName = userDoc.getString("displayName") ?: ""
                 val email = userDoc.getString("email") ?: ""
 
-                // Get current month range
                 val calendar = java.util.Calendar.getInstance()
                 calendar.set(java.util.Calendar.DAY_OF_MONTH, 1)
                 calendar.set(java.util.Calendar.HOUR_OF_DAY, 0)
@@ -83,45 +118,18 @@ class DashboardViewModel @Inject constructor(
                 calendar.set(java.util.Calendar.SECOND, 0)
                 val startOfMonth = calendar.time
 
-
-                incomeListener = firestore
+                val incomesSnapshot = firestore
                     .collection("users")
                     .document(user.uid)
                     .collection("incomes")
-                    .whereGreaterThanOrEqualTo("date", startOfMonth)
-                    .addSnapshotListener { snapshot, error ->
-                        if (error != null) return@addSnapshotListener
+                    .whereGreaterThanOrEqualTo("receivedDate", startOfMonth)
+                    .get()
+                    .await()
 
-                        val totalIncome = snapshot?.documents?.sumOf {
-                            it.getLong("lkrAmount") ?: 0L
-                        } ?: 0L
+                val totalIncome = incomesSnapshot.documents.sumOf {
+                    it.getLong("amountLKR") ?: 0L
+                }
 
-                        val recentIncomes = snapshot?.documents?.map {
-                            TransactionItem(
-                                id = it.id,
-                                title = it.getString("sourceType") ?: "Income",
-                                amount = it.getLong("lkrAmount") ?: 0L,
-                                isIncome = true,
-                                date = it.getTimestamp("date")?.toDate()?.time ?: 0L,
-                                category = it.getString("sourceType") ?: ""
-                            )
-                        } ?: emptyList()
-
-                        // Update state with new income data and recalculate totals
-                        _uiState.value = _uiState.value.copy(
-                            displayName = displayName,
-                            email = email,
-                            totalIncomeLkr = totalIncome,
-                            netSavedLkr = totalIncome - _uiState.value.totalExpensesLkr,
-                            recentTransactions = (recentIncomes + _uiState.value.recentTransactions.filter { !it.isIncome })
-                                .sortedByDescending { it.date }
-                                .take(5),
-                            isLoading = false
-                        )
-                    }
-
-
-                // Fetch expenses for current month
                 val expensesSnapshot = firestore
                     .collection("users")
                     .document(user.uid)
@@ -142,6 +150,44 @@ class DashboardViewModel @Inject constructor(
                     .filter { it.getString("expenseType") == "DISCRETIONARY" }
                     .sumOf { it.getLong("amount") ?: 0L }
 
+                val allTimeIncomesSnapshot = firestore
+                    .collection("users")
+                    .document(user.uid)
+                    .collection("incomes")
+                    .get()
+                    .await()
+
+                val allTimeIncome = allTimeIncomesSnapshot.documents.sumOf {
+                    it.getLong("amountLKR") ?: 0L
+                }
+
+                val allTimeExpensesSnapshot = firestore
+                    .collection("users")
+                    .document(user.uid)
+                    .collection("expenses")
+                    .get()
+                    .await()
+
+                val allTimeExpenses = allTimeExpensesSnapshot.documents.sumOf {
+                    it.getLong("amount") ?: 0L
+                }
+
+                val recentIncomes = incomesSnapshot.documents.map {
+                    TransactionItem(
+                        id = it.id,
+                        title = it.getString("sourceType") ?: "Income",
+                        amount = it.getLong("amountLKR") ?: 0L,
+                        isIncome = true,
+                        date = it.getTimestamp("receivedDate")?.toDate()?.time ?: 0L,
+                        category = it.getString("sourceType") ?: "",
+                        sourceType = it.getString("sourceType") ?: "",
+                        originalCurrency = it.getString("currency") ?: "LKR",
+                        originalAmount = it.getLong("amount") ?: 0L,
+                        exchangeRate = it.getDouble("exchangeRate") ?: 1.0,
+                        notes = it.getString("note") ?: ""
+                    )
+                }
+
                 val recentExpenses = expensesSnapshot.documents.map {
                     TransactionItem(
                         id = it.id,
@@ -149,18 +195,30 @@ class DashboardViewModel @Inject constructor(
                         amount = it.getLong("amount") ?: 0L,
                         isIncome = false,
                         date = it.getTimestamp("date")?.toDate()?.time ?: 0L,
-                        category = it.getString("category") ?: ""
+                        category = it.getString("category") ?: "",
+                        expenseType = it.getString("expenseType") ?: "",
+                        paymentMethod = it.getString("paymentSource") ?: "",
+                        description = it.getString("note") ?: ""
                     )
                 }
 
+                val recentTransactions = (recentIncomes + recentExpenses)
+                    .sortedByDescending { it.date }
+                    .take(20)
+
                 _uiState.value = _uiState.value.copy(
+                    displayName = displayName,
+                    email = email,
+                    totalIncomeLkr = totalIncome,
                     totalExpensesLkr = totalExpenses,
-                    netSavedLkr = _uiState.value.totalIncomeLkr - totalExpenses,
+                    netSavedLkr = totalIncome - totalExpenses,
                     committedExpensesLkr = committedExpenses,
                     discretionaryExpensesLkr = discretionaryExpenses,
-                    recentTransactions = (_uiState.value.recentTransactions.filter { it.isIncome } + recentExpenses)
-                        .sortedByDescending { it.date }
-                        .take(5)
+                    allTimeIncomeLkr = allTimeIncome,
+                    allTimeExpensesLkr = allTimeExpenses,
+                    allTimeNetSavedLkr = allTimeIncome - allTimeExpenses,
+                    recentTransactions = recentTransactions,
+                    isLoading = false
                 )
 
             } catch (e: Exception) {
@@ -172,10 +230,24 @@ class DashboardViewModel @Inject constructor(
         }
     }
 
-
-    override fun onCleared() {
-        super.onCleared()
-        incomeListener?.remove()
+    fun deleteTransaction(transactionId: String, isIncome: Boolean) {
+        viewModelScope.launch {
+            try {
+                val user = firebaseAuth.currentUser ?: return@launch
+                val collection = if (isIncome) "incomes" else "expenses"
+                firestore
+                    .collection("users")
+                    .document(user.uid)
+                    .collection(collection)
+                    .document(transactionId)
+                    .delete()
+                    .await()
+                loadDashboardData()
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    error = e.message ?: "Failed to delete transaction"
+                )
+            }
+        }
     }
-
 }

@@ -48,7 +48,8 @@ class AuthRepository @Inject constructor(
                 "displayName" to displayName,
                 "email" to email,
                 "createdAt" to com.google.firebase.Timestamp.now(),
-                "defaultCurrency" to "LKR",
+                "currency" to "LKR",
+                "updatedAt" to com.google.firebase.Timestamp.now(),
                 "activeGoalId" to null
             )
             firestore
@@ -69,5 +70,54 @@ class AuthRepository @Inject constructor(
         }
     }
 
+    suspend fun updateDisplayName(newName: String): Result<Unit> {
+        return try {
+            val user = firebaseAuth.currentUser ?: return Result.failure(Exception("Not logged in"))
+
+            // Update Firebase Auth profile
+            val profileUpdate = com.google.firebase.auth.UserProfileChangeRequest.Builder()
+                .setDisplayName(newName)
+                .build()
+            user.updateProfile(profileUpdate).await()
+
+            // Update Firestore document
+            firestore
+                .collection(FirestoreConstants.COLLECTION_USERS)
+                .document(user.uid)
+                .update("displayName", newName)
+                .await()
+
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun updateEmail(newEmail: String, currentPassword: String): Result<Unit> {
+        return try {
+            val user = firebaseAuth.currentUser ?: return Result.failure(Exception("Not logged in"))
+
+            // Re-authenticate first — required by Firebase before email change
+            val credential = com.google.firebase.auth.EmailAuthProvider
+                .getCredential(user.email!!, currentPassword)
+            user.reauthenticate(credential).await()
+
+            // Update email in Firebase Auth
+            user.updateEmail(newEmail).await()
+
+            // Update Firestore document
+            firestore
+                .collection(FirestoreConstants.COLLECTION_USERS)
+                .document(user.uid)
+                .update("email", newEmail)
+                .await()
+
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     fun signOut() = firebaseAuth.signOut()
+
 }

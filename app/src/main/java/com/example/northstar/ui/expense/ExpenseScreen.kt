@@ -12,7 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -58,6 +58,7 @@ fun ExpenseScreen(
     navController: NavController,
     viewModel: ExpenseViewModel = hiltViewModel()
 ) {
+    val cs = MaterialTheme.colorScheme
     val uiState by viewModel.uiState.collectAsState()
 
     var amount by remember { mutableStateOf("") }
@@ -84,25 +85,42 @@ fun ExpenseScreen(
                     Text(
                         text = "Add Expense",
                         color = Color.White,
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 18.sp
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp,
+                        letterSpacing = (-0.3).sp,
+                        modifier = Modifier.padding(start = 12.dp)
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(
-                            Icons.Default.ArrowBack,
-                            contentDescription = "Back",
-                            tint = Color.White
-                        )
+                    Box(
+                        modifier = Modifier
+                            .padding(start = 8.dp)
+                            .size(36.dp)
+                            .background(
+                                color = Color.White.copy(alpha = 0.15f),
+                                shape = RoundedCornerShape(10.dp)
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        IconButton(
+                            onClick = { navController.popBackStack() },
+                            modifier = Modifier.size(36.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.ArrowBack,
+                                contentDescription = "Back",
+                                tint = Color.White,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = PrimaryBlue
+                    containerColor = GreenDeep
                 )
             )
         },
-        containerColor = NeutralLightGrey
+        containerColor = cs.background
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -114,49 +132,61 @@ fun ExpenseScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(PrimaryBlue, Color(0xFF1A5CB8))
-                        )
-                    )
-                    .padding(24.dp),
+                    .background(color = GreenDeep)
+                    .padding(horizontal = 24.dp, vertical = 28.dp),
                 contentAlignment = Alignment.Center
             ) {
+                // Decorative circles
+                Box(
+                    modifier = Modifier
+                        .size(140.dp)
+                        .align(Alignment.TopEnd)
+                        .offset(x = 40.dp, y = (-30).dp)
+                        .background(
+                            color = Color.White.copy(alpha = 0.05f),
+                            shape = androidx.compose.foundation.shape.CircleShape
+                        )
+                )
+
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        text = "How much did you spend?",
-                        color = Color.White.copy(alpha = 0.8f),
-                        fontSize = 14.sp
+                        text = "HOW MUCH DID YOU SPEND?",
+                        color = Color.White.copy(alpha = 0.55f),
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        letterSpacing = 1.sp
                     )
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(14.dp))
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center
                     ) {
                         Text(
                             text = "LKR",
-                            color = Color.White.copy(alpha = 0.7f),
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Medium,
-                            modifier = Modifier.padding(end = 8.dp, top = 8.dp)
+                            color = Color.White.copy(alpha = 0.6f),
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.padding(end = 8.dp, top = 10.dp)
                         )
                         Text(
                             text = if (amount.isEmpty()) "0.00" else amount,
                             color = Color.White,
-                            fontSize = 42.sp,
-                            fontWeight = FontWeight.Bold
+                            fontSize = 44.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            letterSpacing = (-1).sp
                         )
                     }
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(18.dp))
                     OutlinedTextField(
                         value = amount,
                         onValueChange = { amount = it },
                         placeholder = {
                             Text(
                                 "Enter amount",
-                                color = Color.White.copy(alpha = 0.5f),
+                                color = Color.White.copy(alpha = 0.4f),
                                 modifier = Modifier.fillMaxWidth(),
-                                textAlign = TextAlign.Center
+                                textAlign = TextAlign.Center,
+                                fontSize = 15.sp
                             )
                         },
                         keyboardOptions = KeyboardOptions(
@@ -166,275 +196,225 @@ fun ExpenseScreen(
                         singleLine = true,
                         textStyle = LocalTextStyle.current.copy(
                             textAlign = TextAlign.Center,
-                            color = Color.White
+                            color = Color.White,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold
                         ),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedTextColor = Color.White,
                             unfocusedTextColor = Color.White,
-                            focusedBorderColor = Color.White.copy(alpha = 0.8f),
-                            unfocusedBorderColor = Color.White.copy(alpha = 0.4f),
+                            focusedBorderColor = Color.White.copy(alpha = 0.7f),
+                            unfocusedBorderColor = Color.White.copy(alpha = 0.25f),
                             cursorColor = Color.White
                         ),
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(14.dp)
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             // Details Card
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                colors = CardDefaults.cardColors(containerColor = NeutralWhite),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                shape = RoundedCornerShape(16.dp)
+                    .padding(horizontal = 16.dp)
+                    .shadow(
+                        elevation = 8.dp,
+                        shape = RoundedCornerShape(20.dp),
+                        spotColor = cs.primary.copy(alpha = 0.08f)
+                    ),
+                colors = CardDefaults.cardColors(containerColor = cs.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+                shape = RoundedCornerShape(20.dp)
             ) {
                 Column(
                     modifier = Modifier.padding(20.dp),
                     verticalArrangement = Arrangement.spacedBy(20.dp)
                 ) {
-                    Text(
-                        text = "Expense Details",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp,
-                        color = PrimaryBlue
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(4.dp)
+                                .background(
+                                    color = Debit,
+                                    shape = androidx.compose.foundation.shape.CircleShape
+                                )
+                        )
+                        Text(
+                            text = "Expense Details",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp,
+                            color = cs.onSurface,
+                            letterSpacing = (-0.2).sp
+                        )
+                    }
 
                     // Category dropdown
-                    Column {
-                        Text(
-                            text = "Category",
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = NeutralCharcoal.copy(alpha = 0.7f),
-                            modifier = Modifier.padding(bottom = 8.dp)
-                        )
-                        ExposedDropdownMenuBox(
-                            expanded = categoryExpanded,
-                            onExpandedChange = { categoryExpanded = it }
-                        ) {
-                            OutlinedTextField(
-                                value = expenseCategories.find {
-                                    it.value == selectedCategory
-                                }?.label ?: "",
-                                onValueChange = {},
-                                readOnly = true,
-                                placeholder = { Text("Select category") },
-                                leadingIcon = {
-                                    Icon(
-                                        expenseCategories.find {
-                                            it.value == selectedCategory
-                                        }?.icon ?: Icons.Default.List,
-                                        contentDescription = null,
-                                        tint = PrimaryBlue
-                                    )
+                    DropdownField(
+                        label = "Category",
+                        value = expenseCategories.find {
+                            it.value == selectedCategory
+                        }?.label ?: "",
+                        placeholder = "Select a category",
+                        leadingIcon = expenseCategories.find {
+                            it.value == selectedCategory
+                        }?.icon ?: Icons.Default.List,
+                        expanded = categoryExpanded,
+                        onExpandedChange = { categoryExpanded = it }
+                    ) {
+                        expenseCategories.forEach { category ->
+                            DropdownMenuItem(
+                                text = {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                    ) {
+                                        Icon(
+                                            category.icon,
+                                            contentDescription = null,
+                                            tint = cs.primary,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                        Text(
+                                            category.label,
+                                            fontSize = 14.sp,
+                                            fontWeight = FontWeight.Medium,
+                                            color = cs.onSurface
+                                        )
+                                    }
                                 },
-                                trailingIcon = {
-                                    ExposedDropdownMenuDefaults.TrailingIcon(
-                                        expanded = categoryExpanded
-                                    )
-                                },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .menuAnchor(),
-                                shape = RoundedCornerShape(12.dp)
-                            )
-                            ExposedDropdownMenu(
-                                expanded = categoryExpanded,
-                                onDismissRequest = { categoryExpanded = false }
-                            ) {
-                                expenseCategories.forEach { category ->
-                                    DropdownMenuItem(
-                                        text = {
-                                            Row(
-                                                verticalAlignment = Alignment.CenterVertically,
-                                                horizontalArrangement = Arrangement.spacedBy(12.dp)
-                                            ) {
-                                                Icon(
-                                                    category.icon,
-                                                    contentDescription = null,
-                                                    tint = PrimaryBlue,
-                                                    modifier = Modifier.size(20.dp)
-                                                )
-                                                Text(category.label)
-                                            }
-                                        },
-                                        onClick = {
-                                            selectedCategory = category.value
-                                            categoryExpanded = false
-                                        }
-                                    )
+                                onClick = {
+                                    selectedCategory = category.value
+                                    categoryExpanded = false
                                 }
-                            }
+                            )
                         }
                     }
+
+                    HorizontalDivider(color = cs.outlineVariant, thickness = 0.8.dp)
 
                     // Expense Type dropdown
-                    Column {
-                        Text(
-                            text = "Expense Type",
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = NeutralCharcoal.copy(alpha = 0.7f),
-                            modifier = Modifier.padding(bottom = 8.dp)
-                        )
-                        ExposedDropdownMenuBox(
-                            expanded = expenseTypeExpanded,
-                            onExpandedChange = { expenseTypeExpanded = it }
-                        ) {
-                            OutlinedTextField(
-                                value = expenseTypes.find {
-                                    it.value == selectedExpenseType
-                                }?.label ?: "",
-                                onValueChange = {},
-                                readOnly = true,
-                                placeholder = { Text("Committed or Discretionary?") },
-                                leadingIcon = {
-                                    Icon(
-                                        expenseTypes.find {
-                                            it.value == selectedExpenseType
-                                        }?.icon ?: Icons.Default.List,
-                                        contentDescription = null,
-                                        tint = PrimaryBlue
-                                    )
-                                },
-                                trailingIcon = {
-                                    ExposedDropdownMenuDefaults.TrailingIcon(
-                                        expanded = expenseTypeExpanded
-                                    )
-                                },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .menuAnchor(),
-                                shape = RoundedCornerShape(12.dp)
-                            )
-                            ExposedDropdownMenu(
-                                expanded = expenseTypeExpanded,
-                                onDismissRequest = { expenseTypeExpanded = false }
-                            ) {
-                                expenseTypes.forEach { type ->
-                                    DropdownMenuItem(
-                                        text = {
-                                            Row(
-                                                verticalAlignment = Alignment.CenterVertically,
-                                                horizontalArrangement = Arrangement.spacedBy(12.dp)
-                                            ) {
-                                                Icon(
-                                                    type.icon,
-                                                    contentDescription = null,
-                                                    tint = PrimaryBlue,
-                                                    modifier = Modifier.size(20.dp)
-                                                )
-                                                Column {
-                                                    Text(
-                                                        text = type.label,
-                                                        fontWeight = FontWeight.Medium
-                                                    )
-                                                    Text(
-                                                        text = if (type.value == "COMMITTED")
-                                                            "Fixed recurring (rent, subscriptions)"
-                                                        else
-                                                            "Variable optional (dining, shopping)",
-                                                        fontSize = 11.sp,
-                                                        color = NeutralCharcoal.copy(alpha = 0.6f)
-                                                    )
-                                                }
-                                            }
-                                        },
-                                        onClick = {
-                                            selectedExpenseType = type.value
-                                            expenseTypeExpanded = false
+                    DropdownField(
+                        label = "Expense Type",
+                        value = expenseTypes.find {
+                            it.value == selectedExpenseType
+                        }?.label ?: "",
+                        placeholder = "Committed or Discretionary?",
+                        leadingIcon = expenseTypes.find {
+                            it.value == selectedExpenseType
+                        }?.icon ?: Icons.Default.List,
+                        expanded = expenseTypeExpanded,
+                        onExpandedChange = { expenseTypeExpanded = it }
+                    ) {
+                        expenseTypes.forEach { type ->
+                            DropdownMenuItem(
+                                text = {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                    ) {
+                                        Icon(
+                                            type.icon,
+                                            contentDescription = null,
+                                            tint = cs.primary,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                        Column {
+                                            Text(
+                                                text = type.label,
+                                                fontWeight = FontWeight.SemiBold,
+                                                fontSize = 14.sp,
+                                                color = cs.onSurface
+                                            )
+                                            Text(
+                                                text = if (type.value == "COMMITTED")
+                                                    "Fixed recurring (rent, subscriptions)"
+                                                else
+                                                    "Variable optional (dining, shopping)",
+                                                fontSize = 11.sp,
+                                                color = cs.onSurfaceVariant
+                                            )
                                         }
-                                    )
+                                    }
+                                },
+                                onClick = {
+                                    selectedExpenseType = type.value
+                                    expenseTypeExpanded = false
                                 }
-                            }
+                            )
                         }
                     }
 
+                    HorizontalDivider(color = cs.outlineVariant, thickness = 0.8.dp)
+
                     // Payment Method dropdown
-                    Column {
-                        Text(
-                            text = "Payment Method",
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = NeutralCharcoal.copy(alpha = 0.7f),
-                            modifier = Modifier.padding(bottom = 8.dp)
-                        )
-                        ExposedDropdownMenuBox(
-                            expanded = paymentMethodExpanded,
-                            onExpandedChange = { paymentMethodExpanded = it }
-                        ) {
-                            OutlinedTextField(
-                                value = paymentMethods.find {
-                                    it.value == selectedPaymentMethod
-                                }?.label ?: "",
-                                onValueChange = {},
-                                readOnly = true,
-                                placeholder = { Text("How did you pay?") },
-                                leadingIcon = {
-                                    Icon(
-                                        paymentMethods.find {
-                                            it.value == selectedPaymentMethod
-                                        }?.icon ?: Icons.Default.Edit,
-                                        contentDescription = null,
-                                        tint = PrimaryBlue
-                                    )
+                    DropdownField(
+                        label = "Payment Method",
+                        value = paymentMethods.find {
+                            it.value == selectedPaymentMethod
+                        }?.label ?: "",
+                        placeholder = "How did you pay?",
+                        leadingIcon = paymentMethods.find {
+                            it.value == selectedPaymentMethod
+                        }?.icon ?: Icons.Default.Edit,
+                        expanded = paymentMethodExpanded,
+                        onExpandedChange = { paymentMethodExpanded = it }
+                    ) {
+                        paymentMethods.forEach { method ->
+                            DropdownMenuItem(
+                                text = {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                    ) {
+                                        Icon(
+                                            method.icon,
+                                            contentDescription = null,
+                                            tint = cs.primary,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                        Text(
+                                            method.label,
+                                            fontSize = 14.sp,
+                                            fontWeight = FontWeight.Medium,
+                                            color = cs.onSurface
+                                        )
+                                    }
                                 },
-                                trailingIcon = {
-                                    ExposedDropdownMenuDefaults.TrailingIcon(
-                                        expanded = paymentMethodExpanded
-                                    )
-                                },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .menuAnchor(),
-                                shape = RoundedCornerShape(12.dp)
-                            )
-                            ExposedDropdownMenu(
-                                expanded = paymentMethodExpanded,
-                                onDismissRequest = { paymentMethodExpanded = false }
-                            ) {
-                                paymentMethods.forEach { method ->
-                                    DropdownMenuItem(
-                                        text = {
-                                            Row(
-                                                verticalAlignment = Alignment.CenterVertically,
-                                                horizontalArrangement = Arrangement.spacedBy(12.dp)
-                                            ) {
-                                                Icon(
-                                                    method.icon,
-                                                    contentDescription = null,
-                                                    tint = PrimaryBlue,
-                                                    modifier = Modifier.size(20.dp)
-                                                )
-                                                Text(method.label)
-                                            }
-                                        },
-                                        onClick = {
-                                            selectedPaymentMethod = method.value
-                                            paymentMethodExpanded = false
-                                        }
-                                    )
+                                onClick = {
+                                    selectedPaymentMethod = method.value
+                                    paymentMethodExpanded = false
                                 }
-                            }
+                            )
                         }
                     }
+
+                    HorizontalDivider(color = cs.outlineVariant, thickness = 0.8.dp)
 
                     // Description field
                     Column {
                         Text(
-                            text = "Description (optional)",
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = NeutralCharcoal.copy(alpha = 0.7f),
+                            text = "Description",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = cs.onSurfaceVariant,
+                            letterSpacing = 0.3.sp,
                             modifier = Modifier.padding(bottom = 8.dp)
                         )
                         OutlinedTextField(
                             value = description,
                             onValueChange = { description = it },
-                            placeholder = { Text("Add a note...") },
+                            placeholder = {
+                                Text(
+                                    "Add a note (optional)",
+                                    color = cs.onSurfaceVariant,
+                                    fontSize = 14.sp
+                                )
+                            },
                             modifier = Modifier.fillMaxWidth(),
                             maxLines = 3,
                             shape = RoundedCornerShape(12.dp),
@@ -442,9 +422,13 @@ fun ExpenseScreen(
                                 Icon(
                                     Icons.Default.Create,
                                     contentDescription = null,
-                                    tint = PrimaryBlue
+                                    tint = cs.onSurfaceVariant
                                 )
-                            }
+                            },
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = cs.primary.copy(alpha = 0.5f),
+                                unfocusedBorderColor = cs.outline
+                            )
                         )
                     }
                 }
@@ -459,15 +443,16 @@ fun ExpenseScreen(
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = SemanticRed.copy(alpha = 0.1f)
+                        containerColor = Debit.copy(alpha = 0.08f)
                     ),
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Text(
                         text = uiState.error!!,
-                        color = SemanticRed,
+                        color = Debit,
                         modifier = Modifier.padding(16.dp),
-                        fontSize = 14.sp
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium
                     )
                 }
                 Spacer(modifier = Modifier.height(8.dp))
@@ -498,16 +483,17 @@ fun ExpenseScreen(
                         selectedExpenseType.isNotEmpty() &&
                         selectedPaymentMethod.isNotEmpty(),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = PrimaryBlue,
-                    disabledContainerColor = PrimaryBlue.copy(alpha = 0.4f)
+                    containerColor = GreenDeep,
+                    disabledContainerColor = GreenDeep.copy(alpha = 0.35f)
                 ),
-                shape = RoundedCornerShape(14.dp)
+                shape = RoundedCornerShape(16.dp),
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 6.dp)
             ) {
                 if (uiState.isLoading) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(22.dp),
                         color = Color.White,
-                        strokeWidth = 2.dp
+                        strokeWidth = 2.5.dp
                     )
                 } else {
                     Row(
@@ -517,19 +503,89 @@ fun ExpenseScreen(
                         Icon(
                             Icons.Default.Check,
                             contentDescription = null,
-                            tint = Color.White
+                            tint = Color.White,
+                            modifier = Modifier.size(20.dp)
                         )
                         Text(
                             text = "Save Expense",
                             fontSize = 16.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Color.White
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                            letterSpacing = (-0.2).sp
                         )
                     }
                 }
             }
 
             Spacer(modifier = Modifier.height(32.dp))
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DropdownField(
+    label: String,
+    value: String,
+    placeholder: String,
+    leadingIcon: ImageVector,
+    expanded: Boolean,
+    onExpandedChange: (Boolean) -> Unit,
+    content: @Composable () -> Unit
+) {
+    val cs = MaterialTheme.colorScheme
+    Column {
+        Text(
+            text = label,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = cs.onSurfaceVariant,
+            letterSpacing = 0.3.sp,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = onExpandedChange
+        ) {
+            OutlinedTextField(
+                value = value,
+                onValueChange = {},
+                readOnly = true,
+                placeholder = {
+                    Text(
+                        placeholder,
+                        color = cs.onSurfaceVariant,
+                        fontSize = 14.sp
+                    )
+                },
+                leadingIcon = {
+                    Icon(
+                        leadingIcon,
+                        contentDescription = null,
+                        tint = if (value.isEmpty()) cs.onSurfaceVariant else cs.primary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                },
+                trailingIcon = {
+                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .menuAnchor(),
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = cs.onSurface,
+                    unfocusedTextColor = cs.onSurface,
+                    focusedBorderColor = cs.primary.copy(alpha = 0.5f),
+                    unfocusedBorderColor = cs.outline
+                )
+            )
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { onExpandedChange(false) }
+            ) {
+                content()
+            }
         }
     }
 }

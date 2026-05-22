@@ -1,19 +1,30 @@
 package com.example.northstar.ui.auth
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Email
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.northstar.ui.components.AppPasswordTextField
-import com.example.northstar.ui.components.AppTextField
-import com.example.northstar.ui.components.PrimaryButton
+import com.example.northstar.ui.theme.*
 
 @Composable
 fun LoginScreen(
@@ -31,7 +42,6 @@ fun LoginScreen(
     val emailError = remember { mutableStateOf(false) }
     val passwordError = remember { mutableStateOf(false) }
 
-    // Navigate on success
     LaunchedEffect(uiState) {
         if (uiState is AuthUiState.Success) {
             viewModel.resetState()
@@ -39,130 +49,320 @@ fun LoginScreen(
         }
     }
 
-    Box(modifier = modifier.fillMaxSize()) {
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(Navy900)
+    ) {
+
+        // ── Top branding section ──
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+                .fillMaxWidth()
+                .padding(horizontal = 28.dp)
+                .padding(top = 100.dp),
+            horizontalAlignment = Alignment.Start
         ) {
-            Text(
-                text = "NorthStar",
-                style = MaterialTheme.typography.headlineLarge,
-                color = MaterialTheme.colorScheme.primary
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "Personal Finance Management",
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
-            )
-
-            Spacer(modifier = Modifier.height(48.dp))
-
-            AppTextField(
-                value = emailState.value,
-                onValueChange = {
-                    emailState.value = it
-                    emailError.value = false
-                },
-                label = "Email Address",
-                isError = emailError.value,
-                supportingText = "Please enter a valid email address",
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Email,
-                    imeAction = ImeAction.Next
-                )
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            AppPasswordTextField(
-                value = passwordState.value,
-                onValueChange = {
-                    passwordState.value = it
-                    passwordError.value = false
-                },
-                label = "Password",
-                isPasswordVisible = passwordVisible.value,
-                onVisibilityToggle = { passwordVisible.value = !passwordVisible.value },
-                isError = passwordError.value,
-                supportingText = "Password cannot be empty",
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Password,
-                    imeAction = ImeAction.Done
-                )
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(White.copy(alpha = 0.1f))
+                    .border(1.dp, White.copy(alpha = 0.15f), RoundedCornerShape(14.dp)),
+                contentAlignment = Alignment.Center
             ) {
-                TextButton(onClick = onForgotPasswordClick) {
-                    Text(
-                        text = "Forgot Password?",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
-
-            // Error message
-            if (uiState is AuthUiState.Error) {
-                Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = (uiState as AuthUiState.Error).message,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.fillMaxWidth()
+                    "N★",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.W800,
+                    color = White,
+                    fontFamily = InterFontFamily
                 )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-            PrimaryButton(
-                text = if (uiState is AuthUiState.Loading) "Logging in..." else "Log In",
-                enabled = uiState !is AuthUiState.Loading,
-                onClick = {
-                    var valid = true
-                    if (emailState.value.isBlank()) {
-                        emailError.value = true
-                        valid = false
-                    }
-                    if (passwordState.value.isBlank()) {
-                        passwordError.value = true
-                        valid = false
-                    }
-                    if (valid) {
-                        viewModel.login(emailState.value, passwordState.value)
-                    }
-                }
+            Text(
+                "Welcome back",
+                fontSize = 32.sp,
+                fontWeight = FontWeight.W800,
+                color = White,
+                letterSpacing = (-1).sp,
+                fontFamily = InterFontFamily
             )
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                "Sign in to NorthStar",
+                fontSize = 15.sp,
+                fontWeight = FontWeight.W400,
+                color = White.copy(alpha = 0.45f),
+                fontFamily = InterFontFamily
+            )
+        }
 
-            Spacer(modifier = Modifier.height(16.dp))
+        // ── Bottom sheet ──
+        val cs = MaterialTheme.colorScheme
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.62f)
+                .align(Alignment.BottomCenter)
+                .clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
+                .background(cs.surface)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 28.dp)
+                    .padding(top = 32.dp, bottom = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
 
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = "Don't have an account?",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
-                )
-                TextButton(onClick = onRegisterClick) {
-                    Text(
-                        text = "Sign Up",
-                        color = MaterialTheme.colorScheme.primary
+                // Email field
+                NorthStarInputField(
+                    value = emailState.value,
+                    onValueChange = {
+                        emailState.value = it
+                        emailError.value = false
+                    },
+                    label = "Email address",
+                    isError = emailError.value,
+                    errorText = "Please enter a valid email",
+                    leadingIcon = {
+                        Icon(
+                            Icons.Outlined.Email,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp),
+                            tint = if (emailError.value) Debit else cs.onSurfaceVariant
+                        )
+                    },
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Email,
+                        imeAction = ImeAction.Next
                     )
+                )
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                // Password field
+                NorthStarInputField(
+                    value = passwordState.value,
+                    onValueChange = {
+                        passwordState.value = it
+                        passwordError.value = false
+                    },
+                    label = "Password",
+                    isError = passwordError.value,
+                    errorText = "Password cannot be empty",
+                    leadingIcon = {
+                        Icon(
+                            Icons.Outlined.Lock,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp),
+                            tint = if (passwordError.value) Debit else cs.onSurfaceVariant
+                        )
+                    },
+                    trailingIcon = {
+                        IconButton(onClick = { passwordVisible.value = !passwordVisible.value }) {
+                            Icon(
+                                if (passwordVisible.value) Icons.Outlined.VisibilityOff
+                                else Icons.Outlined.Visibility,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp),
+                                tint = cs.onSurfaceVariant
+                            )
+                        }
+                    },
+                    visualTransformation = if (passwordVisible.value)
+                        VisualTransformation.None
+                    else
+                        PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Password,
+                        imeAction = ImeAction.Done
+                    )
+                )
+
+                // Forgot password
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 4.dp),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(onClick = onForgotPasswordClick) {
+                        Text(
+                            "Forgot password?",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.W600,
+                            color = cs.primary,
+                            fontFamily = InterFontFamily
+                        )
+                    }
+                }
+
+                // Error message
+                if (uiState is AuthUiState.Error) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 12.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Debit.copy(alpha = 0.08f))
+                            .border(1.dp, Debit.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
+                            .padding(horizontal = 14.dp, vertical = 10.dp)
+                    ) {
+                        Text(
+                            text = (uiState as AuthUiState.Error).message,
+                            color = Debit,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.W500,
+                            fontFamily = InterFontFamily
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Login button
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp)
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(
+                            if (uiState is AuthUiState.Loading)
+                                GreenDeep.copy(alpha = 0.5f)
+                            else
+                                GreenDeep
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (uiState is AuthUiState.Loading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(22.dp),
+                            color = White,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Button(
+                            onClick = {
+                                var valid = true
+                                if (emailState.value.isBlank()) {
+                                    emailError.value = true
+                                    valid = false
+                                }
+                                if (passwordState.value.isBlank()) {
+                                    passwordError.value = true
+                                    valid = false
+                                }
+                                if (valid) {
+                                    viewModel.login(emailState.value, passwordState.value)
+                                }
+                            },
+                            modifier = Modifier.fillMaxSize(),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color.Transparent,
+                                contentColor = White
+                            ),
+                            elevation = ButtonDefaults.buttonElevation(0.dp),
+                            shape = RoundedCornerShape(14.dp)
+                        ) {
+                            Text(
+                                "Log In",
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.W700,
+                                fontFamily = InterFontFamily
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                // Sign up link
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        "Don't have an account?",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.W400,
+                        color = cs.onSurfaceVariant,
+                        fontFamily = InterFontFamily
+                    )
+                    TextButton(onClick = onRegisterClick) {
+                        Text(
+                            "Sign Up",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.W700,
+                            color = cs.primary,
+                            fontFamily = InterFontFamily
+                        )
+                    }
                 }
             }
         }
+    }
+}
 
-        // Loading overlay
-        if (uiState is AuthUiState.Loading) {
-            CircularProgressIndicator(
-                modifier = Modifier.align(Alignment.Center)
+// ── Reusable input field ──
+@Composable
+fun NorthStarInputField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    isError: Boolean = false,
+    errorText: String = "",
+    leadingIcon: @Composable (() -> Unit)? = null,
+    trailingIcon: @Composable (() -> Unit)? = null,
+    visualTransformation: VisualTransformation = VisualTransformation.None,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default
+) {
+    val cs = MaterialTheme.colorScheme
+    Column(modifier = Modifier.fillMaxWidth()) {
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            label = {
+                Text(
+                    label,
+                    fontSize = 13.sp,
+                    fontFamily = InterFontFamily
+                )
+            },
+            isError = isError,
+            leadingIcon = leadingIcon,
+            trailingIcon = trailingIcon,
+            visualTransformation = visualTransformation,
+            keyboardOptions = keyboardOptions,
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(14.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = cs.primary,
+                unfocusedBorderColor = cs.outline,
+                errorBorderColor = Debit,
+                focusedLabelColor = cs.primary,
+                unfocusedLabelColor = cs.onSurfaceVariant,
+                errorLabelColor = Debit,
+                cursorColor = cs.primary,
+                focusedTextColor = cs.onSurface,
+                unfocusedTextColor = cs.onSurface,
+                errorTextColor = cs.onSurface,
+                focusedContainerColor = cs.surface,
+                unfocusedContainerColor = cs.surface,
+                errorContainerColor = cs.surface
+            )
+        )
+        if (isError && errorText.isNotBlank()) {
+            Text(
+                errorText,
+                fontSize = 11.sp,
+                color = Debit,
+                fontFamily = InterFontFamily,
+                modifier = Modifier.padding(start = 14.dp, top = 4.dp)
             )
         }
     }

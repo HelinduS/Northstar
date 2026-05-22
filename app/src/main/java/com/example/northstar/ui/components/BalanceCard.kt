@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,21 +24,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.draw.shadow
-import androidx.compose.foundation.border
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.example.northstar.ui.theme.PrimaryBlue
-import java.util.Locale
 
 @Composable
 fun BalanceCard(
     totalIncome: Long = 0L,
     totalExpenses: Long = 0L,
-    netSaved: Long = 0L
+    netSaved: Long = 0L,
+    allTimeNetSaved: Long = 0L,
+    allTimeIncome: Long = totalIncome,
+    allTimeExpenses: Long = totalExpenses
 ) {
     Box(
         modifier = Modifier
@@ -86,7 +79,7 @@ fun BalanceCard(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Total Balance",
+                        text = "Total Balance All Time",
                         color = Color.White.copy(alpha = 0.55f),
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Medium
@@ -101,7 +94,7 @@ fun BalanceCard(
                         )
                         Spacer(Modifier.width(6.dp))
                         Text(
-                                text = if (netSaved < 0) "-${formatLkrPlain(netSaved)}" else formatLkrPlain(netSaved),
+                                text = if (allTimeNetSaved < 0) "-${formatLkrPlain(allTimeNetSaved)}" else formatLkrPlain(allTimeNetSaved),
                             color = Color.White,
                             fontSize = 36.sp,
                             fontWeight = FontWeight.ExtraBold,
@@ -152,7 +145,7 @@ fun BalanceCard(
                     )
                     Spacer(Modifier.height(6.dp))
                     Text(
-                        text = "LKR ${formatLkrPlain(totalIncome)}",
+                        text = "LKR ${formatLkrPlain(allTimeIncome)}",
                         color = Color.White,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold
@@ -176,7 +169,7 @@ fun BalanceCard(
                     )
                     Spacer(Modifier.height(6.dp))
                     Text(
-                        text = "LKR ${formatLkrPlain(totalExpenses)}",
+                        text = "LKR ${formatLkrPlain(allTimeExpenses)}",
                         color = Color.White,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold
