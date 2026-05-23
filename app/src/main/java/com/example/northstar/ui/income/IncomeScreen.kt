@@ -353,6 +353,7 @@ fun DetailDropdown(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     onClick: () -> Unit
 ) {
+    val cs = MaterialTheme.colorScheme
     Column(modifier = Modifier.fillMaxWidth().clickable { onClick() }) {
         Text(text = label, fontSize = 12.sp, color = cs.onSurfaceVariant, modifier = Modifier.padding(start = 4.dp, bottom = 4.dp))
         Row(

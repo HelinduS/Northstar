@@ -174,13 +174,8 @@ class ExpenseViewModel @Inject constructor(
                     "description" to description,
                     "date" to Timestamp(java.util.Date(date)),
                     "createdAt" to Timestamp.now(),
-                    "updatedAt" to Timestamp.now()
-                    "paymentSource" to paymentMethod,
-                    "note" to description,
-                    "date" to com.google.firebase.Timestamp(Date(date)),
-                    "month" to month,
-                    "createdAt" to com.google.firebase.Timestamp.now(),
-                    "updatedAt" to com.google.firebase.Timestamp.now()
+                    "updatedAt" to Timestamp.now(),
+                    "month" to month
                 )
 
                 firestore

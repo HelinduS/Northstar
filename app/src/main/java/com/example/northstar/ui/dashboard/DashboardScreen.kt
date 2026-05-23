@@ -4,6 +4,7 @@ import androidx.activity.ComponentActivity
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -11,8 +12,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material3.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -30,7 +31,6 @@ import com.example.northstar.ui.notifications.NotificationViewModel
 import com.example.northstar.ui.theme.*
 import java.text.SimpleDateFormat
 import java.util.*
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -92,43 +92,6 @@ fun DashboardScreen(
                                 navController.navigate(Screen.TransactionHistory.route)
                             }
                         }
-    PullToRefreshBox(
-        isRefreshing = uiState.isLoading,
-        onRefresh = { dashboardViewModel.loadDashboardData() },
-        modifier = Modifier.fillMaxSize()
-    ) {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-                .padding(bottom = 20.dp)
-        ) {
-            item {
-                HeroSection(
-                    displayName = uiState.displayName,
-                    totalBalance = uiState.netSavedLkr,
-                    income = uiState.totalIncomeLkr,
-                    expenses = uiState.totalExpensesLkr,
-                    allTimeBalance = uiState.allTimeNetSavedLkr,
-                    allTimeIncome = uiState.allTimeIncomeLkr,
-                    allTimeExpenses = uiState.allTimeExpensesLkr,
-                    greetingText = greetingText,
-                    greetingIcon = greetingIcon
-                )
-            }
-            item {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.background)
-                        .padding(bottom = 20.dp)
-                ) {
-                    QuickActionsRow(navController)
-                    SavingsGoalCard(goals = uiState.goals)
-                    TodaysSpendCard(todaysExpense = uiState.totalExpensesLkr)
-                    ThisMonthCard(uiState.totalIncomeLkr, uiState.totalExpensesLkr)
-                    TransactionsList(uiState.recentTransactions) {
-                        navController.navigate(Screen.TransactionHistory.route)
                     }
                 }
             }
