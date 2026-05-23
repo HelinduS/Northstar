@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.northstar.ui.dashboard.DashboardViewModel
 import com.example.northstar.ui.notifications.NotificationViewModel
 import com.example.northstar.ui.theme.*
 
@@ -69,10 +70,12 @@ val paymentMethods = listOf(
 @Composable
 fun ExpenseScreen(
     navController: NavController,
-    viewModel: ExpenseViewModel = hiltViewModel()
+    viewModel: ExpenseViewModel = hiltViewModel(),
+    dashboardViewModel: DashboardViewModel = hiltViewModel()
 ) {
     val cs = MaterialTheme.colorScheme
     val uiState by viewModel.uiState.collectAsState()
+    val dashboardUiState by dashboardViewModel.uiState.collectAsState()
 
     val context = LocalContext.current
 
@@ -97,9 +100,8 @@ fun ExpenseScreen(
 
             val amountDouble = uiState.savedAmount / 100.0
 
-            // TODO:
-            // Replace with actual income from DashboardViewModel
-            val totalIncomeLkr = 0L
+            // Use actual income from DashboardViewModel so percent and budget branches can fire
+            val totalIncomeLkr: Long = dashboardUiState.totalIncomeLkr
 
             // Expense Logged Notification
             val percent = if (totalIncomeLkr > 0) {
