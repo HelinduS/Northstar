@@ -1,6 +1,5 @@
 package com.example.northstar.ui.analytics
 
-
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -40,7 +39,8 @@ fun AnalyticsScreen(navController: NavController, viewModel: AnalyticsViewModel 
                         tempStart = selected
                     } else if (selected != null && selected > tempStart!!) {
                         viewModel.onCustomRangeSelected(tempStart!!, selected)
-                        showDatePicker = false; tempStart = null
+                        showDatePicker = false
+                        tempStart = null
                     }
                 }) { Text(if (tempStart == null) "Next" else "Apply", color = Navy900, fontWeight = FontWeight.Bold) }
             }
@@ -64,7 +64,6 @@ fun AnalyticsScreen(navController: NavController, viewModel: AnalyticsViewModel 
                 AnalyticsHeader(uiState.allTimeSummary.totalIncome, uiState.allTimeSummary.totalExpenses, uiState.allTimeSummary.netSaved)
                 Spacer(modifier = Modifier.height(24.dp))
 
-
                 AnalyticsControls(
                     selectedTab = uiState.selectedTab,
                     selectedFilter = uiState.selectedFilter,
@@ -82,13 +81,30 @@ fun AnalyticsScreen(navController: NavController, viewModel: AnalyticsViewModel 
                 item { Box(Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) { Text("No data found") } }
             } else {
                 item {
-
+                    // Check if we are currently looking at the Comparison tab
                     if (uiState.selectedTab == AnalyticsTab.COMPARISON) {
-                        ComparisonBarChart(trendData = uiState.trendData)
+                        // Switch chart visual variant based on custom filter selection
+                        if (uiState.selectedFilter == TimeFilter.CUSTOM) {
+                            val totalIncome = uiState.breakdownList.find { it.categoryName == "Income" }?.totalAmount ?: 0L
+                            val totalExpense = uiState.breakdownList.find { it.categoryName == "Expenses" }?.totalAmount ?: 0L
+
+                            // Render Doughnut Chart for Custom Ranges
+                            AnalyticsCharts(
+                                data = uiState.breakdownList,
+                                tab = uiState.selectedTab,
+                                totalIncome = totalIncome,
+                                totalExpense = totalExpense
+                            )
+                        } else {
+                            // Render standard chronological trend bars for fixed cycles (Weekly, Monthly, Yearly)
+                            ComparisonBarChart(trendData = uiState.trendData)
+                        }
                     } else {
+                        // Regular breakdown charts for Income and Expense sections
                         val total = uiState.breakdownList.sumOf { it.totalAmount }
                         AnalyticsCharts(
-                            data = uiState.breakdownList, tab = uiState.selectedTab,
+                            data = uiState.breakdownList,
+                            tab = uiState.selectedTab,
                             totalIncome = if (uiState.selectedTab == AnalyticsTab.INCOME) total else uiState.breakdownList.find { it.categoryName == "Income" }?.totalAmount ?: 0L,
                             totalExpense = if (uiState.selectedTab == AnalyticsTab.EXPENSE) total else uiState.breakdownList.find { it.categoryName == "Expenses" }?.totalAmount ?: 0L
                         )
