@@ -12,8 +12,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.northstar.ui.theme.PrimaryBlue
-import com.example.northstar.ui.theme.SemanticRed
+import com.example.northstar.ui.theme.GreenDeep
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -26,6 +25,8 @@ fun AddGoalDialog(
     prefillName: String? = null,
     prefillAmount: Double? = null
 ) {
+    val cs = MaterialTheme.colorScheme
+
     // Initialise fields from template prefill (if any)
     var name   by remember { mutableStateOf(prefillName ?: "") }
     var amount by remember { mutableStateOf(prefillAmount?.toLong()?.toString() ?: "") }
@@ -52,12 +53,12 @@ fun AddGoalDialog(
                     selectedDateMillis = datePickerState.selectedDateMillis
                     showDatePicker = false
                 }) {
-                    Text("OK", color = PrimaryBlue)
+                    Text("OK", color = cs.primary)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDatePicker = false }) {
-                    Text("Cancel", color = SemanticRed)
+                    Text("Cancel", color = cs.error)
                 }
             }
         ) {
@@ -72,7 +73,7 @@ fun AddGoalDialog(
             Text(
                 text = "New Savings Goal",
                 fontSize = 18.sp,
-                color = MaterialTheme.colorScheme.onSurface
+                color = cs.onSurface
             )
         },
         text = {
@@ -84,8 +85,8 @@ fun AddGoalDialog(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = PrimaryBlue,
-                        focusedLabelColor  = PrimaryBlue
+                        focusedBorderColor = cs.primary,
+                        focusedLabelColor  = cs.primary
                     )
                 )
                 OutlinedTextField(
@@ -96,8 +97,8 @@ fun AddGoalDialog(
                     shape = RoundedCornerShape(12.dp),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = PrimaryBlue,
-                        focusedLabelColor  = PrimaryBlue
+                        focusedBorderColor = cs.primary,
+                        focusedLabelColor  = cs.primary
                     )
                 )
                 OutlinedTextField(
@@ -109,12 +110,12 @@ fun AddGoalDialog(
                     shape = RoundedCornerShape(12.dp),
                     trailingIcon = {
                         IconButton(onClick = { showDatePicker = true }) {
-                            Icon(Icons.Default.DateRange, contentDescription = null, tint = PrimaryBlue)
+                            Icon(Icons.Default.DateRange, contentDescription = null, tint = cs.primary)
                         }
                     },
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = PrimaryBlue,
-                        focusedLabelColor  = PrimaryBlue
+                        focusedBorderColor = cs.primary,
+                        focusedLabelColor  = cs.primary
                     )
                 )
             }
@@ -130,12 +131,12 @@ fun AddGoalDialog(
                 },
                 enabled = name.isNotBlank() && amount.isNotBlank() && selectedDateMillis != null,
                 shape  = RoundedCornerShape(10.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
+                colors = ButtonDefaults.buttonColors(containerColor = GreenDeep)
             ) { Text("Add Goal") }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel", color = SemanticRed)
+                Text("Cancel", color = cs.error)
             }
         }
     )
@@ -146,6 +147,7 @@ fun ContributeDialog(
     onDismiss: () -> Unit,
     onConfirm: (Long) -> Unit
 ) {
+    val cs = MaterialTheme.colorScheme
     var amount by remember { mutableStateOf("") }
     val parsedAmount = amount.toLongOrNull() ?: 0L
 
@@ -162,8 +164,8 @@ fun ContributeDialog(
                 shape = RoundedCornerShape(12.dp),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = PrimaryBlue,
-                    focusedLabelColor  = PrimaryBlue
+                    focusedBorderColor = cs.primary,
+                    focusedLabelColor  = cs.primary
                 )
             )
         },
@@ -172,12 +174,12 @@ fun ContributeDialog(
                 onClick = { onConfirm(parsedAmount * 100L) },
                 enabled = parsedAmount > 0,
                 shape  = RoundedCornerShape(10.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
+                colors = ButtonDefaults.buttonColors(containerColor = GreenDeep)
             ) { Text("Add Savings") }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel", color = SemanticRed)
+                Text("Cancel", color = cs.error)
             }
         }
     )

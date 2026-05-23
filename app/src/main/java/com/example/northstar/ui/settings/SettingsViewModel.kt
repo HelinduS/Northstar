@@ -8,6 +8,7 @@ import android.graphics.pdf.PdfDocument
 import androidx.core.content.FileProvider
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.northstar.ui.theme.ThemePreferenceManager
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -34,11 +35,18 @@ data class SettingsUiState(
 class SettingsViewModel @Inject constructor(
     private val firebaseAuth: FirebaseAuth,
     private val firestore: FirebaseFirestore,
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val themePreferenceManager: ThemePreferenceManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SettingsUiState())
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
+
+    val isDarkMode: StateFlow<Boolean> = themePreferenceManager.isDarkMode
+
+    fun setDarkMode(enabled: Boolean) {
+        themePreferenceManager.setDarkMode(enabled)
+    }
 
     fun exportData() {
         viewModelScope.launch {

@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.northstar.ui.theme.GreenDeep
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -36,7 +37,7 @@ fun IncomeScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
-    val colorScheme = MaterialTheme.colorScheme
+    val cs = MaterialTheme.colorScheme
 
     val selectedSource by viewModel.selectedSource.collectAsState()
     val selectedCurrency by viewModel.selectedCurrency.collectAsState()
@@ -63,11 +64,11 @@ fun IncomeScreen(
     }
 
     Scaffold(
-        containerColor = Color(0xFFF8F9FA),
+        containerColor = cs.background,
         bottomBar = {
             Surface(
                 shadowElevation = 8.dp,
-                color = colorScheme.surface
+                color = cs.surface
             ) {
                 Button(
                     onClick = {
@@ -89,7 +90,7 @@ fun IncomeScreen(
                         .height(56.dp),
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF121417),
+                        containerColor = GreenDeep,
                         contentColor = Color.White
                     ),
                     enabled = uiState !is IncomeUiState.Loading && amount.isNotEmpty() && selectedSource.isNotEmpty() && selectedDate != 0L
@@ -108,13 +109,13 @@ fun IncomeScreen(
                 .fillMaxSize()
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
-                .background(Color(0xFFF8F9FA))
+                .background(cs.background)
         ) {
             // Header Section
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0xFF121417))
+                    .background(GreenDeep)
                     .padding(bottom = 40.dp)
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -159,14 +160,14 @@ fun IncomeScreen(
                 modifier = Modifier
                     .offset(y = (-24).dp)
                     .padding(horizontal = 16.dp)
-                    .background(Color.White, RoundedCornerShape(16.dp))
+                    .background(cs.surface, RoundedCornerShape(16.dp))
                     .padding(20.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Text(
                     "Income Details",
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black
+                    color = cs.onSurface
                 )
 
                 // 1. Source Selection
@@ -180,13 +181,15 @@ fun IncomeScreen(
                     DropdownMenu(
                         expanded = showSourceMenu,
                         onDismissRequest = { showSourceMenu = false },
-                        modifier = Modifier.fillMaxWidth(0.85f).background(Color.White)
+                        modifier = Modifier
+                            .fillMaxWidth(0.85f)
+                            .background(cs.surface)
                     ) {
                         val sources = listOf("Salary", "Freelance", "Social Media", "Google AdSense", "Investments", "E-commerce", "Affiliate", "Crypto", "Digital Products", "Tutoring", "Other")
                         sources.forEach { title ->
                             DropdownMenuItem(
-                                text = { Text(title) },
-                                leadingIcon = { Icon(Icons.Default.Add, null, tint = Color.Gray) },
+                                text = { Text(title, color = cs.onSurface) },
+                                leadingIcon = { Icon(Icons.Default.Add, null, tint = cs.onSurfaceVariant) },
                                 onClick = { viewModel.onSourceSelected(title); showSourceMenu = false }
                             )
                         }
@@ -214,14 +217,16 @@ fun IncomeScreen(
                     DropdownMenu(
                         expanded = showCurrencyMenu,
                         onDismissRequest = { showCurrencyMenu = false },
-                        modifier = Modifier.fillMaxWidth(0.8f).background(Color.White)
+                        modifier = Modifier
+                            .fillMaxWidth(0.8f)
+                            .background(cs.surface)
                     ) {
                         availableCurrencies.forEach { currency ->
                             DropdownMenuItem(
                                 text = {
                                     Row {
-                                        Text(currency, fontWeight = FontWeight.Bold, modifier = Modifier.width(50.dp))
-                                        Text(getCurrencyName(currency), color = Color.Gray, fontSize = 14.sp)
+                                        Text(currency, fontWeight = FontWeight.Bold, modifier = Modifier.width(50.dp), color = cs.onSurface)
+                                        Text(getCurrencyName(currency), color = cs.onSurfaceVariant, fontSize = 14.sp)
                                     }
                                 },
                                 onClick = { viewModel.onCurrencySelected(currency); showCurrencyMenu = false }
@@ -240,14 +245,14 @@ fun IncomeScreen(
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Amount", color = Color.Gray) },
-                    prefix = { Text("$selectedCurrency ", color = Color.Black, fontWeight = FontWeight.Bold) },
+                    label = { Text("Amount", color = cs.onSurfaceVariant) },
+                    prefix = { Text("$selectedCurrency ", color = cs.onSurface, fontWeight = FontWeight.Bold) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     shape = RoundedCornerShape(12.dp),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color.Black,
-                        unfocusedBorderColor = Color.Black,
-                        cursorColor = Color.Black
+                        focusedBorderColor = cs.primary,
+                        unfocusedBorderColor = cs.outline,
+                        cursorColor = cs.primary
                     )
                 )
 
@@ -289,14 +294,13 @@ fun IncomeScreen(
                     )
                 }
 
-                // 6. Date Selection - THEME UPDATED HERE
+                // 6. Date Selection
                 DetailDropdown(
                     label = "Date Received",
                     selected = if (selectedDate == 0L) "Select Date" else dateFormatter.format(Date(selectedDate)),
                     icon = Icons.Default.DateRange,
                     onClick = {
                         val cal = Calendar.getInstance()
-                        // Using ContextThemeWrapper to apply a Dark Theme to the Calendar Dialog
                         val themedContext = ContextThemeWrapper(context, android.R.style.Theme_DeviceDefault_Dialog_Alert)
 
                         DatePickerDialog(
@@ -317,7 +321,7 @@ fun IncomeScreen(
                     value = notes,
                     onValueChange = { notes = it },
                     label = { Text("Add a note...") },
-                    leadingIcon = { Icon(Icons.Default.Edit, null, tint = Color.Gray) },
+                    leadingIcon = { Icon(Icons.Default.Edit, null, tint = cs.onSurfaceVariant) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp)
                 )
@@ -328,22 +332,27 @@ fun IncomeScreen(
 
 @Composable
 fun DetailDropdown(label: String, selected: String, icon: androidx.compose.ui.graphics.vector.ImageVector, onClick: () -> Unit) {
+    val cs = MaterialTheme.colorScheme
     Column(modifier = Modifier.fillMaxWidth().clickable { onClick() }) {
-        Text(text = label, fontSize = 12.sp, color = Color.Gray, modifier = Modifier.padding(start = 4.dp, bottom = 4.dp))
+        Text(text = label, fontSize = 12.sp, color = cs.onSurfaceVariant, modifier = Modifier.padding(start = 4.dp, bottom = 4.dp))
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .border(1.dp, Color.LightGray.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
+                .border(1.dp, cs.outline, RoundedCornerShape(12.dp))
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(icon, null, tint = Color.Black, modifier = Modifier.size(20.dp))
+                Icon(icon, null, tint = cs.onSurface, modifier = Modifier.size(20.dp))
                 Spacer(modifier = Modifier.width(12.dp))
-                Text(text = selected, fontSize = 16.sp, color = if (selected.contains("Select")) Color.LightGray else Color.Black)
+                Text(
+                    text = selected,
+                    fontSize = 16.sp,
+                    color = if (selected.contains("Select")) cs.onSurfaceVariant else cs.onSurface
+                )
             }
-            Icon(Icons.Default.ArrowDropDown, null, tint = Color.Gray)
+            Icon(Icons.Default.ArrowDropDown, null, tint = cs.onSurfaceVariant)
         }
     }
 }
