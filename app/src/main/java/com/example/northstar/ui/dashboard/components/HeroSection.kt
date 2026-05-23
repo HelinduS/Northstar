@@ -10,7 +10,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material.icons.outlined.Notifications
-import androidx.compose.material.icons.outlined.NotificationsNone
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -87,35 +86,21 @@ fun HeroSection(
                 .padding(bottom = 20.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // Avatar — solid GreenAccent circle matching prototype
             Box(
                 modifier = Modifier
                     .size(42.dp)
-                    .background(GreenAccent.copy(alpha = 0.25f), CircleShape)
-                    .border(1.5.dp, GreenAccent.copy(alpha = 0.5f), CircleShape),
+                    .clip(CircleShape)
+                    .background(GreenAccent),
                 contentAlignment = Alignment.Center
             ) {
-                // Avatar
-                Box(
-                    modifier = Modifier
-                        .size(38.dp)
-                        .clip(CircleShape)
-                        .background(Navy800)
-                        .border(1.5.dp, White.copy(alpha = 0.08f), CircleShape),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        displayName
-                            .split(" ")
-                            .filter { it.isNotBlank() }
-                            .take(2)
-                            .joinToString("") { it.first().uppercaseChar().toString() }
-                            .ifBlank { "?" },
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.W700,
-                        color = White,
-                        fontFamily = InterFontFamily
-                    )
-                }
+                Text(
+                    initials,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = White,
+                    fontFamily = InterFontFamily
+                )
             }
 
             // Greeting + Name
@@ -135,14 +120,14 @@ fun HeroSection(
                     Text(
                         text = greetingText,
                         fontSize = 11.sp,
-                        color = White.copy(alpha = 0.38f),
+                        color = White.copy(alpha = 0.6f),
                         fontFamily = InterFontFamily
                     )
                 }
                 Text(
                     displayName.ifBlank { "User" },
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.W700,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
                     color = White,
                     letterSpacing = (-0.3).sp,
                     maxLines = 1,
@@ -152,14 +137,14 @@ fun HeroSection(
             }
 
             // ── Bell icon with badge overlapping top-right ──
-            Box(modifier = Modifier.size(48.dp)) {
+            Box(modifier = Modifier.size(38.dp)) {
                 // Bell button
                 Box(
                     modifier = Modifier
-                        .size(48.dp)
+                        .size(38.dp)
                         .clip(CircleShape)
-                        .background(White.copy(alpha = 0.06f))
-                        .border(1.dp, White.copy(alpha = 0.08f), CircleShape)
+                        .background(White.copy(alpha = 0.10f))
+                        .border(1.dp, White.copy(alpha = 0.15f), CircleShape)
                         .clickable { onNotificationClick() },
                     contentAlignment = Alignment.Center
                 ) {
@@ -194,51 +179,6 @@ fun HeroSection(
                 }
             }
 
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(horizontal = 12.dp)
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        greetingIcon,
-                        contentDescription = null,
-                        tint = White.copy(alpha = 0.55f),
-                        modifier = Modifier.size(11.dp)
-                    )
-                    Spacer(Modifier.width(4.dp))
-                    Text(
-                        greetingText,
-                        fontSize = 11.sp,
-                        color = White.copy(alpha = 0.55f),
-                        fontFamily = InterFontFamily
-                    )
-                }
-                Text(
-                    displayName.ifBlank { "User" },
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = White,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    fontFamily = InterFontFamily
-                )
-            }
-
-            Box(
-                modifier = Modifier
-                    .size(38.dp)
-                    .background(White.copy(alpha = 0.12f), CircleShape)
-                    .border(1.dp, White.copy(alpha = 0.2f), CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    Icons.Outlined.NotificationsNone,
-                    contentDescription = null,
-                    modifier = Modifier.size(19.dp),
-                    tint = White
-                )
-            }
         }
 
         // ── NET SAVED label ───────────────────────────────────────────────────
@@ -267,8 +207,8 @@ fun HeroSection(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(White.copy(alpha = 0.10f), RoundedCornerShape(16.dp))
-                .padding(horizontal = 16.dp, vertical = 10.dp),
+                .background(White.copy(alpha = 0.08f), RoundedCornerShape(16.dp))
+                .padding(horizontal = 16.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {

@@ -81,7 +81,7 @@ fun DashboardScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
-                            .background(White)
+                            .background(MaterialTheme.colorScheme.background)
                             .padding(top = 8.dp, bottom = 20.dp)
                     ) {
                         Column(modifier = Modifier.fillMaxWidth()) {
