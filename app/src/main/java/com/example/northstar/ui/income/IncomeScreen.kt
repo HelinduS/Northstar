@@ -2,6 +2,7 @@ package com.example.northstar.ui.income
 
 import android.app.DatePickerDialog
 import android.view.ContextThemeWrapper
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -24,7 +25,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.northstar.ui.notifications.NotificationViewModel
 import com.example.northstar.ui.theme.GreenDeep
 import java.text.SimpleDateFormat
 import java.util.*
@@ -38,6 +41,11 @@ fun IncomeScreen(
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     val cs = MaterialTheme.colorScheme
+
+    // Notification ViewModel scoped to Activity
+    val notificationViewModel: NotificationViewModel = viewModel(
+        viewModelStoreOwner = context as ComponentActivity
+    )
 
     val selectedSource by viewModel.selectedSource.collectAsState()
     val selectedCurrency by viewModel.selectedCurrency.collectAsState()
@@ -58,6 +66,13 @@ fun IncomeScreen(
 
     LaunchedEffect(uiState) {
         if (uiState is IncomeUiState.Success) {
+            // Fire notification with saved amount
+            val amountDouble = amount.toDoubleOrNull() ?: 0.0
+            val amountInLkr = if (selectedCurrency == "LKR") amountDouble else totalLkrEstimate
+            notificationViewModel.notifyIncomeLogged(
+                amount = amountInLkr,
+                newBalance = amountInLkr
+            )
             navController.popBackStack()
             viewModel.resetState()
         }
@@ -93,7 +108,10 @@ fun IncomeScreen(
                         containerColor = GreenDeep,
                         contentColor = Color.White
                     ),
-                    enabled = uiState !is IncomeUiState.Loading && amount.isNotEmpty() && selectedSource.isNotEmpty() && selectedDate != 0L
+                    enabled = uiState !is IncomeUiState.Loading &&
+                            amount.isNotEmpty() &&
+                            selectedSource.isNotEmpty() &&
+                            selectedDate != 0L
                 ) {
                     if (uiState is IncomeUiState.Loading) {
                         CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.White)
@@ -128,22 +146,12 @@ fun IncomeScreen(
                         IconButton(onClick = { navController.popBackStack() }) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = Color.White)
                         }
-                        Text(
-                            "Add Income",
-                            color = Color.White,
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold
-                        )
+                        Text("Add Income", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
                     }
                     Spacer(modifier = Modifier.height(24.dp))
                     Text("How much did you earn?", color = Color.White.copy(alpha = 0.7f))
                     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 8.dp)) {
-                        Text(
-                            selectedCurrency,
-                            color = Color.White,
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.Bold
-                        )
+                        Text(selectedCurrency, color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold)
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = if (amount.isEmpty()) "0" else amount,
@@ -185,7 +193,11 @@ fun IncomeScreen(
                             .fillMaxWidth(0.85f)
                             .background(cs.surface)
                     ) {
-                        val sources = listOf("Salary", "Freelance", "Social Media", "Google AdSense", "Investments", "E-commerce", "Affiliate", "Crypto", "Digital Products", "Tutoring", "Other")
+                        val sources = listOf(
+                            "Salary", "Freelance", "Social Media", "Google AdSense",
+                            "Investments", "E-commerce", "Affiliate", "Crypto",
+                            "Digital Products", "Tutoring", "Other"
+                        )
                         sources.forEach { title ->
                             DropdownMenuItem(
                                 text = { Text(title, color = cs.onSurface) },
@@ -268,7 +280,12 @@ fun IncomeScreen(
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text("Estimated Total (LKR)", fontSize = 13.sp, color = Color.Gray, fontWeight = FontWeight.Medium)
                             Spacer(modifier = Modifier.height(4.dp))
-                            Text("Rs. ${String.format(Locale.US, "%,.2f", totalLkrEstimate)}", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color(0xFF388E3C))
+                            Text(
+                                "Rs. ${String.format(Locale.US, "%,.2f", totalLkrEstimate)}",
+                                fontSize = 24.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF388E3C)
+                            )
                         }
                     }
                 }
@@ -302,7 +319,6 @@ fun IncomeScreen(
                     onClick = {
                         val cal = Calendar.getInstance()
                         val themedContext = ContextThemeWrapper(context, android.R.style.Theme_DeviceDefault_Dialog_Alert)
-
                         DatePickerDialog(
                             themedContext,
                             { _, y, m, d ->
@@ -331,8 +347,12 @@ fun IncomeScreen(
 }
 
 @Composable
-fun DetailDropdown(label: String, selected: String, icon: androidx.compose.ui.graphics.vector.ImageVector, onClick: () -> Unit) {
-    val cs = MaterialTheme.colorScheme
+fun DetailDropdown(
+    label: String,
+    selected: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    onClick: () -> Unit
+) {
     Column(modifier = Modifier.fillMaxWidth().clickable { onClick() }) {
         Text(text = label, fontSize = 12.sp, color = cs.onSurfaceVariant, modifier = Modifier.padding(start = 4.dp, bottom = 4.dp))
         Row(
@@ -357,7 +377,7 @@ fun DetailDropdown(label: String, selected: String, icon: androidx.compose.ui.gr
     }
 }
 
-fun getCurrencyName(code: String): String = when(code) {
+fun getCurrencyName(code: String): String = when (code) {
     "LKR" -> "Sri Lankan Rupee"
     "USD" -> "US Dollar"
     "EUR" -> "Euro"

@@ -1,5 +1,6 @@
 package com.example.northstar.ui.expense
 
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -15,17 +16,29 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.northstar.ui.notifications.NotificationViewModel
 import com.example.northstar.ui.theme.*
 
-data class CategoryOption(val value: String, val label: String, val icon: ImageVector)
-data class OptionItem(val value: String, val label: String, val icon: ImageVector)
+data class CategoryOption(
+    val value: String,
+    val label: String,
+    val icon: ImageVector
+)
+
+data class OptionItem(
+    val value: String,
+    val label: String,
+    val icon: ImageVector
+)
 
 val expenseCategories = listOf(
     CategoryOption("RENT", "Rent", Icons.Default.Home),
@@ -61,6 +74,12 @@ fun ExpenseScreen(
     val cs = MaterialTheme.colorScheme
     val uiState by viewModel.uiState.collectAsState()
 
+    val context = LocalContext.current
+
+    val notificationViewModel: NotificationViewModel = viewModel(
+        viewModelStoreOwner = context as ComponentActivity
+    )
+
     var amount by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf("") }
     var selectedExpenseType by remember { mutableStateOf("") }
@@ -71,17 +90,78 @@ fun ExpenseScreen(
     var expenseTypeExpanded by remember { mutableStateOf(false) }
     var paymentMethodExpanded by remember { mutableStateOf(false) }
 
+    // UPDATED NOTIFICATION LOGIC
     LaunchedEffect(uiState.isSaved) {
+
         if (uiState.isSaved) {
+
+            val amountDouble = uiState.savedAmount / 100.0
+
+            // TODO:
+            // Replace with actual income from DashboardViewModel
+            val totalIncomeLkr = 0L
+
+            // Expense Logged Notification
+            val percent = if (totalIncomeLkr > 0) {
+                ((uiState.savedAmount * 100L) / totalIncomeLkr).toInt()
+            } else {
+                0
+            }
+
+            notificationViewModel.notifyExpenseLogged(
+                amountDouble,
+                percent
+            )
+
+            // Large Expense Notification
+            if (uiState.isLargeExpense) {
+
+                notificationViewModel.notifyLargeExpense(
+                    amountDouble,
+                    uiState.savedCategory
+                )
+            }
+
+            // Budget Warnings
+            if (totalIncomeLkr > 0) {
+
+                val totalExpenses = uiState.totalExpensesLkr
+
+                val budgetPercent =
+                    ((totalExpenses * 100L) / totalIncomeLkr).toInt()
+
+                when {
+
+                    budgetPercent >= 90 -> {
+
+                        notificationViewModel.notifyBudgetCritical(
+                            budgetPercent
+                        )
+                    }
+
+                    budgetPercent >= 70 -> {
+
+                        notificationViewModel.notifyBudgetWarning(
+                            budgetPercent
+                        )
+                    }
+                }
+            }
+
             viewModel.resetSavedState()
+
             navController.popBackStack()
         }
     }
 
     Scaffold(
+
         topBar = {
+
             TopAppBar(
+
                 title = {
+
                     Text(
                         text = "Add Expense",
                         color = Color.White,
@@ -91,7 +171,9 @@ fun ExpenseScreen(
                         modifier = Modifier.padding(start = 12.dp)
                     )
                 },
+
                 navigationIcon = {
+
                     Box(
                         modifier = Modifier
                             .padding(start = 8.dp)
@@ -102,10 +184,14 @@ fun ExpenseScreen(
                             ),
                         contentAlignment = Alignment.Center
                     ) {
+
                         IconButton(
-                            onClick = { navController.popBackStack() },
+                            onClick = {
+                                navController.popBackStack()
+                            },
                             modifier = Modifier.size(36.dp)
                         ) {
+
                             Icon(
                                 Icons.Default.ArrowBack,
                                 contentDescription = "Back",
@@ -115,6 +201,7 @@ fun ExpenseScreen(
                         }
                     }
                 },
+
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = GreenDeep
                 )
@@ -122,13 +209,15 @@ fun ExpenseScreen(
         },
         containerColor = cs.background
     ) { paddingValues ->
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
         ) {
-            // Amount Header
+
+            // HEADER
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -136,7 +225,7 @@ fun ExpenseScreen(
                     .padding(horizontal = 24.dp, vertical = 28.dp),
                 contentAlignment = Alignment.Center
             ) {
-                // Decorative circles
+
                 Box(
                     modifier = Modifier
                         .size(140.dp)
@@ -148,7 +237,10 @@ fun ExpenseScreen(
                         )
                 )
 
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+
                     Text(
                         text = "HOW MUCH DID YOU SPEND?",
                         color = Color.White.copy(alpha = 0.55f),
@@ -156,18 +248,25 @@ fun ExpenseScreen(
                         fontWeight = FontWeight.SemiBold,
                         letterSpacing = 1.sp
                     )
+
                     Spacer(modifier = Modifier.height(14.dp))
+
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center
                     ) {
+
                         Text(
                             text = "LKR",
                             color = Color.White.copy(alpha = 0.6f),
                             fontSize = 18.sp,
                             fontWeight = FontWeight.SemiBold,
-                            modifier = Modifier.padding(end = 8.dp, top = 10.dp)
+                            modifier = Modifier.padding(
+                                end = 8.dp,
+                                top = 10.dp
+                            )
                         )
+
                         Text(
                             text = if (amount.isEmpty()) "0.00" else amount,
                             color = Color.White,
@@ -176,11 +275,16 @@ fun ExpenseScreen(
                             letterSpacing = (-1).sp
                         )
                     }
+
                     Spacer(modifier = Modifier.height(18.dp))
+
                     OutlinedTextField(
                         value = amount,
-                        onValueChange = { amount = it },
+                        onValueChange = {
+                            amount = it
+                        },
                         placeholder = {
+
                             Text(
                                 "Enter amount",
                                 color = Color.White.copy(alpha = 0.4f),
@@ -214,7 +318,7 @@ fun ExpenseScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Details Card
+            // DETAILS CARD
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -228,6 +332,7 @@ fun ExpenseScreen(
                 elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
                 shape = RoundedCornerShape(20.dp)
             ) {
+
                 Column(
                     modifier = Modifier.padding(20.dp),
                     verticalArrangement = Arrangement.spacedBy(20.dp)
@@ -253,7 +358,13 @@ fun ExpenseScreen(
                         )
                     }
 
-                    // Category dropdown
+                    Text(
+                        text = "Expense Details",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp,
+                        color = TextPrimary
+                    )
+
                     DropdownField(
                         label = "Category",
                         value = expenseCategories.find {
@@ -264,21 +375,28 @@ fun ExpenseScreen(
                             it.value == selectedCategory
                         }?.icon ?: Icons.Default.List,
                         expanded = categoryExpanded,
-                        onExpandedChange = { categoryExpanded = it }
+                        onExpandedChange = {
+                            categoryExpanded = it
+                        }
                     ) {
+
                         expenseCategories.forEach { category ->
+
                             DropdownMenuItem(
                                 text = {
+
                                     Row(
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                                     ) {
+
                                         Icon(
                                             category.icon,
                                             contentDescription = null,
                                             tint = cs.primary,
                                             modifier = Modifier.size(18.dp)
                                         )
+
                                         Text(
                                             category.label,
                                             fontSize = 14.sp,
@@ -308,15 +426,21 @@ fun ExpenseScreen(
                             it.value == selectedExpenseType
                         }?.icon ?: Icons.Default.List,
                         expanded = expenseTypeExpanded,
-                        onExpandedChange = { expenseTypeExpanded = it }
+                        onExpandedChange = {
+                            expenseTypeExpanded = it
+                        }
                     ) {
+
                         expenseTypes.forEach { type ->
+
                             DropdownMenuItem(
                                 text = {
+
                                     Row(
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                                     ) {
+
                                         Icon(
                                             type.icon,
                                             contentDescription = null,
@@ -362,15 +486,21 @@ fun ExpenseScreen(
                             it.value == selectedPaymentMethod
                         }?.icon ?: Icons.Default.Edit,
                         expanded = paymentMethodExpanded,
-                        onExpandedChange = { paymentMethodExpanded = it }
+                        onExpandedChange = {
+                            paymentMethodExpanded = it
+                        }
                     ) {
+
                         paymentMethods.forEach { method ->
+
                             DropdownMenuItem(
                                 text = {
+
                                     Row(
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                                     ) {
+
                                         Icon(
                                             method.icon,
                                             contentDescription = null,
@@ -397,6 +527,7 @@ fun ExpenseScreen(
 
                     // Description field
                     Column {
+
                         Text(
                             text = "Description",
                             fontSize = 12.sp,
@@ -405,9 +536,12 @@ fun ExpenseScreen(
                             letterSpacing = 0.3.sp,
                             modifier = Modifier.padding(bottom = 8.dp)
                         )
+
                         OutlinedTextField(
                             value = description,
-                            onValueChange = { description = it },
+                            onValueChange = {
+                                description = it
+                            },
                             placeholder = {
                                 Text(
                                     "Add a note (optional)",
@@ -436,8 +570,8 @@ fun ExpenseScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Error message
             if (uiState.error != null) {
+
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -447,22 +581,28 @@ fun ExpenseScreen(
                     ),
                     shape = RoundedCornerShape(12.dp)
                 ) {
+
                     Text(
                         text = uiState.error!!,
                         color = Debit,
-                        modifier = Modifier.padding(16.dp),
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Medium
+                        modifier = Modifier.padding(16.dp)
                     )
                 }
+
                 Spacer(modifier = Modifier.height(8.dp))
             }
 
-            // Save Button
             Button(
+
                 onClick = {
-                    val amountLong = (amount.toDoubleOrNull() ?: 0.0).times(100).toLong()
+
+                    val amountLong =
+                        (amount.toDoubleOrNull() ?: 0.0)
+                            .times(100)
+                            .toLong()
+
                     if (amountLong > 0) {
+
                         viewModel.addExpense(
                             amount = amountLong,
                             category = selectedCategory,
@@ -473,45 +613,53 @@ fun ExpenseScreen(
                         )
                     }
                 },
+
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
                     .height(54.dp),
-                enabled = !uiState.isLoading &&
-                        amount.isNotEmpty() &&
-                        selectedCategory.isNotEmpty() &&
-                        selectedExpenseType.isNotEmpty() &&
-                        selectedPaymentMethod.isNotEmpty(),
+
+                enabled =
+                    !uiState.isLoading &&
+                            amount.isNotEmpty() &&
+                            selectedCategory.isNotEmpty() &&
+                            selectedExpenseType.isNotEmpty() &&
+                            selectedPaymentMethod.isNotEmpty(),
+
                 colors = ButtonDefaults.buttonColors(
                     containerColor = GreenDeep,
                     disabledContainerColor = GreenDeep.copy(alpha = 0.35f)
                 ),
-                shape = RoundedCornerShape(16.dp),
-                elevation = ButtonDefaults.buttonElevation(defaultElevation = 6.dp)
+
+                shape = RoundedCornerShape(16.dp)
+
             ) {
+
                 if (uiState.isLoading) {
+
                     CircularProgressIndicator(
                         modifier = Modifier.size(22.dp),
                         color = Color.White,
                         strokeWidth = 2.5.dp
                     )
+
                 } else {
+
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
+
                         Icon(
                             Icons.Default.Check,
                             contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(20.dp)
+                            tint = Color.White
                         )
+
                         Text(
                             text = "Save Expense",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
                             color = Color.White,
-                            letterSpacing = (-0.2).sp
+                            fontWeight = FontWeight.Bold
                         )
                     }
                 }
@@ -535,6 +683,7 @@ fun DropdownField(
 ) {
     val cs = MaterialTheme.colorScheme
     Column {
+
         Text(
             text = label,
             fontSize = 12.sp,
@@ -543,14 +692,17 @@ fun DropdownField(
             letterSpacing = 0.3.sp,
             modifier = Modifier.padding(bottom = 8.dp)
         )
+
         ExposedDropdownMenuBox(
             expanded = expanded,
             onExpandedChange = onExpandedChange
         ) {
+
             OutlinedTextField(
                 value = value,
                 onValueChange = {},
                 readOnly = true,
+
                 placeholder = {
                     Text(
                         placeholder,
@@ -558,7 +710,9 @@ fun DropdownField(
                         fontSize = 14.sp
                     )
                 },
+
                 leadingIcon = {
+
                     Icon(
                         leadingIcon,
                         contentDescription = null,
@@ -566,9 +720,13 @@ fun DropdownField(
                         modifier = Modifier.size(20.dp)
                     )
                 },
+
                 trailingIcon = {
-                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                    ExposedDropdownMenuDefaults.TrailingIcon(
+                        expanded = expanded
+                    )
                 },
+
                 modifier = Modifier
                     .fillMaxWidth()
                     .menuAnchor(),
@@ -580,9 +738,12 @@ fun DropdownField(
                     unfocusedBorderColor = cs.outline
                 )
             )
+
             ExposedDropdownMenu(
                 expanded = expanded,
-                onDismissRequest = { onExpandedChange(false) }
+                onDismissRequest = {
+                    onExpandedChange(false)
+                }
             ) {
                 content()
             }

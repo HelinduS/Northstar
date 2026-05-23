@@ -3,6 +3,7 @@ package com.example.northstar.ui.dashboard.components
 import android.app.Activity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -40,7 +41,9 @@ fun HeroSection(
     allTimeIncome: Long = income,
     allTimeExpenses: Long = expenses,
     greetingText: String = "Good morning,",
-    greetingIcon: ImageVector = Icons.Filled.WbSunny
+    greetingIcon: ImageVector = Icons.Filled.WbSunny,
+    unreadNotificationCount: Int = 0,
+    onNotificationClick: () -> Unit = {}
 ) {
     val view = LocalView.current
     if (!view.isInEditMode) {
@@ -90,6 +93,103 @@ fun HeroSection(
                     .border(1.5.dp, GreenAccent.copy(alpha = 0.5f), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
+                // Avatar
+                Box(
+                    modifier = Modifier
+                        .size(38.dp)
+                        .clip(CircleShape)
+                        .background(Navy800)
+                        .border(1.5.dp, White.copy(alpha = 0.08f), CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        displayName
+                            .split(" ")
+                            .filter { it.isNotBlank() }
+                            .take(2)
+                            .joinToString("") { it.first().uppercaseChar().toString() }
+                            .ifBlank { "?" },
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.W700,
+                        color = White,
+                        fontFamily = InterFontFamily
+                    )
+                }
+
+                // Greeting + Name
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(horizontal = 11.dp)
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = greetingIcon,
+                            contentDescription = null,
+                            tint = White.copy(alpha = 0.55f),
+                            modifier = Modifier.size(12.dp)
+                        )
+                        Spacer(Modifier.width(4.dp))
+                        Text(
+                            text = greetingText,
+                            fontSize = 11.sp,
+                            color = White.copy(alpha = 0.38f),
+                            fontFamily = InterFontFamily
+                        )
+                    }
+                    Text(
+                        displayName.ifBlank { "User" },
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.W700,
+                        color = White,
+                        letterSpacing = (-0.3).sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        fontFamily = InterFontFamily
+                    )
+                }
+
+                // ── Bell icon with badge overlapping top-right ──
+                Box(modifier = Modifier.size(36.dp)) {
+                    // Bell button
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .background(White.copy(alpha = 0.06f))
+                            .border(1.dp, White.copy(alpha = 0.08f), CircleShape)
+                            .clickable { onNotificationClick() },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            Icons.Outlined.Notifications,
+                            contentDescription = "Notifications",
+                            modifier = Modifier.size(18.dp),
+                            tint = White.copy(alpha = 0.7f)
+                        )
+                    }
+
+                    // Red badge overlapping top-right corner
+                    if (unreadNotificationCount > 0) {
+                        Box(
+                            modifier = Modifier
+                                .size(if (unreadNotificationCount > 9) 16.dp else 12.dp)
+                                .clip(CircleShape)
+                                .background(Color(0xFFEF4444))
+                                .border(1.5.dp, Navy900, CircleShape)
+                                .align(Alignment.TopEnd),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (unreadNotificationCount > 9) {
+                                Text(
+                                    "9+",
+                                    color = Color.White,
+                                    fontSize = 6.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
                 Text(
                     initials,
                     fontSize = 14.sp,
