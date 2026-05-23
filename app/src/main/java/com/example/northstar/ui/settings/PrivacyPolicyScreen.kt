@@ -23,6 +23,7 @@ import com.example.northstar.ui.theme.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PrivacyPolicyScreen(navController: NavController) {
+    val cs = MaterialTheme.colorScheme
     Scaffold(
         topBar = {
             TopAppBar(
@@ -59,11 +60,11 @@ fun PrivacyPolicyScreen(navController: NavController) {
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Navy900
+                    containerColor = GreenDeep
                 )
             )
         },
-        containerColor = Surface
+        containerColor = cs.background
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -73,11 +74,10 @@ fun PrivacyPolicyScreen(navController: NavController) {
                 .padding(horizontal = 16.dp, vertical = 20.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            // Last updated
             Text(
                 text = "Last updated: May 2026",
                 fontSize = 12.sp,
-                color = TextMuted,
+                color = cs.onSurfaceVariant,
                 fontFamily = InterFontFamily
             )
 
@@ -126,7 +126,7 @@ fun PrivacyPolicyScreen(navController: NavController) {
             Text(
                 text = "NorthStar · Personal Finance Management",
                 fontSize = 11.sp,
-                color = TextHint,
+                color = cs.onSurfaceVariant,
                 fontFamily = InterFontFamily,
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center
@@ -137,9 +137,10 @@ fun PrivacyPolicyScreen(navController: NavController) {
 
 @Composable
 private fun PolicySection(title: String, content: String) {
+    val cs = MaterialTheme.colorScheme
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = White),
+        colors = CardDefaults.cardColors(containerColor = cs.surface),
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
@@ -151,13 +152,13 @@ private fun PolicySection(title: String, content: String) {
                 text = title,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
-                color = Navy900,
+                color = cs.onSurface,
                 fontFamily = InterFontFamily
             )
             Text(
                 text = content,
                 fontSize = 13.sp,
-                color = TextSecondary,
+                color = cs.onSurfaceVariant,
                 fontFamily = InterFontFamily,
                 lineHeight = 20.sp
             )

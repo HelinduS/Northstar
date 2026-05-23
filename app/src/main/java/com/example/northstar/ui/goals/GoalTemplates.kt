@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -75,12 +76,13 @@ fun GoalTemplateCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val cs = MaterialTheme.colorScheme
     Box(
         modifier = modifier
             .width(90.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(White)
-            .border(1.dp, Border, RoundedCornerShape(16.dp))
+            .background(cs.surface)
+            .border(1.dp, cs.outline, RoundedCornerShape(16.dp))
             .clickable { onClick() }
             .padding(12.dp)
     ) {
@@ -104,7 +106,7 @@ fun GoalTemplateCard(
                 template.label,
                 fontSize = 11.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = TextPrimary,
+                color = cs.onSurface,
                 textAlign = TextAlign.Center,
                 lineHeight = 14.sp,
                 fontFamily = InterFontFamily
@@ -113,7 +115,7 @@ fun GoalTemplateCard(
             Text(
                 template.sub,
                 fontSize = 10.sp,
-                color = TextMuted,
+                color = cs.onSurfaceVariant,
                 textAlign = TextAlign.Center,
                 fontFamily = InterFontFamily
             )

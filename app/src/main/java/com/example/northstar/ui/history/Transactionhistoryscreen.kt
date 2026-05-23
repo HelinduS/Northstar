@@ -50,6 +50,7 @@ fun TransactionHistoryScreen(
     navController: NavController,
     viewModel: DashboardViewModel = hiltViewModel()
 ) {
+    val cs = MaterialTheme.colorScheme
     val uiState by viewModel.uiState.collectAsState()
     var selectedFilter by remember { mutableStateOf(HistoryFilter.ALL) }
     val filteredTransactions = remember(uiState.recentTransactions, selectedFilter) {
@@ -85,21 +86,21 @@ fun TransactionHistoryScreen(
     showDeleteDialog?.let { transaction ->
         AlertDialog(
             onDismissRequest = { showDeleteDialog = null },
-            containerColor = White,
+            containerColor = cs.surface,
             shape = RoundedCornerShape(24.dp),
             title = {
                 Text(
                     "Delete Transaction",
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp,
-                    color = TextPrimary
+                    color = cs.onSurface
                 )
             },
             text = {
                 Text(
                     "Are you sure you want to delete this transaction? This cannot be undone.",
                     fontSize = 14.sp,
-                    color = TextSecondary,
+                    color = cs.onSurfaceVariant,
                     lineHeight = 20.sp
                 )
             },
@@ -125,7 +126,7 @@ fun TransactionHistoryScreen(
                 OutlinedButton(
                     onClick = { showDeleteDialog = null },
                     shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = TextPrimary)
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = cs.onSurface)
                 ) {
                     Text("Cancel")
                 }
@@ -169,11 +170,11 @@ fun TransactionHistoryScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Navy900
+                    containerColor = GreenDeep
                 )
             )
         },
-        containerColor = Surface
+        containerColor = cs.background
     ) { paddingValues ->
 
         if (uiState.isLoading) {
@@ -185,14 +186,14 @@ fun TransactionHistoryScreen(
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     CircularProgressIndicator(
-                        color = Navy900,
+                        color = cs.primary,
                         strokeWidth = 3.dp,
                         modifier = Modifier.size(40.dp)
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
                         text = "Loading transactions...",
-                        color = TextMuted,
+                        color = cs.onSurfaceVariant,
                         fontSize = 13.sp
                     )
                 }
@@ -215,8 +216,8 @@ fun TransactionHistoryScreen(
                             .background(
                                 brush = Brush.radialGradient(
                                     colors = listOf(
-                                        Navy900.copy(alpha = 0.12f),
-                                        Navy900.copy(alpha = 0.04f)
+                                        cs.primary.copy(alpha = 0.12f),
+                                        cs.primary.copy(alpha = 0.04f)
                                     )
                                 )
                             ),
@@ -229,14 +230,14 @@ fun TransactionHistoryScreen(
                         text = "No transactions yet",
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp,
-                        color = TextPrimary,
+                        color = cs.onSurface,
                         letterSpacing = (-0.3).sp
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = "Start adding income and expenses\nto see them here",
                         fontSize = 14.sp,
-                        color = TextSecondary,
+                        color = cs.onSurfaceVariant,
                         textAlign = TextAlign.Center,
                         lineHeight = 20.sp
                     )
@@ -260,7 +261,7 @@ fun TransactionHistoryScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Navy900)
+                    .background(GreenDeep)
             ) {
                 // Decorative circles for depth
                 Box(
@@ -473,24 +474,22 @@ fun TransactionHistoryScreen(
                     text = sectionTitle,
                     fontWeight = FontWeight.Bold,
                     fontSize = 15.sp,
-                    color = TextPrimary,
+                    color = cs.onSurface,
                     letterSpacing = (-0.2).sp
                 )
                 Surface(
                     shape = RoundedCornerShape(20.dp),
-                    color = Navy900.copy(alpha = 0.08f)
+                    color = cs.primary.copy(alpha = 0.08f)
                 ) {
                     Text(
                         text = "${filteredTransactions.size} records",
                         fontSize = 11.sp,
-                        color = Navy900,
+                        color = cs.primary,
                         fontWeight = FontWeight.SemiBold,
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
                     )
                 }
             }
-
-            // duplicate filter UI removed — the interactive tabs are rendered above the section header
 
             // ── Transaction list ──────────────────────────────────────────
             LazyColumn(
@@ -523,6 +522,7 @@ fun TransactionHistoryItem(
     onViewClick: () -> Unit,
     onDeleteClick: () -> Unit
 ) {
+    val cs = MaterialTheme.colorScheme
     val amountText = "${if (transaction.isIncome) "+" else "-"} LKR ${
         String.format(Locale.US, "%,.2f", transaction.amount / 100.0)
     }"
@@ -541,9 +541,9 @@ fun TransactionHistoryItem(
             .shadow(
                 elevation = 6.dp,
                 shape = RoundedCornerShape(18.dp),
-                spotColor = Navy900.copy(alpha = 0.08f)
+                spotColor = cs.primary.copy(alpha = 0.08f)
             ),
-        colors = CardDefaults.cardColors(containerColor = White),
+        colors = CardDefaults.cardColors(containerColor = cs.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         shape = RoundedCornerShape(18.dp)
     ) {
@@ -605,7 +605,7 @@ fun TransactionHistoryItem(
                             text = transaction.title,
                             fontWeight = FontWeight.Bold,
                             fontSize = 15.sp,
-                            color = TextPrimary,
+                            color = cs.onSurface,
                             letterSpacing = (-0.2).sp
                         )
                         Spacer(modifier = Modifier.height(3.dp))
@@ -617,19 +617,19 @@ fun TransactionHistoryItem(
                             Text(
                                 text = formattedDate,
                                 fontSize = 11.sp,
-                                color = TextMuted,
+                                color = cs.onSurfaceVariant,
                                 fontWeight = FontWeight.Medium
                             )
                             if (formattedTime.isNotEmpty()) {
                                 Text(
                                     text = "·",
                                     fontSize = 11.sp,
-                                    color = TextHint
+                                    color = cs.onSurfaceVariant
                                 )
                                 Text(
                                     text = formattedTime,
                                     fontSize = 11.sp,
-                                    color = TextMuted,
+                                    color = cs.onSurfaceVariant,
                                     fontWeight = FontWeight.Medium
                                 )
                             }
@@ -679,12 +679,12 @@ fun TransactionHistoryItem(
                 if (!transaction.isIncome && transaction.expenseType.isNotEmpty()) {
                     Surface(
                         shape = RoundedCornerShape(6.dp),
-                        color = Navy900.copy(alpha = 0.08f)
+                        color = cs.primary.copy(alpha = 0.08f)
                     ) {
                         Text(
                             text = transaction.expenseType,
                             fontSize = 10.sp,
-                            color = Navy900,
+                            color = cs.primary,
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 0.2.sp
@@ -696,12 +696,12 @@ fun TransactionHistoryItem(
                 if (!transaction.isIncome && transaction.paymentMethod.isNotEmpty()) {
                     Surface(
                         shape = RoundedCornerShape(6.dp),
-                        color = ChipBg
+                        color = cs.surfaceVariant
                     ) {
                         Text(
                             text = transaction.paymentMethod,
                             fontSize = 10.sp,
-                            color = TextSecondary,
+                            color = cs.onSurfaceVariant,
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
                             fontWeight = FontWeight.SemiBold,
                             letterSpacing = 0.2.sp
@@ -712,7 +712,7 @@ fun TransactionHistoryItem(
 
             // Divider
             HorizontalDivider(
-                color = ListDivider,
+                color = cs.outlineVariant,
                 thickness = 1.dp,
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
@@ -727,7 +727,7 @@ fun TransactionHistoryItem(
             ) {
                 TextButton(
                     onClick = onViewClick,
-                    colors = ButtonDefaults.textButtonColors(contentColor = Navy900),
+                    colors = ButtonDefaults.textButtonColors(contentColor = cs.primary),
                     shape = RoundedCornerShape(10.dp)
                 ) {
                     Icon(
@@ -775,6 +775,7 @@ fun TransactionDetailDialog(
     onDismiss: () -> Unit,
     onDelete: () -> Unit
 ) {
+    val cs = MaterialTheme.colorScheme
     val dateFormat = remember { SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault()) }
     val formattedDate = if (transaction.date > 0)
         dateFormat.format(Date(transaction.date))
@@ -785,7 +786,7 @@ fun TransactionDetailDialog(
     Dialog(onDismissRequest = onDismiss) {
         Card(
             shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = White),
+            colors = CardDefaults.cardColors(containerColor = cs.surface),
             elevation = CardDefaults.cardElevation(defaultElevation = 12.dp)
         ) {
             Column(modifier = Modifier.fillMaxWidth()) {
@@ -795,7 +796,7 @@ fun TransactionDetailDialog(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(
-                            color = Navy900,
+                            color = GreenDeep,
                             shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
                         )
                         .padding(24.dp),
@@ -948,7 +949,7 @@ fun TransactionDetailDialog(
                                 .height(48.dp),
                             shape = RoundedCornerShape(14.dp),
                             colors = ButtonDefaults.outlinedButtonColors(
-                                contentColor = TextPrimary
+                                contentColor = cs.onSurface
                             )
                         ) {
                             Text("Close", fontWeight = FontWeight.SemiBold)
@@ -987,8 +988,9 @@ fun TransactionDetailDialog(
 
 @Composable
 fun DetailDivider() {
+    val cs = MaterialTheme.colorScheme
     HorizontalDivider(
-        color = Separator,
+        color = cs.outlineVariant,
         thickness = 0.8.dp,
         modifier = Modifier.padding(vertical = 10.dp)
     )
@@ -996,6 +998,7 @@ fun DetailDivider() {
 
 @Composable
 fun DetailRow(label: String, value: String) {
+    val cs = MaterialTheme.colorScheme
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -1004,14 +1007,14 @@ fun DetailRow(label: String, value: String) {
         Text(
             text = label,
             fontSize = 13.sp,
-            color = TextSecondary,
+            color = cs.onSurfaceVariant,
             fontWeight = FontWeight.Medium,
             modifier = Modifier.weight(0.4f)
         )
         Text(
             text = value,
             fontSize = 13.sp,
-            color = TextPrimary,
+            color = cs.onSurface,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.weight(0.6f),
             textAlign = TextAlign.End,

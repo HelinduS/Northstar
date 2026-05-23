@@ -27,6 +27,7 @@ import java.util.*
 
 @Composable
 fun GoalCard(goal: Goal, viewModel: GoalViewModel) {
+    val cs = MaterialTheme.colorScheme
     val rawProgress = remember(goal.savedAmount, goal.targetAmount) {
         if (goal.targetAmount > 0L) (goal.savedAmount.toFloat() / goal.targetAmount.toFloat()).coerceIn(0f, 1f) else 0f
     }
@@ -59,8 +60,8 @@ fun GoalCard(goal: Goal, viewModel: GoalViewModel) {
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
-            .background(White)
-            .border(1.dp, Border, RoundedCornerShape(20.dp))
+            .background(cs.surface)
+            .border(1.dp, cs.outline, RoundedCornerShape(20.dp))
             .padding(20.dp)
     ) {
         Column {
@@ -68,7 +69,7 @@ fun GoalCard(goal: Goal, viewModel: GoalViewModel) {
             // Name + Reached badge
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Top) {
                 Text(text = goal.name.replaceFirstChar { it.uppercase() }, fontSize = 17.sp,
-                    fontWeight = FontWeight.SemiBold, color = TextPrimary, modifier = Modifier.weight(1f),
+                    fontWeight = FontWeight.SemiBold, color = cs.onSurface, modifier = Modifier.weight(1f),
                     fontFamily = InterFontFamily, letterSpacing = (-0.2).sp)
                 if (isReached) {
                     Box(
@@ -85,26 +86,26 @@ fun GoalCard(goal: Goal, viewModel: GoalViewModel) {
 
             // Date
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(imageVector = Icons.Outlined.CalendarMonth, contentDescription = null, tint = TextMuted, modifier = Modifier.size(13.dp))
+                Icon(imageVector = Icons.Outlined.CalendarMonth, contentDescription = null, tint = cs.onSurfaceVariant, modifier = Modifier.size(13.dp))
                 Spacer(modifier = Modifier.width(4.dp))
-                Text(text = date, fontSize = 12.sp, color = TextMuted, fontFamily = InterFontFamily)
+                Text(text = date, fontSize = 12.sp, color = cs.onSurfaceVariant, fontFamily = InterFontFamily)
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
             // Amount hero
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Bottom) {
-                Text(text = "LKR ${currencyFormat.format(goal.savedAmount / 100)}", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = TextPrimary, fontFamily = InterFontFamily)
-                Text(text = "of LKR ${currencyFormat.format(goal.targetAmount / 100)}", fontSize = 13.sp, color = TextMuted, fontFamily = InterFontFamily)
+                Text(text = "LKR ${currencyFormat.format(goal.savedAmount / 100)}", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = cs.onSurface, fontFamily = InterFontFamily)
+                Text(text = "of LKR ${currencyFormat.format(goal.targetAmount / 100)}", fontSize = 13.sp, color = cs.onSurfaceVariant, fontFamily = InterFontFamily)
             }
 
             Spacer(modifier = Modifier.height(12.dp))
 
             // Progress bar
-            Box(modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(100.dp)).background(Color(0xFFE5E7EB))) {
+            Box(modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(100.dp)).background(cs.outlineVariant)) {
                 Box(
                     modifier = Modifier.fillMaxWidth(animatedProgress).height(8.dp).clip(RoundedCornerShape(100.dp))
-                        .background(Brush.horizontalGradient(colors = listOf(Navy900, PrimaryBlue)))
+                        .background(Brush.horizontalGradient(colors = listOf(GreenDeep, GreenAccent)))
                 )
             }
 
@@ -112,14 +113,14 @@ fun GoalCard(goal: Goal, viewModel: GoalViewModel) {
 
             // Micro labels
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("$percentComplete% complete", fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = PrimaryBlue, fontFamily = InterFontFamily)
+                Text("$percentComplete% complete", fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = GreenAccent, fontFamily = InterFontFamily)
                 daysRemaining?.let {
-                    Text(if (isReached) "Goal achieved!" else "$it days to go", fontSize = 11.sp, color = TextMuted, fontFamily = InterFontFamily)
+                    Text(if (isReached) "Goal achieved!" else "$it days to go", fontSize = 11.sp, color = cs.onSurfaceVariant, fontFamily = InterFontFamily)
                 }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-            Box(modifier = Modifier.fillMaxWidth().height(0.5.dp).background(Separator))
+            Box(modifier = Modifier.fillMaxWidth().height(0.5.dp).background(cs.outlineVariant))
             Spacer(modifier = Modifier.height(14.dp))
 
             // Action row
@@ -128,7 +129,7 @@ fun GoalCard(goal: Goal, viewModel: GoalViewModel) {
                     onClick = { if (isReached) showReachedDialog = true else showContributeDialog = true },
                     modifier = Modifier.weight(1f).height(40.dp),
                     shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Navy900, contentColor = White),
+                    colors = ButtonDefaults.buttonColors(containerColor = GreenDeep, contentColor = White),
                     contentPadding = PaddingValues(0.dp)
                 ) {
                     Text("Add funds", fontSize = 13.sp, fontWeight = FontWeight.Medium, fontFamily = InterFontFamily)
@@ -160,7 +161,7 @@ fun GoalCard(goal: Goal, viewModel: GoalViewModel) {
             onDismissRequest = { showDeleteDialog = false },
             shape = RoundedCornerShape(20.dp),
             title = { Text("Delete Goal", fontWeight = FontWeight.SemiBold, fontFamily = InterFontFamily) },
-            text  = { Text("Are you sure you want to delete \"${goal.name}\"?", color = TextMuted, fontFamily = InterFontFamily) },
+            text  = { Text("Are you sure you want to delete \"${goal.name}\"?", color = MaterialTheme.colorScheme.onSurfaceVariant, fontFamily = InterFontFamily) },
             confirmButton = {
                 Button(onClick = { viewModel.deleteGoal(goal.id); showDeleteDialog = false },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFDC2626)),
@@ -181,10 +182,10 @@ fun GoalCard(goal: Goal, viewModel: GoalViewModel) {
                     tint = Color(0xFF16A34A), modifier = Modifier.size(36.dp))
             },
             title = { Text("Goal Reached!", fontWeight = FontWeight.SemiBold, fontFamily = InterFontFamily) },
-            text  = { Text("You've already completed \"${goal.name}\"! No more savings needed.", color = TextMuted, fontFamily = InterFontFamily) },
+            text  = { Text("You've already completed \"${goal.name}\"! No more savings needed.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontFamily = InterFontFamily) },
             confirmButton = {
                 Button(onClick = { showReachedDialog = false },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0D1117)),
+                    colors = ButtonDefaults.buttonColors(containerColor = GreenDeep),
                     shape = RoundedCornerShape(10.dp)) { Text("Great!", fontFamily = InterFontFamily) }
             }
         )

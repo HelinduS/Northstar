@@ -22,6 +22,7 @@ import com.example.northstar.ui.theme.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AnalyticsScreen(navController: NavController, viewModel: AnalyticsViewModel = hiltViewModel()) {
+    val cs = MaterialTheme.colorScheme
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     // Date range picker state management
@@ -42,21 +43,21 @@ fun AnalyticsScreen(navController: NavController, viewModel: AnalyticsViewModel 
                         showDatePicker = false
                         tempStart = null
                     }
-                }) { Text(if (tempStart == null) "Next" else "Apply", color = Navy900, fontWeight = FontWeight.Bold) }
+                }) { Text(if (tempStart == null) "Next" else "Apply", color = cs.primary, fontWeight = FontWeight.Bold) }
             }
         ) {
             DatePicker(
                 state = datePickerState,
                 title = { Text(if (tempStart == null) "Select Start Date" else "Select End Date", modifier = Modifier.padding(16.dp)) },
                 showModeToggle = false,
-                colors = DatePickerDefaults.colors(selectedDayContainerColor = Navy900)
+                colors = DatePickerDefaults.colors(selectedDayContainerColor = GreenDeep)
             )
         }
     }
 
     Scaffold(
         topBar = { CenterAlignedTopAppBar(title = { Text("Analytics", fontWeight = FontWeight.Bold) }) },
-        containerColor = Surface
+        containerColor = cs.background
     ) { padding ->
         LazyColumn(modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp)) {
 
@@ -76,7 +77,7 @@ fun AnalyticsScreen(navController: NavController, viewModel: AnalyticsViewModel 
             }
 
             if (uiState.isLoading) {
-                item { Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = Navy900) } }
+                item { Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = cs.primary) } }
             } else if (uiState.breakdownList.isEmpty()) {
                 item { Box(Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) { Text("No data found") } }
             } else {
@@ -110,7 +111,7 @@ fun AnalyticsScreen(navController: NavController, viewModel: AnalyticsViewModel 
                         )
                     }
                     Spacer(modifier = Modifier.height(32.dp))
-                    Text("Breakdown", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Navy900)
+                    Text("Breakdown", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = cs.onSurface)
                     Spacer(modifier = Modifier.height(12.dp))
                 }
                 items(uiState.breakdownList) { item ->
@@ -125,6 +126,7 @@ fun AnalyticsScreen(navController: NavController, viewModel: AnalyticsViewModel 
 
 @Composable
 fun AnalyticsBreakdown(item: CategoryBreakdown) {
+    val cs = MaterialTheme.colorScheme
     val percentageLabel = String.format("%.1f", item.percentage * 100)
 
     Column(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
@@ -132,17 +134,17 @@ fun AnalyticsBreakdown(item: CategoryBreakdown) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Surface(modifier = Modifier.size(10.dp), shape = CircleShape, color = item.color) {}
                 Spacer(modifier = Modifier.width(12.dp))
-                Text(item.categoryName, fontSize = 14.sp, color = TextPrimary, fontWeight = FontWeight.Medium)
+                Text(item.categoryName, fontSize = 14.sp, color = cs.onSurface, fontWeight = FontWeight.Medium)
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = "Rs. ${String.format("%.2f", item.totalAmount / 100.0)}",
                     fontWeight = FontWeight.Bold,
-                    color = Navy900,
+                    color = cs.onSurface,
                     fontSize = 14.sp
                 )
                 Spacer(modifier = Modifier.width(6.dp))
-                Text(text = "($percentageLabel%)", fontSize = 12.sp, color = TextSecondary)
+                Text(text = "($percentageLabel%)", fontSize = 12.sp, color = cs.onSurfaceVariant)
             }
         }
         Spacer(modifier = Modifier.height(8.dp))

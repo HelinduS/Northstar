@@ -100,14 +100,15 @@ fun LoginScreen(
             )
         }
 
-        // ── White bottom sheet ──
+        // ── Bottom sheet ──
+        val cs = MaterialTheme.colorScheme
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight(0.62f)
                 .align(Alignment.BottomCenter)
                 .clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
-                .background(Surface)
+                .background(cs.surface)
         ) {
             Column(
                 modifier = Modifier
@@ -132,7 +133,7 @@ fun LoginScreen(
                             Icons.Outlined.Email,
                             contentDescription = null,
                             modifier = Modifier.size(18.dp),
-                            tint = if (emailError.value) Debit else TextMuted
+                            tint = if (emailError.value) Debit else cs.onSurfaceVariant
                         )
                     },
                     keyboardOptions = KeyboardOptions(
@@ -158,7 +159,7 @@ fun LoginScreen(
                             Icons.Outlined.Lock,
                             contentDescription = null,
                             modifier = Modifier.size(18.dp),
-                            tint = if (passwordError.value) Debit else TextMuted
+                            tint = if (passwordError.value) Debit else cs.onSurfaceVariant
                         )
                     },
                     trailingIcon = {
@@ -168,7 +169,7 @@ fun LoginScreen(
                                 else Icons.Outlined.Visibility,
                                 contentDescription = null,
                                 modifier = Modifier.size(18.dp),
-                                tint = TextMuted
+                                tint = cs.onSurfaceVariant
                             )
                         }
                     },
@@ -194,7 +195,7 @@ fun LoginScreen(
                             "Forgot password?",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.W600,
-                            color = Navy900,
+                            color = cs.primary,
                             fontFamily = InterFontFamily
                         )
                     }
@@ -231,9 +232,9 @@ fun LoginScreen(
                         .clip(RoundedCornerShape(14.dp))
                         .background(
                             if (uiState is AuthUiState.Loading)
-                                Navy900.copy(alpha = 0.5f)
+                                GreenDeep.copy(alpha = 0.5f)
                             else
-                                Navy900
+                                GreenDeep
                         ),
                     contentAlignment = Alignment.Center
                 ) {
@@ -288,7 +289,7 @@ fun LoginScreen(
                         "Don't have an account?",
                         fontSize = 13.sp,
                         fontWeight = FontWeight.W400,
-                        color = TextSecondary,
+                        color = cs.onSurfaceVariant,
                         fontFamily = InterFontFamily
                     )
                     TextButton(onClick = onRegisterClick) {
@@ -296,7 +297,7 @@ fun LoginScreen(
                             "Sign Up",
                             fontSize = 13.sp,
                             fontWeight = FontWeight.W700,
-                            color = Navy900,
+                            color = cs.primary,
                             fontFamily = InterFontFamily
                         )
                     }
@@ -319,6 +320,7 @@ fun NorthStarInputField(
     visualTransformation: VisualTransformation = VisualTransformation.None,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default
 ) {
+    val cs = MaterialTheme.colorScheme
     Column(modifier = Modifier.fillMaxWidth()) {
         OutlinedTextField(
             value = value,
@@ -339,19 +341,19 @@ fun NorthStarInputField(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(14.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Navy900,
-                unfocusedBorderColor = Border,
+                focusedBorderColor = cs.primary,
+                unfocusedBorderColor = cs.outline,
                 errorBorderColor = Debit,
-                focusedLabelColor = Navy900,
-                unfocusedLabelColor = TextMuted,
+                focusedLabelColor = cs.primary,
+                unfocusedLabelColor = cs.onSurfaceVariant,
                 errorLabelColor = Debit,
-                cursorColor = Navy900,
-                focusedTextColor = TextPrimary,
-                unfocusedTextColor = TextPrimary,
-                errorTextColor = TextPrimary,
-                focusedContainerColor = White,
-                unfocusedContainerColor = White,
-                errorContainerColor = White
+                cursorColor = cs.primary,
+                focusedTextColor = cs.onSurface,
+                unfocusedTextColor = cs.onSurface,
+                errorTextColor = cs.onSurface,
+                focusedContainerColor = cs.surface,
+                unfocusedContainerColor = cs.surface,
+                errorContainerColor = cs.surface
             )
         )
         if (isError && errorText.isNotBlank()) {
