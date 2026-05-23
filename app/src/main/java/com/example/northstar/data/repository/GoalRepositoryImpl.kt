@@ -93,6 +93,7 @@ class GoalRepositoryImpl @Inject constructor(
                         targetAmount = doc.getLong("targetAmount") ?: 0L,
                         savedAmount = doc.getLong("savedAmount") ?: 0L,
                         targetDate = doc.getTimestamp("targetDate")?.toDate()?.time ?: 0L,
+                        currency = doc.getString("currency") ?: "LKR",
                         isActive = doc.getBoolean("isActive") ?: true,
                         createdAt = doc.getTimestamp("createdAt")?.toDate()?.time ?: 0L
                     )
@@ -119,6 +120,7 @@ class GoalRepositoryImpl @Inject constructor(
                         targetAmount = doc.getLong("targetAmount") ?: 0L,
                         savedAmount = doc.getLong("savedAmount") ?: 0L,
                         targetDate = doc.getTimestamp("targetDate")?.toDate()?.time ?: 0L,
+                        currency = doc.getString("currency") ?: "LKR",
                         isActive = doc.getBoolean("isActive") ?: true,
                         createdAt = doc.getTimestamp("createdAt")?.toDate()?.time ?: 0L
                     )

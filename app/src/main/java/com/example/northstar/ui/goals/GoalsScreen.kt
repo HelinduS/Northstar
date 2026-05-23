@@ -31,8 +31,6 @@ import com.example.northstar.ui.theme.*
 import java.text.NumberFormat
 import java.util.*
 
-private val Purple = Color(0xFF7048E8)
-
 @Composable
 fun GoalsScreen(
     navController: NavController,
@@ -74,7 +72,7 @@ fun GoalsScreen(
 
     val visibleTemplates = if (showAllTemplates) allGoalTemplates else allGoalTemplates.take(5)
 
-    Box(modifier = Modifier.fillMaxSize().background(Surface)) {
+    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         LazyColumn(modifier = Modifier.fillMaxSize()) {
 
             item {
@@ -94,7 +92,7 @@ fun GoalsScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
-                        .background(White)
+                        .background(MaterialTheme.colorScheme.surface)
                         .padding(top = 8.dp, bottom = 8.dp)
                 ) {
                     Column(modifier = Modifier.fillMaxWidth()) {
@@ -112,7 +110,7 @@ fun GoalsScreen(
                                 "Smart Insights",
                                 fontSize = 17.sp,
                                 fontWeight = FontWeight.SemiBold,
-                                color = TextPrimary,
+                                color = MaterialTheme.colorScheme.onSurface,
                                 fontFamily = InterFontFamily,
                                 letterSpacing = (-0.2).sp
                             )
@@ -134,7 +132,7 @@ fun GoalsScreen(
                                     .padding(32.dp),
                                 contentAlignment = Alignment.Center
                             ) {
-                                CircularProgressIndicator(color = PrimaryBlue)
+                                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                             }
                         } else if (goals.isEmpty()) {
                             GoalsEmptyState(
@@ -155,7 +153,7 @@ fun GoalsScreen(
                                     "My Goals",
                                     fontSize = 17.sp,
                                     fontWeight = FontWeight.SemiBold,
-                                    color = TextPrimary,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                     fontFamily = InterFontFamily,
                                     letterSpacing = (-0.2).sp
                                 )
@@ -168,7 +166,7 @@ fun GoalsScreen(
                                     Text(
                                         "+ Add goal",
                                         fontSize = 13.sp,
-                                        color = PrimaryBlue,
+                                        color = MaterialTheme.colorScheme.primary,
                                         fontWeight = FontWeight.Medium,
                                         fontFamily = InterFontFamily
                                     )
@@ -236,7 +234,7 @@ private fun GoalsHeader(
         modifier = Modifier
             .fillMaxWidth()
             .statusBarsPadding()
-            .background(Navy900)
+            .background(GreenDeep)
     ) {
         Box(
             modifier = Modifier
@@ -282,9 +280,9 @@ private fun GoalsHeader(
                     GoalStatusPill(
                         icon      = Icons.Outlined.TrendingUp,
                         text      = "$onTrackCount of ${goals.size} on track",
-                        bg        = PrimaryBlue.copy(alpha = 0.20f),
-                        border    = PrimaryBlue.copy(alpha = 0.30f),
-                        tint      = PrimaryBlue,
+                        bg        = GreenAccent.copy(alpha = 0.20f),
+                        border    = GreenAccent.copy(alpha = 0.30f),
+                        tint      = GreenAccent,
                         textColor = Color.White.copy(alpha = 0.9f)
                     )
                 }
@@ -375,13 +373,13 @@ private fun GoalsHeader(
                                     modifier = Modifier
                                         .size(30.dp)
                                         .clip(RoundedCornerShape(8.dp))
-                                        .background(PrimaryBlue.copy(alpha = 0.20f)),
+                                        .background(GreenAccent.copy(alpha = 0.20f)),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Icon(
                                         Icons.Outlined.TrendingUp,
                                         contentDescription = null,
-                                        tint = PrimaryBlue,
+                                        tint = GreenAccent,
                                         modifier = Modifier.size(15.dp)
                                     )
                                 }
@@ -406,10 +404,10 @@ private fun GoalsHeader(
                             Box(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(10.dp))
-                                    .background(PrimaryBlue.copy(alpha = 0.20f))
+                                    .background(GreenAccent.copy(alpha = 0.20f))
                                     .border(
                                         0.5.dp,
-                                        PrimaryBlue.copy(alpha = 0.30f),
+                                        GreenAccent.copy(alpha = 0.30f),
                                         RoundedCornerShape(10.dp)
                                     )
                                     .padding(horizontal = 10.dp, vertical = 5.dp)
@@ -418,7 +416,7 @@ private fun GoalsHeader(
                                     "$nearestGoalPct%",
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Medium,
-                                    color = PrimaryBlue,
+                                    color = GreenAccent,
                                     fontFamily = InterFontFamily
                                 )
                             }
@@ -443,10 +441,11 @@ private fun GoalsHeader(
 
 @Composable
 private fun GoalsEmptyState(onCreateClick: () -> Unit) {
+    val cs = MaterialTheme.colorScheme
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(White)
+            .background(cs.surface)
             .padding(16.dp)
     ) {
         Spacer(modifier = Modifier.height(9.dp))
@@ -454,7 +453,7 @@ private fun GoalsEmptyState(onCreateClick: () -> Unit) {
             "My Goals",
             fontSize = 17.sp,
             fontWeight = FontWeight.SemiBold,
-            color = TextPrimary,
+            color = cs.onSurface,
             fontFamily = InterFontFamily,
             letterSpacing = (-0.2).sp
         )
@@ -463,8 +462,8 @@ private fun GoalsEmptyState(onCreateClick: () -> Unit) {
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(20.dp))
-                .background(Color.White)
-                .border(0.5.dp, Border, RoundedCornerShape(20.dp))
+                .background(cs.surface)
+                .border(0.5.dp, cs.outline, RoundedCornerShape(20.dp))
                 .padding(32.dp),
             contentAlignment = Alignment.Center
         ) {
@@ -475,16 +474,16 @@ private fun GoalsEmptyState(onCreateClick: () -> Unit) {
                         .clip(CircleShape)
                         .background(
                             Brush.radialGradient(
-                                listOf(PrimaryBlue.copy(alpha = 0.15f), Color.Transparent)
+                                listOf(cs.primary.copy(alpha = 0.15f), Color.Transparent)
                             )
                         )
-                        .border(1.dp, PrimaryBlue.copy(alpha = 0.2f), CircleShape),
+                        .border(1.dp, cs.primary.copy(alpha = 0.2f), CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         Icons.Outlined.Flag,
                         contentDescription = null,
-                        tint = PrimaryBlue.copy(alpha = 0.6f),
+                        tint = cs.primary.copy(alpha = 0.6f),
                         modifier = Modifier.size(36.dp)
                     )
                 }
@@ -493,7 +492,7 @@ private fun GoalsEmptyState(onCreateClick: () -> Unit) {
                     "No savings goals yet",
                     fontSize = 17.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = TextPrimary,
+                    color = cs.onSurface,
                     textAlign = TextAlign.Center,
                     fontFamily = InterFontFamily
                 )
@@ -501,7 +500,7 @@ private fun GoalsEmptyState(onCreateClick: () -> Unit) {
                 Text(
                     "Start building smarter savings habits\nby creating your first goal today.",
                     fontSize = 13.sp,
-                    color = TextMuted,
+                    color = cs.onSurfaceVariant,
                     textAlign = TextAlign.Center,
                     lineHeight = 18.sp,
                     fontFamily = InterFontFamily
@@ -518,7 +517,7 @@ private fun GoalsEmptyState(onCreateClick: () -> Unit) {
                         modifier = Modifier
                             .clip(RoundedCornerShape(12.dp))
                             .background(
-                                Brush.horizontalGradient(listOf(PrimaryBlue, Purple))
+                                Brush.horizontalGradient(listOf(GreenDeep, GreenAccent))
                             )
                             .padding(horizontal = 24.dp, vertical = 12.dp)
                     ) {
@@ -552,9 +551,10 @@ private fun GoalTemplatesSection(
     onToggleSeeAll: () -> Unit,
     onTemplateClick: (GoalTemplate) -> Unit
 ) {
+    val cs = MaterialTheme.colorScheme
     Column(
         modifier = Modifier
-            .background(White)
+            .background(cs.surface)
             .padding(top = 9.dp, bottom = 9.dp)
     ) {
         Row(
@@ -568,7 +568,7 @@ private fun GoalTemplatesSection(
                 "Goal Templates",
                 fontSize = 17.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = TextPrimary,
+                color = cs.onSurface,
                 fontFamily = InterFontFamily,
                 letterSpacing = (-0.2).sp
             )
@@ -576,7 +576,7 @@ private fun GoalTemplatesSection(
                 Text(
                     if (showAllTemplates) "See less" else "See all",
                     fontSize = 13.sp,
-                    color = PrimaryBlue,
+                    color = cs.primary,
                     fontWeight = FontWeight.Medium,
                     fontFamily = InterFontFamily
                 )

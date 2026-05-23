@@ -15,6 +15,7 @@ import com.example.northstar.data.repository.ExpenseRepositoryImpl
 import com.example.northstar.data.repository.IncomeRepository
 import com.example.northstar.data.repository.IncomeRepositoryImpl
 import com.example.northstar.ui.lock.PinLockManager
+import com.example.northstar.ui.theme.ThemePreferenceManager
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.Module
@@ -59,7 +60,7 @@ object AppModule {
             context,
             NorthStarDatabase::class.java,
             "northstar_database"
-        ).build()
+        ).fallbackToDestructiveMigration().build()
 
     @Provides
     @Singleton
@@ -107,5 +108,11 @@ object AppModule {
     @Singleton
     fun providePinLockManager(application: Application): PinLockManager {
         return PinLockManager(application)
+    }
+
+    @Provides
+    @Singleton
+    fun provideThemePreferenceManager(application: Application): ThemePreferenceManager {
+        return ThemePreferenceManager(application)
     }
 }

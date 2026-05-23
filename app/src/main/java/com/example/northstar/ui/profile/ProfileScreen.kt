@@ -41,13 +41,15 @@ fun ProfileScreen(
     pinLockManager: PinLockManager,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
+    val cs = MaterialTheme.colorScheme
     val uiState by viewModel.uiState.collectAsState()
     var showEditName by remember { mutableStateOf(false) }
     var showEditEmail by remember { mutableStateOf(false) }
+    var showEditPhone by remember { mutableStateOf(false) }
+    var showEditAddress by remember { mutableStateOf(false) }
     var showSignOutDialog by remember { mutableStateOf(false) }
     var showPinSetup by remember { mutableStateOf(false) }
 
-    // PIN setup overlay
     if (showPinSetup) {
         PinScreen(
             mode = PinMode.SETUP,
@@ -57,7 +59,6 @@ fun ProfileScreen(
         return
     }
 
-    // Edit name dialog
     if (showEditName) {
         EditFieldDialog(
             title = "Update Name",
@@ -80,7 +81,6 @@ fun ProfileScreen(
         )
     }
 
-    // Edit email dialog
     if (showEditEmail) {
         EditFieldDialog(
             title = "Update Email",
@@ -104,18 +104,62 @@ fun ProfileScreen(
         )
     }
 
-    // Sign out confirm dialog
+    if (showEditPhone) {
+        EditFieldDialog(
+            title = "Update Phone Number",
+            fieldLabel = "Phone number",
+            currentValue = uiState.phone,
+            keyboardType = KeyboardType.Phone,
+            onDismiss = {
+                showEditPhone = false
+                viewModel.clearMessages()
+            },
+            onConfirm = { newValue, _ ->
+                viewModel.updatePhone(newValue)
+            },
+            isLoading = uiState.isLoading,
+            successMessage = uiState.successMessage,
+            errorMessage = uiState.errorMessage,
+            onSuccess = {
+                showEditPhone = false
+                viewModel.clearMessages()
+            }
+        )
+    }
+
+    if (showEditAddress) {
+        EditFieldDialog(
+            title = "Update Address",
+            fieldLabel = "Address",
+            currentValue = uiState.address,
+            onDismiss = {
+                showEditAddress = false
+                viewModel.clearMessages()
+            },
+            onConfirm = { newValue, _ ->
+                viewModel.updateAddress(newValue)
+            },
+            isLoading = uiState.isLoading,
+            successMessage = uiState.successMessage,
+            errorMessage = uiState.errorMessage,
+            onSuccess = {
+                showEditAddress = false
+                viewModel.clearMessages()
+            }
+        )
+    }
+
     if (showSignOutDialog) {
         AlertDialog(
             onDismissRequest = { showSignOutDialog = false },
-            containerColor = White,
+            containerColor = cs.surface,
             shape = RoundedCornerShape(20.dp),
             title = {
                 Text(
                     "Sign Out",
                     fontWeight = FontWeight.W700,
                     fontSize = 17.sp,
-                    color = TextPrimary,
+                    color = cs.onSurface,
                     fontFamily = InterFontFamily
                 )
             },
@@ -123,7 +167,7 @@ fun ProfileScreen(
                 Text(
                     "Are you sure you want to sign out of NorthStar?",
                     fontSize = 14.sp,
-                    color = TextSecondary,
+                    color = cs.onSurfaceVariant,
                     fontFamily = InterFontFamily,
                     lineHeight = 20.sp
                 )
@@ -141,7 +185,11 @@ fun ProfileScreen(
                     colors = ButtonDefaults.buttonColors(containerColor = Debit),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("Sign Out", fontWeight = FontWeight.W600, fontFamily = InterFontFamily)
+                    Text(
+                        "Sign Out",
+                        fontWeight = FontWeight.W600,
+                        fontFamily = InterFontFamily
+                    )
                 }
             },
             dismissButton = {
@@ -159,29 +207,27 @@ fun ProfileScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Surface)
+                .background(cs.background)
                 .padding(top = padding.calculateTopPadding())
                 .verticalScroll(rememberScrollState())
                 .padding(bottom = 100.dp)
         ) {
-
-            // ── Dark header ──
+            // Dark header
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(bottomStart = 28.dp, bottomEnd = 28.dp))
-                    .background(Navy900)
+                    .background(GreenDeep)
                     .padding(horizontal = 20.dp)
                     .padding(top = 52.dp, bottom = 28.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    // Avatar circle
                     Box(
                         modifier = Modifier
                             .size(72.dp)
                             .clip(CircleShape)
-                            .background(Navy800)
+                            .background(GreenMid)
                             .border(2.dp, White.copy(alpha = 0.12f), CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
@@ -190,7 +236,9 @@ fun ProfileScreen(
                                 .split(" ")
                                 .filter { it.isNotBlank() }
                                 .take(2)
-                                .joinToString("") { it.first().uppercaseChar().toString() }
+                                .joinToString("") {
+                                    it.first().uppercaseChar().toString()
+                                }
                                 .ifBlank { "?" },
                             fontSize = 24.sp,
                             fontWeight = FontWeight.W800,
@@ -224,7 +272,7 @@ fun ProfileScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // ── Account section ──
+            // Account section
             ProfileSectionHeader("Account")
 
             ProfileCard {
@@ -241,11 +289,25 @@ fun ProfileScreen(
                     value = uiState.email,
                     onClick = { showEditEmail = true }
                 )
+                ProfileDivider()
+                ProfileRow(
+                    icon = Icons.Outlined.Phone,
+                    label = "Phone Number",
+                    value = uiState.phone.ifBlank { "Not set" },
+                    onClick = { showEditPhone = true }
+                )
+                ProfileDivider()
+                ProfileRow(
+                    icon = Icons.Outlined.Home,
+                    label = "Address",
+                    value = uiState.address.ifBlank { "Not set" },
+                    onClick = { showEditAddress = true }
+                )
             }
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // ── Preferences section ──
+            // Preferences section
             ProfileSectionHeader("Preferences")
 
             ProfileCard {
@@ -253,13 +315,20 @@ fun ProfileScreen(
                     icon = Icons.Outlined.CurrencyExchange,
                     label = "Default Currency",
                     value = "LKR",
-                    onClick = null // read-only
+                    onClick = null
+                )
+                ProfileDivider()
+                ProfileRow(
+                    icon = Icons.Outlined.Settings,
+                    label = "Settings",
+                    value = "",
+                    onClick = { navController.navigate(Screen.Settings.route) }
                 )
             }
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // ── Security section ──
+            // Security section
             ProfileSectionHeader("Security")
 
             ProfileCard {
@@ -267,7 +336,7 @@ fun ProfileScreen(
                     icon = Icons.Outlined.Lock,
                     label = if (pinLockManager.hasPin()) "Change PIN" else "Set App PIN",
                     value = if (pinLockManager.hasPin()) "Enabled" else "Not set",
-                    valueColor = if (pinLockManager.hasPin()) Credit else TextMuted,
+                    valueColor = if (pinLockManager.hasPin()) Credit else null,
                     onClick = { showPinSetup = true }
                 )
                 if (pinLockManager.hasPin()) {
@@ -285,7 +354,7 @@ fun ProfileScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // ── Sign out ──
+            // Sign out
             ProfileCard {
                 ProfileRow(
                     icon = Icons.Outlined.Logout,
@@ -299,11 +368,10 @@ fun ProfileScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // App version
             Text(
                 "NorthStar · Version 1.0",
                 fontSize = 11.sp,
-                color = TextHint,
+                color = cs.onSurfaceVariant,
                 fontFamily = InterFontFamily,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -314,54 +382,58 @@ fun ProfileScreen(
     }
 }
 
-// ── Section header ──
 @Composable
 private fun ProfileSectionHeader(title: String) {
+    val cs = MaterialTheme.colorScheme
     Text(
         title,
         fontSize = 12.sp,
         fontWeight = FontWeight.W600,
-        color = TextMuted,
+        color = cs.onSurfaceVariant,
         letterSpacing = 0.5.sp,
         fontFamily = InterFontFamily,
         modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp)
     )
 }
 
-// ── Card wrapper ──
 @Composable
 private fun ProfileCard(content: @Composable ColumnScope.() -> Unit) {
+    val cs = MaterialTheme.colorScheme
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
-            .background(White, RoundedCornerShape(20.dp))
-            .border(1.dp, Border, RoundedCornerShape(20.dp)),
+            .background(cs.surface, RoundedCornerShape(20.dp))
+            .border(1.dp, cs.outline, RoundedCornerShape(20.dp)),
         content = content
     )
 }
 
-// ── Divider ──
 @Composable
 private fun ProfileDivider() {
+    val cs = MaterialTheme.colorScheme
     HorizontalDivider(
-        color = Separator,
+        color = cs.outlineVariant,
         thickness = 1.dp,
         modifier = Modifier.padding(horizontal = 16.dp)
     )
 }
 
-// ── Row ──
 @Composable
 private fun ProfileRow(
     icon: ImageVector,
     label: String,
     value: String,
-    labelColor: Color = TextPrimary,
-    valueColor: Color = TextSecondary,
-    iconTint: Color = Navy900,
+    labelColor: Color? = null,
+    valueColor: Color? = null,
+    iconTint: Color? = null,
     onClick: (() -> Unit)?
 ) {
+    val cs = MaterialTheme.colorScheme
+    val resolvedLabelColor = labelColor ?: cs.onSurface
+    val resolvedValueColor = valueColor ?: cs.onSurfaceVariant
+    val resolvedIconTint   = iconTint   ?: cs.primary
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -373,14 +445,14 @@ private fun ProfileRow(
         Box(
             modifier = Modifier
                 .size(34.dp)
-                .background(iconTint.copy(alpha = 0.08f), RoundedCornerShape(10.dp)),
+                .background(resolvedIconTint.copy(alpha = 0.08f), RoundedCornerShape(10.dp)),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 icon,
                 contentDescription = null,
                 modifier = Modifier.size(17.dp),
-                tint = iconTint
+                tint = resolvedIconTint
             )
         }
 
@@ -388,7 +460,7 @@ private fun ProfileRow(
             label,
             fontSize = 14.sp,
             fontWeight = FontWeight.W500,
-            color = labelColor,
+            color = resolvedLabelColor,
             fontFamily = InterFontFamily,
             modifier = Modifier.weight(1f)
         )
@@ -398,7 +470,7 @@ private fun ProfileRow(
                 value,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.W500,
-                color = valueColor,
+                color = resolvedValueColor,
                 fontFamily = InterFontFamily
             )
         }
@@ -408,19 +480,19 @@ private fun ProfileRow(
                 Icons.Outlined.ChevronRight,
                 contentDescription = null,
                 modifier = Modifier.size(16.dp),
-                tint = TextHint
+                tint = cs.onSurfaceVariant
             )
         }
     }
 }
 
-// ── Edit field dialog ──
 @Composable
 private fun EditFieldDialog(
     title: String,
     fieldLabel: String,
     currentValue: String,
     requiresPassword: Boolean = false,
+    keyboardType: KeyboardType = KeyboardType.Text,
     onDismiss: () -> Unit,
     onConfirm: (String, String) -> Unit,
     isLoading: Boolean,
@@ -428,6 +500,7 @@ private fun EditFieldDialog(
     errorMessage: String,
     onSuccess: () -> Unit
 ) {
+    val cs = MaterialTheme.colorScheme
     var fieldValue by remember { mutableStateOf(currentValue) }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
@@ -440,14 +513,14 @@ private fun EditFieldDialog(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(White, RoundedCornerShape(24.dp))
+                .background(cs.surface, RoundedCornerShape(24.dp))
                 .padding(24.dp)
         ) {
             Text(
                 title,
                 fontSize = 17.sp,
                 fontWeight = FontWeight.W700,
-                color = TextPrimary,
+                color = cs.onSurface,
                 fontFamily = InterFontFamily,
                 modifier = Modifier.padding(bottom = 20.dp)
             )
@@ -457,7 +530,7 @@ private fun EditFieldDialog(
                 onValueChange = { fieldValue = it },
                 label = fieldLabel,
                 keyboardOptions = KeyboardOptions(
-                    keyboardType = if (requiresPassword) KeyboardType.Email else KeyboardType.Text,
+                    keyboardType = if (requiresPassword) KeyboardType.Email else keyboardType,
                     imeAction = if (requiresPassword) ImeAction.Next else ImeAction.Done
                 )
             )
@@ -479,7 +552,7 @@ private fun EditFieldDialog(
                                 else Icons.Outlined.Visibility,
                                 contentDescription = null,
                                 modifier = Modifier.size(18.dp),
-                                tint = TextMuted
+                                tint = cs.onSurfaceVariant
                             )
                         }
                     },
@@ -517,7 +590,7 @@ private fun EditFieldDialog(
                     onClick = { onConfirm(fieldValue, password) },
                     modifier = Modifier.weight(1f),
                     enabled = !isLoading,
-                    colors = ButtonDefaults.buttonColors(containerColor = Navy900),
+                    colors = ButtonDefaults.buttonColors(containerColor = GreenDeep),
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     if (isLoading) {
@@ -527,7 +600,11 @@ private fun EditFieldDialog(
                             strokeWidth = 2.dp
                         )
                     } else {
-                        Text("Save", fontFamily = InterFontFamily, fontWeight = FontWeight.W600)
+                        Text(
+                            "Save",
+                            fontFamily = InterFontFamily,
+                            fontWeight = FontWeight.W600
+                        )
                     }
                 }
             }

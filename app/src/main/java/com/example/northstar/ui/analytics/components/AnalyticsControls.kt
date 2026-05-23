@@ -34,7 +34,7 @@ fun AnalyticsControls(
                     onClick = { onTabChanged(tab) },
                     selected = selectedTab == tab,
                     colors = SegmentedButtonDefaults.colors(
-                        activeContainerColor = Navy900,
+                        activeContainerColor = GreenDeep,
                         activeContentColor = White
                     )
                 ) {
@@ -62,7 +62,7 @@ fun AnalyticsControls(
                         Text(filter.name.lowercase().replaceFirstChar { it.uppercase() })
                     },
                     colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = Navy900,
+                        selectedContainerColor = GreenDeep,
                         selectedLabelColor = White
                     )
                 )
@@ -86,7 +86,7 @@ fun AnalyticsControls(
                         )
                     },
                     colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = Navy900,
+                        selectedContainerColor = GreenDeep,
                         selectedLabelColor = White
                     )
                 )

@@ -44,7 +44,7 @@ class AnalyticsViewModel @Inject constructor(
         incomeRepository.getIncomesByDateRange(0, 4102425000000L),
         expenseRepository.getExpensesByDateRange(0, 4102425000000L)
     ) { inc, exp ->
-        val totalInc = inc.sumOf { it.lkrAmount }
+        val totalInc = inc.sumOf { it.amountLKR }
         val totalExp = exp.sumOf { it.amount }
         AnalyticsSummary(totalInc, totalExp, totalInc - totalExp)
     }
@@ -124,12 +124,12 @@ class AnalyticsViewModel @Inject constructor(
     }.sortedByDescending { it.totalAmount }
 
     private fun calculateIncomeBreakdown(incs: List<com.example.northstar.domain.model.Income>) = incs.groupBy { it.sourceType }.map { (src, list) ->
-        val sum = list.sumOf { it.lkrAmount }
-        CategoryBreakdown(src, sum, sum.toFloat() / incs.sumOf { it.lkrAmount }.coerceAtLeast(1), getIncomeColor(src))
+        val sum = list.sumOf { it.amountLKR }
+        CategoryBreakdown(src, sum, sum.toFloat() / incs.sumOf { it.amountLKR }.coerceAtLeast(1), getIncomeColor(src))
     }.sortedByDescending { it.totalAmount }
 
     private fun calculateComparisonBreakdown(incs: List<com.example.northstar.domain.model.Income>, exps: List<com.example.northstar.domain.model.Expense>): List<CategoryBreakdown> {
-        val totalInc = incs.sumOf { it.lkrAmount }; val totalExp = exps.sumOf { it.amount }; val combined = totalInc + totalExp
+        val totalInc = incs.sumOf { it.amountLKR }; val totalExp = exps.sumOf { it.amount }; val combined = totalInc + totalExp
         if (combined == 0L) return emptyList()
         return listOf(
             CategoryBreakdown("Income", totalInc, totalInc.toFloat() / combined, Color(0xFF2ECC71)),
@@ -145,7 +145,7 @@ class AnalyticsViewModel @Inject constructor(
             else -> listOf("WEEK1", "WEEK2", "WEEK3", "WEEK4")
         }
         return labels.mapIndexed { i, label ->
-            val inc = incs.filter { cal.apply { timeInMillis = it.date }.run { if(filter == TimeFilter.YEARLY) get(Calendar.MONTH) == i else get(Calendar.DAY_OF_WEEK) == i + 1 } }.sumOf { it.lkrAmount }
+            val inc = incs.filter { cal.apply { timeInMillis = it.receivedDate }.run { if(filter == TimeFilter.YEARLY) get(Calendar.MONTH) == i else get(Calendar.DAY_OF_WEEK) == i + 1 } }.sumOf { it.amountLKR }
             val exp = exps.filter { cal.apply { timeInMillis = it.date }.run { if(filter == TimeFilter.YEARLY) get(Calendar.MONTH) == i else get(Calendar.DAY_OF_WEEK) == i + 1 } }.sumOf { it.amount }
             TrendData(label, inc, exp)
         }

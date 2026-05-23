@@ -5,6 +5,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -22,6 +23,7 @@ fun GoalInsightsRow(
     completedCount: Int,
     modifier: Modifier = Modifier
 ) {
+    val cs = MaterialTheme.colorScheme
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -41,22 +43,22 @@ fun GoalInsightsRow(
         Column(
             modifier = Modifier
                 .weight(1.8f)
-                .background(White, RoundedCornerShape(18.dp))
-                .border(1.dp, Border, RoundedCornerShape(18.dp))
+                .background(cs.surface, RoundedCornerShape(18.dp))
+                .border(1.dp, cs.outline, RoundedCornerShape(18.dp))
                 .padding(14.dp)
         ) {
             Box(
                 modifier = Modifier
                     .size(8.dp)
                     .clip(CircleShape)
-                    .background(Navy900)
+                    .background(cs.primary)
             )
             Spacer(modifier = Modifier.height(10.dp))
             Text(
                 "Overall",
                 fontSize = 10.sp,
                 fontWeight = FontWeight.W600,
-                color = TextMuted,
+                color = cs.onSurfaceVariant,
                 letterSpacing = 0.5.sp,
                 fontFamily = InterFontFamily
             )
@@ -65,7 +67,7 @@ fun GoalInsightsRow(
                 "$overallProgressPct%",
                 fontSize = 22.sp,
                 fontWeight = FontWeight.W900,
-                color = TextPrimary,
+                color = cs.onSurface,
                 letterSpacing = (-1).sp,
                 fontFamily = InterFontFamily,
                 lineHeight = 22.sp
@@ -74,7 +76,7 @@ fun GoalInsightsRow(
             Text(
                 "all goals",
                 fontSize = 11.sp,
-                color = TextMuted,
+                color = cs.onSurfaceVariant,
                 fontFamily = InterFontFamily
             )
             Spacer(modifier = Modifier.height(12.dp))
@@ -83,7 +85,7 @@ fun GoalInsightsRow(
                     .fillMaxWidth()
                     .height(4.dp)
                     .clip(RoundedCornerShape(99.dp))
-                    .background(Separator)
+                    .background(cs.outlineVariant)
             ) {
                 Box(
                     modifier = Modifier
@@ -92,7 +94,7 @@ fun GoalInsightsRow(
                         )
                         .height(4.dp)
                         .clip(RoundedCornerShape(99.dp))
-                        .background(Navy900)
+                        .background(cs.primary)
                 )
             }
         }
@@ -102,7 +104,7 @@ fun GoalInsightsRow(
             label = "Completed",
             value = "$completedCount",
             valueSuffix = "",
-            valueColor = if (completedCount > 0) Credit else TextPrimary,
+            valueColor = if (completedCount > 0) Credit else cs.onSurface,
             sub = "goals done",
             modifier = Modifier.weight(1.1f)
         )
@@ -119,10 +121,11 @@ private fun InsightTile(
     sub: String,
     modifier: Modifier = Modifier
 ) {
+    val cs = MaterialTheme.colorScheme
     Column(
         modifier = modifier
-            .background(White, RoundedCornerShape(18.dp))
-            .border(1.dp, Border, RoundedCornerShape(18.dp))
+            .background(cs.surface, RoundedCornerShape(18.dp))
+            .border(1.dp, cs.outline, RoundedCornerShape(18.dp))
             .padding(12.dp)
     ) {
         Box(
@@ -136,7 +139,7 @@ private fun InsightTile(
             label,
             fontSize = 10.sp,
             fontWeight = FontWeight.W600,
-            color = TextMuted,
+            color = cs.onSurfaceVariant,
             letterSpacing = 0.3.sp,
             fontFamily = InterFontFamily,
             maxLines = 1
@@ -165,7 +168,7 @@ private fun InsightTile(
         Text(
             sub,
             fontSize = 10.sp,
-            color = TextMuted,
+            color = cs.onSurfaceVariant,
             fontFamily = InterFontFamily,
             lineHeight = 12.sp
         )

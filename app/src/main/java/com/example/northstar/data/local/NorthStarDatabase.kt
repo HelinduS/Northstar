@@ -15,7 +15,7 @@ import com.example.northstar.data.local.entity.IncomeEntity
         ExpenseEntity::class,
         GoalEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class NorthStarDatabase : RoomDatabase() {

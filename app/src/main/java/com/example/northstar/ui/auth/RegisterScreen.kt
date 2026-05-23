@@ -2,18 +2,28 @@ package com.example.northstar.ui.auth
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.northstar.ui.components.AppPasswordTextField
 import com.example.northstar.ui.components.AppTextField
 import com.example.northstar.ui.components.PrimaryButton
+import com.example.northstar.ui.theme.Debit
+import com.example.northstar.ui.theme.TextMuted
 
 @Composable
 fun RegisterScreen(
@@ -24,16 +34,24 @@ fun RegisterScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    val nameState = remember { mutableStateOf("") }
+    val firstNameState = remember { mutableStateOf("") }
+    val lastNameState = remember { mutableStateOf("") }
     val emailState = remember { mutableStateOf("") }
+    val phoneState = remember { mutableStateOf("") }
+    val addressState = remember { mutableStateOf("") }
     val passwordState = remember { mutableStateOf("") }
+    val confirmPasswordState = remember { mutableStateOf("") }
     val passwordVisible = remember { mutableStateOf(false) }
+    val confirmPasswordVisible = remember { mutableStateOf(false) }
 
-    val nameError = remember { mutableStateOf(false) }
+    val firstNameError = remember { mutableStateOf(false) }
+    val lastNameError = remember { mutableStateOf(false) }
     val emailError = remember { mutableStateOf(false) }
+    val phoneError = remember { mutableStateOf(false) }
     val passwordError = remember { mutableStateOf(false) }
+    val confirmPasswordError = remember { mutableStateOf(false) }
+    var confirmPasswordMismatch by remember { mutableStateOf(false) }
 
-    // Navigate on success
     LaunchedEffect(uiState) {
         if (uiState is AuthUiState.Success) {
             viewModel.resetState()
@@ -46,6 +64,7 @@ fun RegisterScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
+                .verticalScroll(rememberScrollState())
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
@@ -64,15 +83,16 @@ fun RegisterScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
+            // First Name
             AppTextField(
-                value = nameState.value,
+                value = firstNameState.value,
                 onValueChange = {
-                    nameState.value = it
-                    nameError.value = false
+                    firstNameState.value = it
+                    firstNameError.value = false
                 },
-                label = "Full Name",
-                isError = nameError.value,
-                supportingText = "Name cannot be empty",
+                label = "First Name",
+                isError = firstNameError.value,
+                supportingText = "First name cannot be empty",
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Text,
                     imeAction = ImeAction.Next
@@ -81,6 +101,25 @@ fun RegisterScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Last Name
+            AppTextField(
+                value = lastNameState.value,
+                onValueChange = {
+                    lastNameState.value = it
+                    lastNameError.value = false
+                },
+                label = "Last Name",
+                isError = lastNameError.value,
+                supportingText = "Last name cannot be empty",
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Next
+                )
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Email
             AppTextField(
                 value = emailState.value,
                 onValueChange = {
@@ -98,17 +137,123 @@ fun RegisterScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            AppPasswordTextField(
+            // Phone Number
+            AppTextField(
+                value = phoneState.value,
+                onValueChange = {
+                    phoneState.value = it
+                    phoneError.value = false
+                },
+                label = "Phone Number",
+                isError = phoneError.value,
+                supportingText = "Please enter a valid phone number",
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Phone,
+                    imeAction = ImeAction.Next
+                )
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Address
+            AppTextField(
+                value = addressState.value,
+                onValueChange = { addressState.value = it },
+                label = "Address (optional)",
+                isError = false,
+                supportingText = "",
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Next
+                )
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Password
+            NorthStarInputField(
                 value = passwordState.value,
                 onValueChange = {
                     passwordState.value = it
                     passwordError.value = false
+                    confirmPasswordMismatch = false
                 },
                 label = "Password",
-                isPasswordVisible = passwordVisible.value,
-                onVisibilityToggle = { passwordVisible.value = !passwordVisible.value },
                 isError = passwordError.value,
-                supportingText = "Password must be at least 6 characters",
+                errorText = "Password must be at least 6 characters",
+                leadingIcon = {
+                    Icon(
+                        Icons.Outlined.Lock,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                        tint = if (passwordError.value) Debit else TextMuted
+                    )
+                },
+                trailingIcon = {
+                    IconButton(onClick = {
+                        passwordVisible.value = !passwordVisible.value
+                    }) {
+                        Icon(
+                            if (passwordVisible.value) Icons.Outlined.VisibilityOff
+                            else Icons.Outlined.Visibility,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp),
+                            tint = TextMuted
+                        )
+                    }
+                },
+                visualTransformation = if (passwordVisible.value)
+                    VisualTransformation.None
+                else
+                    PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Password,
+                    imeAction = ImeAction.Next
+                )
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Confirm Password
+            NorthStarInputField(
+                value = confirmPasswordState.value,
+                onValueChange = {
+                    confirmPasswordState.value = it
+                    confirmPasswordError.value = false
+                    confirmPasswordMismatch = false
+                },
+                label = "Confirm Password",
+                isError = confirmPasswordError.value || confirmPasswordMismatch,
+                errorText = if (confirmPasswordMismatch)
+                    "Passwords do not match"
+                else
+                    "Please confirm your password",
+                leadingIcon = {
+                    Icon(
+                        Icons.Outlined.Lock,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                        tint = if (confirmPasswordError.value || confirmPasswordMismatch)
+                            Debit else TextMuted
+                    )
+                },
+                trailingIcon = {
+                    IconButton(onClick = {
+                        confirmPasswordVisible.value = !confirmPasswordVisible.value
+                    }) {
+                        Icon(
+                            if (confirmPasswordVisible.value) Icons.Outlined.VisibilityOff
+                            else Icons.Outlined.Visibility,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp),
+                            tint = TextMuted
+                        )
+                    }
+                },
+                visualTransformation = if (confirmPasswordVisible.value)
+                    VisualTransformation.None
+                else
+                    PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Password,
                     imeAction = ImeAction.Done
@@ -128,27 +273,45 @@ fun RegisterScreen(
             }
 
             PrimaryButton(
-                text = if (uiState is AuthUiState.Loading) "Creating Account..." else "Sign Up",
+                text = if (uiState is AuthUiState.Loading)
+                    "Creating Account..." else "Sign Up",
                 enabled = uiState !is AuthUiState.Loading,
                 onClick = {
                     var valid = true
-                    if (nameState.value.isBlank()) {
-                        nameError.value = true
+
+                    if (firstNameState.value.isBlank()) {
+                        firstNameError.value = true
+                        valid = false
+                    }
+                    if (lastNameState.value.isBlank()) {
+                        lastNameError.value = true
                         valid = false
                     }
                     if (emailState.value.isBlank()) {
                         emailError.value = true
                         valid = false
                     }
+                    if (phoneState.value.isBlank()) {
+                        phoneError.value = true
+                        valid = false
+                    }
                     if (passwordState.value.length < 6) {
                         passwordError.value = true
                         valid = false
                     }
+                    if (confirmPasswordState.value != passwordState.value) {
+                        confirmPasswordMismatch = true
+                        valid = false
+                    }
+
                     if (valid) {
+                        val fullName = "${firstNameState.value.trim()} ${lastNameState.value.trim()}"
                         viewModel.register(
-                            emailState.value,
-                            passwordState.value,
-                            nameState.value
+                            email = emailState.value.trim(),
+                            password = passwordState.value,
+                            displayName = fullName,
+                            phone = phoneState.value.trim(),
+                            address = addressState.value.trim()
                         )
                     }
                 }
@@ -169,9 +332,10 @@ fun RegisterScreen(
                     )
                 }
             }
+
+            Spacer(modifier = Modifier.height(24.dp))
         }
 
-        // Loading overlay
         if (uiState is AuthUiState.Loading) {
             CircularProgressIndicator(
                 modifier = Modifier.align(Alignment.Center)
