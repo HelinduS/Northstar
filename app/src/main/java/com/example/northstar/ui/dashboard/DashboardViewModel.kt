@@ -122,12 +122,12 @@ class DashboardViewModel @Inject constructor(
                     .collection("users")
                     .document(user.uid)
                     .collection("incomes")
-                    .whereGreaterThanOrEqualTo("receivedDate", startOfMonth)
+                    .whereGreaterThanOrEqualTo("date", startOfMonth)
                     .get()
                     .await()
 
                 val totalIncome = incomesSnapshot.documents.sumOf {
-                    it.getLong("amountLKR") ?: 0L
+                    it.getLong("lkrAmount") ?: 0L
                 }
 
                 val expensesSnapshot = firestore
@@ -158,7 +158,7 @@ class DashboardViewModel @Inject constructor(
                     .await()
 
                 val allTimeIncome = allTimeIncomesSnapshot.documents.sumOf {
-                    it.getLong("amountLKR") ?: 0L
+                    it.getLong("lkrAmount") ?: 0L
                 }
 
                 val allTimeExpensesSnapshot = firestore
@@ -178,13 +178,13 @@ class DashboardViewModel @Inject constructor(
                         title = it.getString("sourceType") ?: "Income",
                         amount = it.getLong("amountLKR") ?: 0L,
                         isIncome = true,
-                        date = it.getTimestamp("receivedDate")?.toDate()?.time ?: 0L,
+                        date = it.getTimestamp("date")?.toDate()?.time ?: 0L,
                         category = it.getString("sourceType") ?: "",
                         sourceType = it.getString("sourceType") ?: "",
-                        originalCurrency = it.getString("currency") ?: "LKR",
-                        originalAmount = it.getLong("amount") ?: 0L,
+                        originalCurrency = it.getString("originalCurrency") ?: "LKR",
+                        originalAmount = it.getLong("originalAmount") ?: 0L,
                         exchangeRate = it.getDouble("exchangeRate") ?: 1.0,
-                        notes = it.getString("note") ?: ""
+                        notes = it.getString("notes") ?: ""
                     )
                 }
 
@@ -197,8 +197,8 @@ class DashboardViewModel @Inject constructor(
                         date = it.getTimestamp("date")?.toDate()?.time ?: 0L,
                         category = it.getString("category") ?: "",
                         expenseType = it.getString("expenseType") ?: "",
-                        paymentMethod = it.getString("paymentSource") ?: "",
-                        description = it.getString("note") ?: ""
+                        paymentMethod = it.getString("paymentMethod") ?: "",
+                        description = it.getString("description") ?: ""
                     )
                 }
 
