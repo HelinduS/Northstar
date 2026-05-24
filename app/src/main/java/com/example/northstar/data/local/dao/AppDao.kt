@@ -59,6 +59,9 @@ interface ExpenseDao {
 
     @Query("SELECT * FROM expenses WHERE expenseType = :expenseType ORDER BY date DESC")
     fun getExpensesByType(expenseType: String): Flow<List<ExpenseEntity>>
+
+    @Query("DELETE FROM expenses WHERE id = :id")
+    suspend fun deleteExpenseById(id: String)
 }
 
 @Dao
@@ -75,6 +78,9 @@ interface GoalDao {
 
     @Query("SELECT * FROM goals WHERE isActive = 1 LIMIT 1")
     fun getActiveGoal(): Flow<GoalEntity?>
+
+    @Query("DELETE FROM goals WHERE id = :id")
+    suspend fun deleteGoalById(id: String)
 }
 
 @Dao

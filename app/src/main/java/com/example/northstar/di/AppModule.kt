@@ -97,9 +97,10 @@ object AppModule {
     @Provides
     @Singleton
     fun provideGoalRepository(
+        goalDao: GoalDao,
         firebaseAuth: FirebaseAuth,
         firestore: FirebaseFirestore
-    ): GoalRepository = GoalRepositoryImpl(firebaseAuth, firestore)
+    ): GoalRepository = GoalRepositoryImpl(goalDao, firebaseAuth, firestore)
 
     @Provides
     @Singleton

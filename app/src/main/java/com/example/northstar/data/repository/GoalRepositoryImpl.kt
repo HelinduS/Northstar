@@ -1,18 +1,25 @@
 package com.example.northstar.data.repository
 
+import com.example.northstar.data.local.dao.GoalDao
+import com.example.northstar.data.local.entity.GoalEntity
 import com.example.northstar.data.remote.FirestoreConstants
 import com.example.northstar.domain.model.Goal
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class GoalRepositoryImpl @Inject constructor(
+    private val goalDao: GoalDao,
     private val firebaseAuth: FirebaseAuth,
     private val firestore: FirebaseFirestore
 ) : GoalRepository {
@@ -24,109 +31,154 @@ class GoalRepositoryImpl @Inject constructor(
         .document(userId)
         .collection(FirestoreConstants.COLLECTION_GOALS)
 
-    override suspend fun addGoal(goal: Goal): Result<Unit> {
-        return try {
+    // ── Mapping helpers ───────────────────────────────────────────────────────
+
+    private fun com.google.firebase.firestore.DocumentSnapshot.toGoal(): Goal? = try {
+        Goal(
+            id = id,
+            name = getString("name") ?: "",
+            targetAmount = getLong("targetAmount") ?: 0L,
+            savedAmount = getLong("savedAmount") ?: 0L,
+            targetDate = getTimestamp("targetDate")?.toDate()?.time ?: 0L,
+            currency = getString("currency") ?: "LKR",
+            isActive = getBoolean("isActive") ?: true,
+            createdAt = getTimestamp("createdAt")?.toDate()?.time ?: 0L
+        )
+    } catch (e: Exception) { null }
+
+    private fun Goal.toEntity() = GoalEntity(
+        id = id,
+        name = name,
+        targetAmount = targetAmount,
+        savedAmount = savedAmount,
+        targetDate = targetDate,
+        currency = currency,
+        isActive = isActive,
+        createdAt = createdAt
+    )
+
+    private fun GoalEntity.toGoal() = Goal(
+        id = id,
+        name = name,
+        targetAmount = targetAmount,
+        savedAmount = savedAmount,
+        targetDate = targetDate,
+        currency = currency,
+        isActive = isActive,
+        createdAt = createdAt
+    )
+
+    // ── Write operations ──────────────────────────────────────────────────────
+
+    override suspend fun addGoal(goal: Goal): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
             val userId = getUserIdOrNull()
-                ?: return Result.failure(IllegalStateException("User is not signed in"))
+                ?: return@withContext Result.failure(IllegalStateException("User is not signed in"))
             val data = mapOf<String, Any>(
-                "name" to goal.name,
+                "name"         to goal.name,
                 "targetAmount" to goal.targetAmount,
-                "savedAmount" to goal.savedAmount,
-                "targetDate" to com.google.firebase.Timestamp(java.util.Date(goal.targetDate)),
-                "isActive" to goal.isActive,
-                "createdAt" to com.google.firebase.Timestamp.now()
+                "savedAmount"  to goal.savedAmount,
+                "targetDate"   to com.google.firebase.Timestamp(java.util.Date(goal.targetDate)),
+                "currency"     to goal.currency,
+                "isActive"     to goal.isActive,
+                "createdAt"    to com.google.firebase.Timestamp.now()
             )
-            goalsCollection(userId).add(data).await()
+            // Use the UUID supplied by the ViewModel as both Firestore doc ID and Room PK
+            goalsCollection(userId).document(goal.id).set(data).await()
+            goalDao.insertGoal(goal.toEntity())
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
-    override suspend fun updateGoal(goal: Goal): Result<Unit> {
-        return try {
+    override suspend fun updateGoal(goal: Goal): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
             val userId = getUserIdOrNull()
-                ?: return Result.failure(IllegalStateException("User is not signed in"))
+                ?: return@withContext Result.failure(IllegalStateException("User is not signed in"))
             val data = mapOf<String, Any>(
-                "name" to goal.name,
+                "name"         to goal.name,
                 "targetAmount" to goal.targetAmount,
-                "savedAmount" to goal.savedAmount,
-                "targetDate" to com.google.firebase.Timestamp(java.util.Date(goal.targetDate)),
-                "isActive" to goal.isActive
+                "savedAmount"  to goal.savedAmount,
+                "targetDate"   to com.google.firebase.Timestamp(java.util.Date(goal.targetDate)),
+                "isActive"     to goal.isActive
             )
-            goalsCollection(userId)
-                .document(goal.id)
-                .update(data)
-                .await()
+            goalsCollection(userId).document(goal.id).update(data).await()
+            goalDao.insertGoal(goal.toEntity())                 // REPLACE strategy updates cache
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
-    override suspend fun deleteGoal(goalId: String): Result<Unit> {
-        return try {
+    override suspend fun deleteGoal(goalId: String): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
             val userId = getUserIdOrNull()
-                ?: return Result.failure(IllegalStateException("User is not signed in"))
-            goalsCollection(userId)
-                .document(goalId)
-                .delete()
-                .await()
+                ?: return@withContext Result.failure(IllegalStateException("User is not signed in"))
+            goalsCollection(userId).document(goalId).delete().await()
+            goalDao.deleteGoalById(goalId)
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
-    override fun getAllGoals(): Flow<List<Goal>> = callbackFlow {
-        val userId = getUserIdOrNull() ?: return@callbackFlow
-        val listener = goalsCollection(userId)
-            .addSnapshotListener { snapshot, error ->
-                if (error != null) {
-                    close(error)
-                    return@addSnapshotListener
+    // ── Read operations — offline-first ───────────────────────────────────────
+
+    override fun getAllGoals(): Flow<List<Goal>> = channelFlow {
+        // Room emits immediately (works offline)
+        val roomJob = launch {
+            goalDao.getAllGoals()
+                .map { entities -> entities.map { it.toGoal() } }
+                .collect { trySend(it) }
+        }
+
+        // Firestore syncs to Room when online
+        val userId = getUserIdOrNull()
+        if (userId != null) {
+            val listener = goalsCollection(userId)
+                .addSnapshotListener { snapshot, error ->
+                    if (error != null) return@addSnapshotListener
+                    val goals = snapshot?.documents?.mapNotNull { it.toGoal() }
+                        ?: return@addSnapshotListener
+                    launch(Dispatchers.IO) {
+                        goals.forEach { goalDao.insertGoal(it.toEntity()) }
+                    }
                 }
-                val goals = snapshot?.documents?.map { doc ->
-                    Goal(
-                        id = doc.id,
-                        name = doc.getString("name") ?: "",
-                        targetAmount = doc.getLong("targetAmount") ?: 0L,
-                        savedAmount = doc.getLong("savedAmount") ?: 0L,
-                        targetDate = doc.getTimestamp("targetDate")?.toDate()?.time ?: 0L,
-                        currency = doc.getString("currency") ?: "LKR",
-                        isActive = doc.getBoolean("isActive") ?: true,
-                        createdAt = doc.getTimestamp("createdAt")?.toDate()?.time ?: 0L
-                    )
-                } ?: emptyList()
-                trySend(goals)
+            awaitClose {
+                listener.remove()
+                roomJob.cancel()
             }
-        awaitClose { listener.remove() }
+        } else {
+            awaitClose { roomJob.cancel() }
+        }
     }
 
-    override fun getActiveGoal(): Flow<Goal?> = callbackFlow {
-        val userId = getUserIdOrNull() ?: return@callbackFlow
-        val listener = goalsCollection(userId)
-            .whereEqualTo("isActive", true)
-            .limit(1)
-            .addSnapshotListener { snapshot, error ->
-                if (error != null) {
-                    close(error)
-                    return@addSnapshotListener
+    override fun getActiveGoal(): Flow<Goal?> = channelFlow {
+        val roomJob = launch {
+            goalDao.getActiveGoal()
+                .map { it?.toGoal() }
+                .collect { trySend(it) }
+        }
+
+        val userId = getUserIdOrNull()
+        if (userId != null) {
+            val listener = goalsCollection(userId)
+                .whereEqualTo("isActive", true)
+                .limit(1)
+                .addSnapshotListener { snapshot, error ->
+                    if (error != null) return@addSnapshotListener
+                    val goal = snapshot?.documents?.firstOrNull()?.toGoal()
+                    if (goal != null) {
+                        launch(Dispatchers.IO) { goalDao.insertGoal(goal.toEntity()) }
+                    }
                 }
-                val goal = snapshot?.documents?.firstOrNull()?.let { doc ->
-                    Goal(
-                        id = doc.id,
-                        name = doc.getString("name") ?: "",
-                        targetAmount = doc.getLong("targetAmount") ?: 0L,
-                        savedAmount = doc.getLong("savedAmount") ?: 0L,
-                        targetDate = doc.getTimestamp("targetDate")?.toDate()?.time ?: 0L,
-                        currency = doc.getString("currency") ?: "LKR",
-                        isActive = doc.getBoolean("isActive") ?: true,
-                        createdAt = doc.getTimestamp("createdAt")?.toDate()?.time ?: 0L
-                    )
-                }
-                trySend(goal)
+            awaitClose {
+                listener.remove()
+                roomJob.cancel()
             }
-        awaitClose { listener.remove() }
+        } else {
+            awaitClose { roomJob.cancel() }
+        }
     }
 }
