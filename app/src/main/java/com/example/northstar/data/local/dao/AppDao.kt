@@ -5,6 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import com.example.northstar.data.local.entity.BudgetEntity
 import com.example.northstar.data.local.entity.ExpenseEntity
 import com.example.northstar.data.local.entity.GoalEntity
 import com.example.northstar.data.local.entity.IncomeEntity
@@ -74,4 +75,20 @@ interface GoalDao {
 
     @Query("SELECT * FROM goals WHERE isActive = 1 LIMIT 1")
     fun getActiveGoal(): Flow<GoalEntity?>
+}
+
+@Dao
+interface BudgetDao {
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertBudget(budget: BudgetEntity)
+
+    @Delete
+    suspend fun deleteBudget(budget: BudgetEntity)
+
+    @Query("SELECT * FROM budgets ORDER BY createdAt DESC")
+    fun getAllBudgets(): Flow<List<BudgetEntity>>
+
+    @Query("SELECT * FROM budgets WHERE category = :category LIMIT 1")
+    suspend fun getBudgetByCategory(category: String): BudgetEntity?
 }

@@ -48,3 +48,17 @@ data class GoalEntity(
     val isActive: Boolean,
     val createdAt: Long
 )
+
+@Entity(tableName = "budgets")
+data class BudgetEntity(
+    @PrimaryKey val id: String,                // added
+    val category: String,
+    val limitAmount: Long,
+    val spentAmount: Long,
+    val period: String,                         // added
+    val warningThreshold: Int,                  // added
+    val month: String,
+    val createdAt: Long,
+    val startDate: Long?,                       // added
+    val endDate: Long?                          // added
+)

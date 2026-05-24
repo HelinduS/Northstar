@@ -3,14 +3,15 @@ package com.example.northstar.ui.dashboard.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.DateRange
-import androidx.compose.material.icons.outlined.Payments
 import androidx.compose.material.icons.outlined.QueryStats
-import androidx.compose.material.icons.outlined.Receipt
 import androidx.compose.material.icons.outlined.TrackChanges
+import androidx.compose.material.icons.outlined.Savings // Added for Budget feature representation
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -30,124 +31,111 @@ import com.example.northstar.ui.theme.*
 @Composable
 fun QuickActionsRow(navController: NavController) {
     val cs = MaterialTheme.colorScheme
+    val scrollState = rememberScrollState() // Remembers scroll configuration safely
 
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 20.dp)
-            .padding(top = 20.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-        // ── Two large primary action cards ────────────────────────────────────
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            PrimaryActionCard(
-                icon        = Icons.Outlined.Payments,
-                title       = "Add Income",
-                subtitle    = "Record income",
-                iconBg      = GreenAccent.copy(alpha = 0.2f),
-                iconTint    = GreenBright,
-                cardBg      = GreenDeep,
-                titleColor  = White,
-                subtitleColor = White.copy(alpha = 0.5f),
-                modifier    = Modifier.weight(1f),
-                onClick     = { navController.navigate(Screen.AddIncome.route) }
-            )
-            PrimaryActionCard(
-                icon        = Icons.Outlined.Receipt,
-                title       = "Add Expense",
-                subtitle    = "Track spending",
-                iconBg      = NegativeRed.copy(alpha = 0.10f),
-                iconTint    = NegativeRed,
-                cardBg      = cs.surface,
-                titleColor  = cs.onSurface,
-                subtitleColor = cs.onSurfaceVariant,
-                modifier    = Modifier.weight(1f),
-                cardBorder  = cs.outline,
-                onClick     = { navController.navigate(Screen.AddExpense.route) }
-            )
-        }
+        Text(
+            text = "Features",
+            fontSize = 15.sp,
+            fontWeight = FontWeight.Bold,
+            color = cs.onSurface,
+            fontFamily = InterFontFamily,
+            modifier = Modifier.padding(horizontal = 20.dp)
+        )
 
-        // ── Three secondary icon cards ────────────────────────────────────────
+        // Transformed from fixed layout into a smooth horizontal scrolling arrangement
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(scrollState)
+                .padding(horizontal = 20.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             SecondaryActionCard(
-                icon    = Icons.Outlined.TrackChanges,
-                label   = "Goals",
-                modifier = Modifier.weight(1f),
+                icon = Icons.Outlined.TrackChanges,
+                label = "Goals",
+                modifier = Modifier.width(100.dp),
                 onClick = { navController.navigate(Screen.Goals.route) }
             )
+
             SecondaryActionCard(
-                icon    = Icons.Outlined.QueryStats,
-                label   = "Analytics",
-                modifier = Modifier.weight(1f),
+                icon = Icons.Outlined.QueryStats,
+                label = "Analytics",
+                modifier = Modifier.width(100.dp),
                 onClick = { navController.navigate(Screen.Analytics.route) }
             )
+
             SecondaryActionCard(
-                icon    = Icons.Outlined.DateRange,
-                label   = "History",
-                modifier = Modifier.weight(1f),
+                icon = Icons.Outlined.DateRange,
+                label = "History",
+                modifier = Modifier.width(100.dp),
                 onClick = { navController.navigate(Screen.TransactionHistory.route) }
+            )
+
+            // Milestone 1 Addition: Budget Action Shortcut Option Card
+            SecondaryActionCard(
+                icon = Icons.Outlined.Savings,
+                label = "Budget",
+                modifier = Modifier.width(100.dp),
+                onClick = { navController.navigate(Screen.Budgets.route) }
             )
         }
     }
 }
 
 @Composable
-private fun PrimaryActionCard(
-    icon: ImageVector,
+fun PrimaryActionCard(
     title: String,
     subtitle: String,
-    iconBg: Color,
-    iconTint: Color,
-    cardBg: Color,
-    titleColor: Color,
+    icon: ImageVector,
+    containerColor: Color,
+    contentColor: Color,
     subtitleColor: Color,
     modifier: Modifier = Modifier,
-    cardBorder: Color = Color.Transparent,
     onClick: () -> Unit
 ) {
     Column(
         modifier = modifier
-            .clip(RoundedCornerShape(18.dp))
-            .background(cardBg, RoundedCornerShape(18.dp))
-            .border(1.dp, cardBorder, RoundedCornerShape(18.dp))
+            .clip(RoundedCornerShape(20.dp))
+            .background(containerColor)
             .clickable(onClick = onClick)
             .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Box(
             modifier = Modifier
-                .size(36.dp)
-                .background(iconBg, RoundedCornerShape(10.dp)),
+                .size(40.dp)
+                .background(Color.White.copy(alpha = 0.15f), RoundedCornerShape(12.dp)),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 icon,
                 contentDescription = title,
-                tint = iconTint,
-                modifier = Modifier.size(18.dp)
+                modifier = Modifier.size(20.dp),
+                tint = contentColor
             )
         }
-        Text(
-            title,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Bold,
-            lineHeight = 14.sp,
-            color = titleColor,
-            fontFamily = InterFontFamily
-        )
-        Text(
-            subtitle,
-            fontSize = 11.sp,
-            lineHeight = 11.sp,
-            color = subtitleColor,
-            fontFamily = InterFontFamily
-        )
+
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(
+                title,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                color = contentColor,
+                fontFamily = InterFontFamily
+            )
+            Text(
+                subtitle,
+                fontSize = 11.sp,
+                lineHeight = 11.sp,
+                color = subtitleColor,
+                fontFamily = InterFontFamily
+            )
+        }
     }
 }
 
@@ -185,9 +173,8 @@ private fun SecondaryActionCard(
         Text(
             label,
             fontSize = 11.sp,
-            fontWeight = FontWeight.Medium,
-            lineHeight = 11.sp,
-            color = cs.onSurfaceVariant,
+            fontWeight = FontWeight.SemiBold,
+            color = cs.onSurface,
             fontFamily = InterFontFamily
         )
     }

@@ -1,5 +1,6 @@
 package com.example.northstar
 
+
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -17,6 +18,7 @@ import com.example.northstar.ui.settings.SettingsScreen
 import com.example.northstar.ui.settings.PrivacyPolicyScreen
 import com.example.northstar.ui.settings.TermsScreen
 
+
 @Composable
 fun NavGraph(
     navController: NavHostController,
@@ -32,15 +34,6 @@ fun NavGraph(
                 onAuthSuccess = {
                     navController.navigate(Screen.Dashboard.route) {
                         popUpTo(Screen.Login.route) { inclusive = true }
-                    }
-                }
-            )
-        }
-        composable(Screen.Register.route) {
-            AuthScreen(
-                onAuthSuccess = {
-                    navController.navigate(Screen.Dashboard.route) {
-                        popUpTo(Screen.Register.route) { inclusive = true }
                     }
                 }
             )
@@ -63,6 +56,16 @@ fun NavGraph(
         composable(Screen.TransactionHistory.route) {
             TransactionHistoryScreen(navController = navController)
         }
+
+        // Milestone 1 Addition: Secure Destination Node
+        composable(Screen.Budgets.route) {
+            com.example.northstar.ui.budget.BudgetScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
         composable(Screen.Profile.route) {
             ProfileScreen(
                 navController = navController,
@@ -78,6 +81,5 @@ fun NavGraph(
         composable(Screen.Terms.route) {
             TermsScreen(navController = navController)
         }
-
     }
 }
