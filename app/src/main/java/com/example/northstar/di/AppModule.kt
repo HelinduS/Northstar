@@ -7,7 +7,10 @@ import com.example.northstar.data.local.NorthStarDatabase
 import com.example.northstar.data.local.dao.ExpenseDao
 import com.example.northstar.data.local.dao.GoalDao
 import com.example.northstar.data.local.dao.IncomeDao
+import com.example.northstar.data.local.dao.BudgetDao // Added for Budget inclusion
 import com.example.northstar.data.remote.CurrencyApiService
+import com.example.northstar.data.repository.BudgetRepository
+import com.example.northstar.data.repository.BudgetRepositoryImpl
 import com.example.northstar.data.repository.GoalRepository
 import com.example.northstar.data.repository.GoalRepositoryImpl
 import com.example.northstar.data.repository.ExpenseRepository
@@ -31,12 +34,10 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object AppModule {
 
-    // Inside AppModule.kt
     @Provides
     @Singleton
     fun provideCurrencyApi(): CurrencyApiService {
         return Retrofit.Builder()
-            // Updated to the new stable v1 endpoint
             .baseUrl("https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
@@ -77,6 +78,12 @@ object AppModule {
     fun provideGoalDao(database: NorthStarDatabase): GoalDao =
         database.goalDao()
 
+    // Milestone 2 Addition: Provide Budget DAO to the dependency graph
+    @Provides
+    @Singleton
+    fun provideBudgetDao(database: NorthStarDatabase): BudgetDao =
+        database.budgetDao()
+
     // --- Repository Providers ---
 
     @Provides
@@ -94,14 +101,12 @@ object AppModule {
         firestore: FirebaseFirestore
     ): GoalRepository = GoalRepositoryImpl(firebaseAuth, firestore)
 
-    // --- Repository Providers ---
-
     @Provides
     @Singleton
     fun provideExpenseRepository(
-        expenseDao: ExpenseDao,           // 1. Needs Dao first
-        firebaseAuth: FirebaseAuth,       // 2. Then Auth
-        firestore: FirebaseFirestore      // 3. Then Firestore
+        expenseDao: ExpenseDao,
+        firebaseAuth: FirebaseAuth,
+        firestore: FirebaseFirestore
     ): ExpenseRepository = ExpenseRepositoryImpl(expenseDao, firebaseAuth, firestore)
 
     @Provides
@@ -115,4 +120,12 @@ object AppModule {
     fun provideThemePreferenceManager(application: Application): ThemePreferenceManager {
         return ThemePreferenceManager(application)
     }
+
+    @Provides
+    @Singleton
+    fun provideBudgetRepository(
+        budgetDao: BudgetDao,
+        firebaseAuth: FirebaseAuth,
+        firestore: FirebaseFirestore
+    ): BudgetRepository = BudgetRepositoryImpl(budgetDao, firebaseAuth, firestore)
 }

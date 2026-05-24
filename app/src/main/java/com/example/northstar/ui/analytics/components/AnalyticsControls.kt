@@ -8,8 +8,8 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.northstar.ui.analytics.AnalyticsTab
 import com.example.northstar.ui.analytics.TimeFilter
 import com.example.northstar.ui.theme.*
@@ -23,9 +23,15 @@ fun AnalyticsControls(
     onFilterChanged: (TimeFilter) -> Unit
 ) {
     Column {
-        //  Toggle section
+        // Toggle section
         SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
             AnalyticsTab.values().forEachIndexed { index, tab ->
+                val tabLabel = when (tab) {
+                    AnalyticsTab.INCOME -> "Income"
+                    AnalyticsTab.EXPENSE -> "Expense"
+                    AnalyticsTab.COMPARISON -> "Inc vs Exp"
+                }
+
                 SegmentedButton(
                     shape = SegmentedButtonDefaults.itemShape(
                         index = index,
@@ -33,27 +39,22 @@ fun AnalyticsControls(
                     ),
                     onClick = { onTabChanged(tab) },
                     selected = selectedTab == tab,
+                    label = { Text(tabLabel) },
                     colors = SegmentedButtonDefaults.colors(
                         activeContainerColor = GreenDeep,
-                        activeContentColor = White
+                        activeContentColor = Color.White
                     )
-                ) {
-                    Text(
-                        text = tab.name.lowercase().replaceFirstChar { it.uppercase() },
-                        fontSize = 13.sp
-                    )
-                }
+                )
             }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        //  Time Period Filters
+        // Period filter options
         LazyRow(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth()
         ) {
-            // Standard Filters
             items(TimeFilter.values().filter { it != TimeFilter.CUSTOM }) { filter ->
                 FilterChip(
                     selected = selectedFilter == filter,
@@ -63,7 +64,7 @@ fun AnalyticsControls(
                     },
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = GreenDeep,
-                        selectedLabelColor = White
+                        selectedLabelColor = Color.White
                     )
                 )
             }
@@ -72,11 +73,7 @@ fun AnalyticsControls(
             item {
                 FilterChip(
                     selected = selectedFilter == TimeFilter.CUSTOM,
-                    onClick = {
-                        // Trigger the custom filter state
-                        onFilterChanged(TimeFilter.CUSTOM)
-
-                    },
+                    onClick = { onFilterChanged(TimeFilter.CUSTOM) },
                     label = { Text("Custom") },
                     leadingIcon = {
                         Icon(
@@ -87,7 +84,7 @@ fun AnalyticsControls(
                     },
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = GreenDeep,
-                        selectedLabelColor = White
+                        selectedLabelColor = Color.White
                     )
                 )
             }

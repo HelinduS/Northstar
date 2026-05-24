@@ -77,3 +77,18 @@ interface GoalRepository {
     // Get the current active goal
     fun getActiveGoal(): Flow<Goal?>
 }
+
+
+// Append this at the end of RepositoryInterfaces.kt
+
+interface BudgetRepository {
+
+    fun getAllBudgets(): Flow<List<com.example.northstar.domain.model.Budget>>
+
+    suspend fun addBudget(budget: com.example.northstar.domain.model.Budget): Result<Unit>
+
+    suspend fun updateBudget(budget: com.example.northstar.domain.model.Budget): Result<Unit>
+
+    suspend fun deleteBudget(category: String): Result<Unit>
+
+}
