@@ -87,7 +87,10 @@ fun DashboardScreen(
                     ) {
                         Column(modifier = Modifier.fillMaxWidth()) {
                             QuickActionsRow(navController)
-                            SavingsGoalCard(goals = uiState.goals)
+                            SavingsGoalCard(
+                                goals = uiState.goals,
+                                avgMonthlySavings = uiState.avgMonthlySavings
+                            )
                             ThisMonthCard(uiState.totalIncomeLkr, uiState.totalExpensesLkr)
                             TransactionsList(uiState.recentTransactions) {
                                 navController.navigate(Screen.TransactionHistory.route)

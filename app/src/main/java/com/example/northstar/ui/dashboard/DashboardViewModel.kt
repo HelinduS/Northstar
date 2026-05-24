@@ -33,6 +33,7 @@ data class DashboardUiState(
     val allTimeNetSavedLkr: Long = 0L,
     val recentTransactions: List<TransactionItem> = emptyList(),
     val goals: List<Goal> = emptyList(),
+    val avgMonthlySavings: Long = 0L,
     val isLoading: Boolean = false,
     val error: String? = null
 )
@@ -172,6 +173,19 @@ class DashboardViewModel @Inject constructor(
                     it.getLong("amount") ?: 0L
                 }
 
+                // FR12 — avg monthly savings over the past 3 months
+                val threeMonthsAgoMs = Calendar.getInstance()
+                    .apply { add(Calendar.MONTH, -3) }
+                    .timeInMillis
+                val threeMonthIncome = allTimeIncomesSnapshot.documents
+                    .filter { (it.getTimestamp("date")?.toDate()?.time ?: 0L) >= threeMonthsAgoMs }
+                    .sumOf { it.getLong("lkrAmount") ?: 0L }
+                val threeMonthExpenses = allTimeExpensesSnapshot.documents
+                    .filter { (it.getTimestamp("date")?.toDate()?.time ?: 0L) >= threeMonthsAgoMs }
+                    .sumOf { it.getLong("amount") ?: 0L }
+                val avgMonthlySavings = ((threeMonthIncome - threeMonthExpenses) / 3L)
+                    .coerceAtLeast(0L)
+
                 val recentIncomes = incomesSnapshot.documents.map {
                     TransactionItem(
                         id = it.id,
@@ -218,6 +232,7 @@ class DashboardViewModel @Inject constructor(
                     allTimeExpensesLkr = allTimeExpenses,
                     allTimeNetSavedLkr = allTimeIncome - allTimeExpenses,
                     recentTransactions = recentTransactions,
+                    avgMonthlySavings = avgMonthlySavings,
                     isLoading = false
                 )
 
