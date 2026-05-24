@@ -86,9 +86,12 @@ interface BudgetDao {
     @Delete
     suspend fun deleteBudget(budget: BudgetEntity)
 
+    @Query("DELETE FROM budgets WHERE id = :budgetId")
+    suspend fun deleteBudgetById(budgetId: String)
+
     @Query("SELECT * FROM budgets ORDER BY createdAt DESC")
     fun getAllBudgets(): Flow<List<BudgetEntity>>
 
     @Query("SELECT * FROM budgets WHERE category = :category LIMIT 1")
-    suspend fun getBudgetByCategory(category: String): BudgetEntity?
+    suspend fun findByCategory(category: String): BudgetEntity?
 }

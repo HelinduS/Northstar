@@ -121,24 +121,26 @@ class BudgetRepositoryImpl @Inject constructor(
             val userId = getUserIdOrNull()
                 ?: return Result.failure(IllegalStateException("User is not signed in"))
 
+            val roomBudget = budgetDao.findByCategory(category)
+            val firestoreBudgetId = if (roomBudget == null) {
+                budgetsCollection(userId)
+                    .whereEqualTo("category", category)
+                    .limit(1)
+                    .get()
+                    .await()
+                    .documents
+                    .firstOrNull()
+                    ?.id
+            } else {
+                null
+            }
 
-            budgetsCollection(userId).document(category).delete().await()
+            val budgetId = roomBudget?.id?.takeIf { it.isNotEmpty() }
+                ?: firestoreBudgetId
+                ?: category
 
-            // Delete from Room (by category)
-            budgetDao.deleteBudget(
-                BudgetEntity(
-                    id = category,
-                    category = category,
-                    limitAmount = 0L,
-                    spentAmount = 0L,
-                    period = "",
-                    warningThreshold = 0,
-                    month = "",
-                    createdAt = 0L,
-                    startDate = null,
-                    endDate = null
-                )
-            )
+            budgetsCollection(userId).document(budgetId).delete().await()
+            budgetDao.deleteBudgetById(budgetId)
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
