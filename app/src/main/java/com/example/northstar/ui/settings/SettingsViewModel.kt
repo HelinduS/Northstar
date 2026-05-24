@@ -207,7 +207,7 @@ class SettingsViewModel @Inject constructor(
                         drawHeader(canvas)
                         yPos = 100f
                     }
-                    val amount = doc.getLong("lkrAmount") ?: 0L
+                    val amount = doc.getLong("amountLKR") ?: 0L
                     val source = doc.getString("sourceType") ?: "Unknown"
                     val date = doc.getTimestamp("date")?.toDate()
                     val notes = doc.getString("notes") ?: "-"
