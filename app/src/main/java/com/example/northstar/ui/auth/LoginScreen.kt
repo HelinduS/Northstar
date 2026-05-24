@@ -15,12 +15,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.input.*
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -55,57 +54,175 @@ fun LoginScreen(
             .background(Navy900)
     ) {
 
-        // ── Top branding section ──
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 28.dp)
-                .padding(top = 100.dp),
-            horizontalAlignment = Alignment.Start
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(White.copy(alpha = 0.1f))
-                    .border(1.dp, White.copy(alpha = 0.15f), RoundedCornerShape(14.dp)),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    "N★",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.W800,
-                    color = White,
-                    fontFamily = InterFontFamily
-                )
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Text(
-                "Welcome back",
-                fontSize = 32.sp,
-                fontWeight = FontWeight.W800,
-                color = White,
-                letterSpacing = (-1).sp,
-                fontFamily = InterFontFamily
-            )
-            Spacer(modifier = Modifier.height(6.dp))
-            Text(
-                "Sign in to NorthStar",
-                fontSize = 15.sp,
-                fontWeight = FontWeight.W400,
-                color = White.copy(alpha = 0.45f),
-                fontFamily = InterFontFamily
-            )
-        }
-
-        // ── Bottom sheet ──
-        val cs = MaterialTheme.colorScheme
+        // ═══════════════════════════════
+        // 🔷 Enhanced Header Section
+        // ═══════════════════════════════
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight(0.62f)
+                .padding(top = 80.dp)
+        ) {
+            // Centered glow
+            Box(
+                modifier = Modifier
+                    .size(280.dp)
+                    .align(Alignment.TopCenter)
+                    .offset(y = (-40).dp)
+                    .clip(RoundedCornerShape(200.dp))
+                    .background(
+                        Brush.radialGradient(
+                            colors = listOf(
+                                GreenDeep.copy(alpha = 0.32f),
+                                Color.Transparent
+                            )
+                        )
+                    )
+            )
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 28.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+
+                // ── "Now live" badge ──
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(100.dp))
+                        .background(White.copy(alpha = 0.07f))
+                        .border(1.dp, White.copy(alpha = 0.12f), RoundedCornerShape(100.dp))
+                        .padding(horizontal = 14.dp, vertical = 5.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(6.dp)
+                                .clip(RoundedCornerShape(100.dp))
+                                .background(Color(0xFF22C55E))
+                        )
+                        Text(
+                            text = "Now live",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.W600,
+                            color = White.copy(alpha = 0.55f),
+                            letterSpacing = 0.5.sp,
+                            fontFamily = InterFontFamily
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(22.dp))
+
+                // ── Logo ──
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clip(RoundedCornerShape(18.dp))
+                        .background(White.copy(alpha = 0.10f))
+                        .border(1.dp, White.copy(alpha = 0.16f), RoundedCornerShape(18.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "N★",
+                        fontSize = 23.sp,
+                        fontWeight = FontWeight.W900,
+                        color = White,
+                        fontFamily = InterFontFamily
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(22.dp))
+
+                // ── Title ──
+                Text(
+                    text = "Welcome back",
+                    fontSize = 34.sp,
+                    fontWeight = FontWeight.W900,
+                    color = White,
+                    letterSpacing = (-1.2).sp,
+                    fontFamily = InterFontFamily,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // ── Subtitle ──
+                Text(
+                    text = "Sign in to continue your journey",
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.W400,
+                    color = White.copy(alpha = 0.50f),
+                    fontFamily = InterFontFamily,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // ── Secure / Fast / Reliable pills ──
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    listOf("\uD83D\uDCCA Track", "\uD83C\uDFAF Goals", "\uD83D\uDCB0 Save").forEach { label ->
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(100.dp))
+                                .background(White.copy(alpha = 0.06f))
+                                .border(1.dp, White.copy(alpha = 0.10f), RoundedCornerShape(100.dp))
+                                .padding(horizontal = 12.dp, vertical = 5.dp)
+                        ) {
+                            Text(
+                                text = label,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.W500,
+                                color = White.copy(alpha = 0.45f),
+                                fontFamily = InterFontFamily,
+
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(28.dp))
+
+                // ── "sign in below" divider ──
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    HorizontalDivider(
+                        modifier = Modifier.weight(1f),
+                        color = White.copy(alpha = 0.08f)
+                    )
+                    Text(
+                        text = "sign in below",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.W500,
+                        color = White.copy(alpha = 0.22f),
+                        fontFamily = InterFontFamily
+                    )
+                    HorizontalDivider(
+                        modifier = Modifier.weight(1f),
+                        color = White.copy(alpha = 0.08f)
+                    )
+                }
+            }
+        }
+
+        // ═══════════════════════════════
+        // 🟢 Bottom Sheet Section
+        // ═══════════════════════════════
+        val cs = MaterialTheme.colorScheme
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.55f)
                 .align(Alignment.BottomCenter)
                 .clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
                 .background(cs.surface)
@@ -118,7 +235,7 @@ fun LoginScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
-                // Email field
+                // ── Email field ──
                 NorthStarInputField(
                     value = emailState.value,
                     onValueChange = {
@@ -144,7 +261,7 @@ fun LoginScreen(
 
                 Spacer(modifier = Modifier.height(14.dp))
 
-                // Password field
+                // ── Password field ──
                 NorthStarInputField(
                     value = passwordState.value,
                     onValueChange = {
@@ -163,27 +280,32 @@ fun LoginScreen(
                         )
                     },
                     trailingIcon = {
-                        IconButton(onClick = { passwordVisible.value = !passwordVisible.value }) {
+                        IconButton(onClick = {
+                            passwordVisible.value = !passwordVisible.value
+                        }) {
                             Icon(
-                                if (passwordVisible.value) Icons.Outlined.VisibilityOff
-                                else Icons.Outlined.Visibility,
+                                if (passwordVisible.value)
+                                    Icons.Outlined.VisibilityOff
+                                else
+                                    Icons.Outlined.Visibility,
                                 contentDescription = null,
                                 modifier = Modifier.size(18.dp),
                                 tint = cs.onSurfaceVariant
                             )
                         }
                     },
-                    visualTransformation = if (passwordVisible.value)
-                        VisualTransformation.None
-                    else
-                        PasswordVisualTransformation(),
+                    visualTransformation =
+                        if (passwordVisible.value)
+                            VisualTransformation.None
+                        else
+                            PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Password,
                         imeAction = ImeAction.Done
                     )
                 )
 
-                // Forgot password
+                // ── Forgot password ──
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -201,7 +323,7 @@ fun LoginScreen(
                     }
                 }
 
-                // Error message
+                // ── Error message ──
                 if (uiState is AuthUiState.Error) {
                     Box(
                         modifier = Modifier
@@ -224,7 +346,7 @@ fun LoginScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Login button
+                // ── Login button ──
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -257,7 +379,10 @@ fun LoginScreen(
                                     valid = false
                                 }
                                 if (valid) {
-                                    viewModel.login(emailState.value, passwordState.value)
+                                    viewModel.login(
+                                        emailState.value,
+                                        passwordState.value
+                                    )
                                 }
                             },
                             modifier = Modifier.fillMaxSize(),
@@ -280,7 +405,7 @@ fun LoginScreen(
 
                 Spacer(modifier = Modifier.weight(1f))
 
-                // Sign up link
+                // ── Sign up link ──
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
@@ -321,6 +446,7 @@ fun NorthStarInputField(
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default
 ) {
     val cs = MaterialTheme.colorScheme
+
     Column(modifier = Modifier.fillMaxWidth()) {
         OutlinedTextField(
             value = value,
