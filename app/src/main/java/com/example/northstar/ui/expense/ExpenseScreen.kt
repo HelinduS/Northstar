@@ -360,12 +360,6 @@ fun ExpenseScreen(
                         )
                     }
 
-                    Text(
-                        text = "Expense Details",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp,
-                        color = TextPrimary
-                    )
 
                     DropdownField(
                         label = "Category",
