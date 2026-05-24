@@ -31,10 +31,10 @@ fun BudgetCard(
     val remainingAmount = budget.limitAmount - budget.spentAmount
 
     val boundaryColor = when {
-        usageRatio >= 1.0f -> Color(0xFFD32F2F) // 100%+ Red Boundary Flag
-        usageRatio >= 0.8f -> Color(0xFFE65100) // 80% - 99% Orange Warning Status
-        usageRatio >= 0.5f -> Color(0xFFFBC02D) // 51% - 79% Yellow Notice Status
-        else -> MaterialTheme.colorScheme.primary // 0% - 50% Primary/Green Safe Status
+        usageRatio >= 1.0f -> Color(0xFFD32F2F)
+        usageRatio >= 0.8f -> Color(0xFFE65100)
+        usageRatio >= 0.5f -> Color(0xFFFBC02D)
+        else -> MaterialTheme.colorScheme.primary
     }
 
     Card(

@@ -67,7 +67,7 @@ fun AnalyticsScreen(navController: NavController, viewModel: AnalyticsViewModel 
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = GreenDeep,           // Dark green background
+                    containerColor = GreenDeep,
                     titleContentColor = androidx.compose.ui.graphics.Color.White,
                     navigationIconContentColor = androidx.compose.ui.graphics.Color.White
                 )
@@ -82,7 +82,7 @@ fun AnalyticsScreen(navController: NavController, viewModel: AnalyticsViewModel 
                 .padding(horizontal = 16.dp)
         ) {
             item {
-                // ADDED SPACER to separate dark green header from the three balance cards
+
                 Spacer(modifier = Modifier.height(12.dp))
 
                 AnalyticsHeader(

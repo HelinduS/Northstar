@@ -96,7 +96,7 @@ fun FilterAndSortControlBar(
                     trailingIcon = { Icon(Icons.Default.ArrowDropDown, null) }
                 )
                 DropdownMenu(expanded = sortMenuExpanded, onDismissRequest = { sortMenuExpanded = false }) {
-                    // New order: Lowest Spending, Highest Spending, Highest Remaining, Lowest Remaining
+
                     DropdownMenuItem(
                         text = { Text("Lowest Spending (%)") },
                         onClick = { onSortChange(BudgetSortOption.LOWEST_SPENDING); sortMenuExpanded = false }

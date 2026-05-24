@@ -17,7 +17,7 @@ class BudgetViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _filterState = MutableStateFlow(BudgetFilterState())
-    private val _sortState = MutableStateFlow(BudgetSortOption.LOWEST_SPENDING)  // ✅ changed from HIGHEST_SPENDING
+    private val _sortState = MutableStateFlow(BudgetSortOption.LOWEST_SPENDING)
     private val _snoozedAlerts = MutableStateFlow<Set<String>>(emptySet())
 
     // Normalize expense category strings to match budget category keys
@@ -39,15 +39,15 @@ class BudgetViewModel @Inject constructor(
         _snoozedAlerts
     ) { rawBudgets, allExpenses, filters, sorting, snoozed ->
 
-        // 1. Group expenses by normalized category and sum amounts (in cents)
+
         val spentMapCents = allExpenses.groupBy { expense ->
             normalizeExpenseCategory(expense.category)
-        }.mapValues { entry -> entry.value.sumOf { it.amount } } // amount is in cents
+        }.mapValues { entry -> entry.value.sumOf { it.amount } }
 
-        // 2. Convert cents to LKR (major units) by dividing by 100
+
         val spentMapLkr = spentMapCents.mapValues { (_, cents) -> cents / 100 }
 
-        // 3. Map totals to each budget
+
         val processedBudgets = rawBudgets.map { budget ->
             val normalizedBudgetCategory = budget.category.trim().uppercase()
             val budgetLookupKey = when (normalizedBudgetCategory) {
@@ -59,8 +59,7 @@ class BudgetViewModel @Inject constructor(
             val totalSpentAmount = spentMapLkr[budgetLookupKey] ?: 0L
             budget.copy(spentAmount = totalSpentAmount)
         }
-
-        // 4. Generate alerts (unchanged)
+        //  Generate alerts
         val generatedAlerts = mutableListOf<BudgetSystemAlert>()
         processedBudgets.forEach { budget ->
             val spendRatio = if (budget.limitAmount > 0) budget.spentAmount.toFloat() / budget.limitAmount.toFloat() else 0f
@@ -87,7 +86,7 @@ class BudgetViewModel @Inject constructor(
             }
         }
 
-        // 5. Filter and sort budgets
+        //  Filter and sort budgets
         val filteredAndSorted = processedBudgets.filter { budget ->
             val matchesPeriod = filters.period == "ALL" || budget.period.equals(filters.period, ignoreCase = true)
             val matchesStatus = when (filters.status) {

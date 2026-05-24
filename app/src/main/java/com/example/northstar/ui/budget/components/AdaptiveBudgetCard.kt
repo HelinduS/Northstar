@@ -148,7 +148,7 @@ fun AdaptiveBudgetCard(
                 trackColor = indicatorColor.copy(alpha = 0.15f)
             )
 
-            // Remaining / exceeded + days left
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -181,7 +181,7 @@ fun AdaptiveBudgetCard(
                 color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
             )
 
-            // ✅ Shaded action buttons
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -201,7 +201,7 @@ fun AdaptiveBudgetCard(
                     Text("View", fontWeight = FontWeight.Medium, fontSize = 13.sp)
                 }
 
-                // Edit button (warning/orange shade)
+                // Edit button
                 Button(
                     onClick = onEdit,
                     modifier = Modifier.weight(1f),
@@ -215,7 +215,7 @@ fun AdaptiveBudgetCard(
                     Text("Edit", fontWeight = FontWeight.Medium, fontSize = 13.sp)
                 }
 
-                // Delete button (error/red shade)
+                // Delete button
                 Button(
                     onClick = onDelete,
                     modifier = Modifier.weight(1f),

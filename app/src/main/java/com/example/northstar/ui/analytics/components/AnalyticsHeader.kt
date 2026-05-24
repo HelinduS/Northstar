@@ -28,14 +28,14 @@ fun AnalyticsHeader(income: Long, expense: Long, netSaved: Long) {
 
 @Composable
 private fun HeaderCard(label: String, amount: Long, modifier: Modifier) {
-    // Subtle gradient: dark green to a slightly lighter dark green
+
     val subtleGradient = Brush.verticalGradient(
         colors = listOf(
-            GreenDeep,           // dark green (main colour)
-            Color(0xFF2E7D32)    // still dark green, but a bit lighter (subtle shading)
+            GreenDeep,
+            Color(0xFF2E7D32)
         ),
         startY = 0.0f,
-        endY = 0.6f   // gradient only affects top 60% – keeps the card mostly uniform
+        endY = 0.6f
     )
 
     Card(

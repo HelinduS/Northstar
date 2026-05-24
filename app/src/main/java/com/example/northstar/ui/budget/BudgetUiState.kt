@@ -4,7 +4,7 @@ import com.example.northstar.domain.model.Budget
 
 data class BudgetFilter(
     val selectedMonth: String = "",
-    val period: String = "ALL" // "ALL", "MONTHLY", "WEEKLY"
+    val period: String = "ALL"
 )
 
 data class BudgetUiState(

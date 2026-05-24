@@ -44,7 +44,7 @@ class BudgetRepositoryImpl @Inject constructor(
                 val budgets = snapshot?.documents?.mapNotNull { doc ->
                     try {
                         Budget(
-                            id = doc.id,   // ✅ Added id
+                            id = doc.id,
                             category = doc.getString("category") ?: doc.id,
                             limitAmount = doc.getLong("limitAmount") ?: 0L,
                             spentAmount = doc.getLong("spentAmount") ?: 0L,
@@ -56,7 +56,7 @@ class BudgetRepositoryImpl @Inject constructor(
                             endDate = doc.getLong("endDate")
                         )
                     } catch (e: Exception) {
-                        null // skip malformed documents
+                        null
                     }
                 } ?: emptyList()
 
@@ -122,8 +122,7 @@ class BudgetRepositoryImpl @Inject constructor(
             val userId = getUserIdOrNull()
                 ?: return Result.failure(IllegalStateException("User is not signed in"))
 
-            // Delete from Firestore (document ID is category, but ideally we store id)
-            // We'll delete by category (which is used as document ID currently)
+
             budgetsCollection(userId).document(category).delete().await()
 
             // Delete from Room (by category)
