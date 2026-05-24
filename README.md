@@ -1,6 +1,6 @@
 # NorthStar — Personal Finance Management App
 
-> SE3092 Platform Based Development | Assignment 01 | 2026 Semester 01 | SLIIT
+> SE3092 Platform Based Development | Assignment 01 | 2026 | SLIIT
 
 NorthStar is a native Android personal finance management application built for Kavindu — a young professional who needs to track monthly income from multiple sources, manage recurring and one-off expenses, set and monitor savings goals, and gain analytical insight into his spending patterns. The app provides a secure, offline-capable, cloud-synced financial companion built on modern Android architecture.
 
