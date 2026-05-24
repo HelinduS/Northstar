@@ -7,12 +7,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DirectionsCar
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.Restaurant
-import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -32,9 +28,6 @@ import java.util.*
 
 // ── Date grouping ─────────────────────────────────────────────────────────────
 private fun dateLabel(timestamp: Long): String {
-    val now = Calendar.getInstance()
-    val day = Calendar.getInstance().apply { timeInMillis = timestamp }
-
     val todayStart = Calendar.getInstance().apply {
         set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0)
         set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
@@ -52,11 +45,11 @@ private fun dateLabel(timestamp: Long): String {
 fun TransactionsList(transactions: List<TransactionItem>, onSeeAll: () -> Unit) {
     val cs = MaterialTheme.colorScheme
 
-    // Group by date label — preserves insertion order (LinkedHashMap)
-    val grouped: Map<String, List<TransactionItem>> = transactions.groupBy { dateLabel(it.date) }
+    val grouped: Map<String, List<TransactionItem>> =
+        transactions.groupBy { dateLabel(it.date) }
 
     Column(modifier = Modifier.padding(top = 20.dp)) {
-        // ── Section header ────────────────────────────────────────────────────
+        // Section header
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -105,7 +98,7 @@ fun TransactionsList(transactions: List<TransactionItem>, onSeeAll: () -> Unit) 
             }
         } else {
             grouped.forEach { (label, group) ->
-                // ── Date group header ─────────────────────────────────────────
+                // Date group header
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -129,7 +122,7 @@ fun TransactionsList(transactions: List<TransactionItem>, onSeeAll: () -> Unit) 
                     )
                 }
 
-                // ── Group card ────────────────────────────────────────────────
+                // Group card
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -180,7 +173,12 @@ fun TransactionRow(t: TransactionItem) {
                 .background(iconBg),
             contentAlignment = Alignment.Center
         ) {
-            Icon(icon, contentDescription = null, tint = iconTint, modifier = Modifier.size(20.dp))
+            Icon(
+                icon,
+                contentDescription = null,
+                tint = iconTint,
+                modifier = Modifier.size(20.dp)
+            )
         }
 
         Column(modifier = Modifier.weight(1f)) {
@@ -192,13 +190,17 @@ fun TransactionRow(t: TransactionItem) {
                 fontFamily = InterFontFamily
             )
             val subtitle = buildString {
-                if (t.category.isNotBlank() && t.sourceType.isNotBlank()) append(t.sourceType)
-                else if (t.expenseType.isNotBlank()) append(t.expenseType.lowercase().replaceFirstChar { it.uppercase() })
+                if (t.category.isNotBlank() && t.sourceType.isNotBlank())
+                    append(t.sourceType)
+                else if (t.expenseType.isNotBlank())
+                    append(t.expenseType.lowercase().replaceFirstChar { it.uppercase() })
                 if (t.paymentMethod.isNotBlank()) {
                     if (isNotEmpty()) append(" • ")
                     append(t.paymentMethod)
                 }
-            }.ifBlank { SimpleDateFormat("MMM dd, yyyy", Locale.US).format(Date(t.date)) }
+            }.ifBlank {
+                SimpleDateFormat("MMM dd, yyyy", Locale.US).format(Date(t.date))
+            }
 
             Text(
                 subtitle,
@@ -229,26 +231,10 @@ fun TransactionRow(t: TransactionItem) {
     }
 }
 
-private fun transactionIcon(t: TransactionItem, key: String) = when {
-    t.isIncome                                                                       -> Icons.Default.KeyboardArrowUp
-    key.contains("rent") || key.contains("home") || key.contains("mortgage")        -> Icons.Default.Home
-    key.contains("food") || key.contains("meal") || key.contains("restaurant")
-            || key.contains("coffee") || key.contains("dining")                     -> Icons.Default.Restaurant
-    key.contains("car") || key.contains("fuel") || key.contains("transport")
-            || key.contains("taxi") || key.contains("ride") || key.contains("uber") -> Icons.Default.DirectionsCar
-    key.contains("shop") || key.contains("grocery") || key.contains("market")
-            || key.contains("purchase") || key.contains("sneaker")                  -> Icons.Default.ShoppingBag
-    else                                                                             -> Icons.Default.KeyboardArrowDown
-}
+private fun transactionIcon(t: TransactionItem, key: String) =
+    if (t.isIncome) Icons.Default.KeyboardArrowDown
+    else Icons.Default.KeyboardArrowUp
 
-private fun transactionIconColors(t: TransactionItem, key: String): Pair<Color, Color> = when {
-    t.isIncome                                                                       -> Pair(GreenAccent.copy(alpha = 0.15f), GreenAccent)
-    key.contains("rent") || key.contains("home") || key.contains("mortgage")        -> Pair(Color(0xFFFEE2E2), Color(0xFFEF4444))
-    key.contains("food") || key.contains("meal") || key.contains("restaurant")
-            || key.contains("coffee") || key.contains("dining")                     -> Pair(Color(0xFFFFF3E0), Color(0xFFE67700))
-    key.contains("car") || key.contains("fuel") || key.contains("transport")
-            || key.contains("taxi") || key.contains("ride") || key.contains("uber") -> Pair(Color(0xFFE0F7FA), Color(0xFF0097A7))
-    key.contains("shop") || key.contains("grocery") || key.contains("market")
-            || key.contains("purchase") || key.contains("sneaker")                  -> Pair(Color(0xFFF3E5F5), Color(0xFF7B1FA2))
-    else                                                                             -> Pair(NegativeRed.copy(alpha = 0.1f), NegativeRed)
-}
+private fun transactionIconColors(t: TransactionItem, key: String): Pair<Color, Color> =
+    if (t.isIncome) Pair(GreenAccent.copy(alpha = 0.15f), GreenAccent)
+    else Pair(NegativeRed.copy(alpha = 0.1f), NegativeRed)

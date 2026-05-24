@@ -59,7 +59,7 @@ fun DashboardScreen(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(bottom = 20.dp)
+                    .padding(bottom = 90.dp)
             ) {
                 item {
                     HeroSection(

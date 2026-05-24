@@ -42,7 +42,6 @@ fun IncomeScreen(
     val context = LocalContext.current
     val cs = MaterialTheme.colorScheme
 
-    // Notification ViewModel scoped to Activity
     val notificationViewModel: NotificationViewModel = viewModel(
         viewModelStoreOwner = context as ComponentActivity
     )
@@ -66,7 +65,6 @@ fun IncomeScreen(
 
     LaunchedEffect(uiState) {
         if (uiState is IncomeUiState.Success) {
-            // Fire notification with saved amount
             val amountDouble = amount.toDoubleOrNull() ?: 0.0
             val amountInLkr = if (selectedCurrency == "LKR") amountDouble else totalLkrEstimate
             notificationViewModel.notifyIncomeLogged(
@@ -101,7 +99,7 @@ fun IncomeScreen(
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp)
+                        .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 32.dp)
                         .height(56.dp),
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(
@@ -114,9 +112,16 @@ fun IncomeScreen(
                             selectedDate != 0L
                 ) {
                     if (uiState is IncomeUiState.Loading) {
-                        CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.White)
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = Color.White
+                        )
                     } else {
-                        Text("Save Income", fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+                        Text(
+                            "Save Income",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
                     }
                 }
             }
@@ -144,14 +149,34 @@ fun IncomeScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         IconButton(onClick = { navController.popBackStack() }) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = Color.White)
+                            Icon(
+                                Icons.AutoMirrored.Filled.ArrowBack,
+                                null,
+                                tint = Color.White
+                            )
                         }
-                        Text("Add Income", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                        Text(
+                            "Add Income",
+                            color = Color.White,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                     Spacer(modifier = Modifier.height(24.dp))
-                    Text("How much did you earn?", color = Color.White.copy(alpha = 0.7f))
-                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 8.dp)) {
-                        Text(selectedCurrency, color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                    Text(
+                        "How much did you earn?",
+                        color = Color.White.copy(alpha = 0.7f)
+                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(top = 8.dp)
+                    ) {
+                        Text(
+                            selectedCurrency,
+                            color = Color.White,
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold
+                        )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = if (amount.isEmpty()) "0" else amount,
@@ -201,8 +226,17 @@ fun IncomeScreen(
                         sources.forEach { title ->
                             DropdownMenuItem(
                                 text = { Text(title, color = cs.onSurface) },
-                                leadingIcon = { Icon(Icons.Default.Add, null, tint = cs.onSurfaceVariant) },
-                                onClick = { viewModel.onSourceSelected(title); showSourceMenu = false }
+                                leadingIcon = {
+                                    Icon(
+                                        Icons.Default.Add,
+                                        null,
+                                        tint = cs.onSurfaceVariant
+                                    )
+                                },
+                                onClick = {
+                                    viewModel.onSourceSelected(title)
+                                    showSourceMenu = false
+                                }
                             )
                         }
                     }
@@ -237,11 +271,23 @@ fun IncomeScreen(
                             DropdownMenuItem(
                                 text = {
                                     Row {
-                                        Text(currency, fontWeight = FontWeight.Bold, modifier = Modifier.width(50.dp), color = cs.onSurface)
-                                        Text(getCurrencyName(currency), color = cs.onSurfaceVariant, fontSize = 14.sp)
+                                        Text(
+                                            currency,
+                                            fontWeight = FontWeight.Bold,
+                                            modifier = Modifier.width(50.dp),
+                                            color = cs.onSurface
+                                        )
+                                        Text(
+                                            getCurrencyName(currency),
+                                            color = cs.onSurfaceVariant,
+                                            fontSize = 14.sp
+                                        )
                                     }
                                 },
-                                onClick = { viewModel.onCurrencySelected(currency); showCurrencyMenu = false }
+                                onClick = {
+                                    viewModel.onCurrencySelected(currency)
+                                    showCurrencyMenu = false
+                                }
                             )
                         }
                     }
@@ -258,7 +304,13 @@ fun IncomeScreen(
                     },
                     modifier = Modifier.fillMaxWidth(),
                     label = { Text("Amount", color = cs.onSurfaceVariant) },
-                    prefix = { Text("$selectedCurrency ", color = cs.onSurface, fontWeight = FontWeight.Bold) },
+                    prefix = {
+                        Text(
+                            "$selectedCurrency ",
+                            color = cs.onSurface,
+                            fontWeight = FontWeight.Bold
+                        )
+                    },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     shape = RoundedCornerShape(12.dp),
                     colors = OutlinedTextFieldDefaults.colors(
@@ -271,14 +323,21 @@ fun IncomeScreen(
                 // 4. Estimated Total Card
                 if (selectedCurrency != "LKR" && amount.isNotEmpty()) {
                     Card(
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFFE8F5E9)),
+                        colors = CardDefaults.cardColors(
+                            containerColor = Color(0xFFE8F5E9)
+                        ),
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier
                             .fillMaxWidth()
                             .border(1.dp, Color(0xFFC8E6C9), RoundedCornerShape(12.dp))
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
-                            Text("Estimated Total (LKR)", fontSize = 13.sp, color = Color.Gray, fontWeight = FontWeight.Medium)
+                            Text(
+                                "Estimated Total (LKR)",
+                                fontSize = 13.sp,
+                                color = Color.Gray,
+                                fontWeight = FontWeight.Medium
+                            )
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
                                 "Rs. ${String.format(Locale.US, "%,.2f", totalLkrEstimate)}",
@@ -302,7 +361,10 @@ fun IncomeScreen(
                         trailingIcon = {
                             IconButton(onClick = { viewModel.refreshRate() }) {
                                 if (isFetching) {
-                                    CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(20.dp),
+                                        strokeWidth = 2.dp
+                                    )
                                 } else {
                                     Icon(Icons.Default.Refresh, null)
                                 }
@@ -314,11 +376,15 @@ fun IncomeScreen(
                 // 6. Date Selection
                 DetailDropdown(
                     label = "Date Received",
-                    selected = if (selectedDate == 0L) "Select Date" else dateFormatter.format(Date(selectedDate)),
+                    selected = if (selectedDate == 0L) "Select Date"
+                    else dateFormatter.format(Date(selectedDate)),
                     icon = Icons.Default.DateRange,
                     onClick = {
                         val cal = Calendar.getInstance()
-                        val themedContext = ContextThemeWrapper(context, android.R.style.Theme_DeviceDefault_Dialog_Alert)
+                        val themedContext = ContextThemeWrapper(
+                            context,
+                            android.R.style.Theme_DeviceDefault_Dialog_Alert
+                        )
                         DatePickerDialog(
                             themedContext,
                             { _, y, m, d ->
@@ -337,7 +403,13 @@ fun IncomeScreen(
                     value = notes,
                     onValueChange = { notes = it },
                     label = { Text("Add a note...") },
-                    leadingIcon = { Icon(Icons.Default.Edit, null, tint = cs.onSurfaceVariant) },
+                    leadingIcon = {
+                        Icon(
+                            Icons.Default.Edit,
+                            null,
+                            tint = cs.onSurfaceVariant
+                        )
+                    },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp)
                 )
@@ -354,8 +426,17 @@ fun DetailDropdown(
     onClick: () -> Unit
 ) {
     val cs = MaterialTheme.colorScheme
-    Column(modifier = Modifier.fillMaxWidth().clickable { onClick() }) {
-        Text(text = label, fontSize = 12.sp, color = cs.onSurfaceVariant, modifier = Modifier.padding(start = 4.dp, bottom = 4.dp))
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+    ) {
+        Text(
+            text = label,
+            fontSize = 12.sp,
+            color = cs.onSurfaceVariant,
+            modifier = Modifier.padding(start = 4.dp, bottom = 4.dp)
+        )
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -365,33 +446,43 @@ fun DetailDropdown(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(icon, null, tint = cs.onSurface, modifier = Modifier.size(20.dp))
+                Icon(
+                    icon,
+                    null,
+                    tint = cs.onSurface,
+                    modifier = Modifier.size(20.dp)
+                )
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
                     text = selected,
                     fontSize = 16.sp,
-                    color = if (selected.contains("Select")) cs.onSurfaceVariant else cs.onSurface
+                    color = if (selected.contains("Select")) cs.onSurfaceVariant
+                    else cs.onSurface
                 )
             }
-            Icon(Icons.Default.ArrowDropDown, null, tint = cs.onSurfaceVariant)
+            Icon(
+                Icons.Default.ArrowDropDown,
+                null,
+                tint = cs.onSurfaceVariant
+            )
         }
     }
 }
 
 fun getCurrencyName(code: String): String = when (code) {
-    "LKR" -> "Sri Lankan Rupee"
-    "USD" -> "US Dollar"
-    "EUR" -> "Euro"
-    "GBP" -> "British Pound"
-    "JPY" -> "Japanese Yen"
-    "CHF" -> "Swiss Franc"
-    "CAD" -> "Canadian Dollar"
-    "AUD" -> "Australian Dollar"
-    "INR" -> "Indian Rupee"
-    "CNY" -> "Chinese Yuan"
+    "LKR"  -> "Sri Lankan Rupee"
+    "USD"  -> "US Dollar"
+    "EUR"  -> "Euro"
+    "GBP"  -> "British Pound"
+    "JPY"  -> "Japanese Yen"
+    "CHF"  -> "Swiss Franc"
+    "CAD"  -> "Canadian Dollar"
+    "AUD"  -> "Australian Dollar"
+    "INR"  -> "Indian Rupee"
+    "CNY"  -> "Chinese Yuan"
     "USDT" -> "Tether"
-    "BTC" -> "Bitcoin"
-    "ETH" -> "Ethereum"
-    "ALT" -> "Altcoins"
-    else -> "Currency"
+    "BTC"  -> "Bitcoin"
+    "ETH"  -> "Ethereum"
+    "ALT"  -> "Altcoins"
+    else   -> "Currency"
 }
