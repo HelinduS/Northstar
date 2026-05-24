@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -56,13 +58,38 @@ fun AnalyticsScreen(navController: NavController, viewModel: AnalyticsViewModel 
     }
 
     Scaffold(
-        topBar = { CenterAlignedTopAppBar(title = { Text("Analytics", fontWeight = FontWeight.Bold) }) },
+        topBar = {
+            TopAppBar(
+                title = { Text("Analytics", fontWeight = FontWeight.Bold) },
+                navigationIcon = {
+                    IconButton(onClick = { navController.navigateUp() }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = GreenDeep,           // Dark green background
+                    titleContentColor = androidx.compose.ui.graphics.Color.White,
+                    navigationIconContentColor = androidx.compose.ui.graphics.Color.White
+                )
+            )
+        },
         containerColor = cs.background
     ) { padding ->
-        LazyColumn(modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp)) {
-
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(horizontal = 16.dp)
+        ) {
             item {
-                AnalyticsHeader(uiState.allTimeSummary.totalIncome, uiState.allTimeSummary.totalExpenses, uiState.allTimeSummary.netSaved)
+                // ADDED SPACER to separate dark green header from the three balance cards
+                Spacer(modifier = Modifier.height(12.dp))
+
+                AnalyticsHeader(
+                    uiState.allTimeSummary.totalIncome,
+                    uiState.allTimeSummary.totalExpenses,
+                    uiState.allTimeSummary.netSaved
+                )
                 Spacer(modifier = Modifier.height(24.dp))
 
                 AnalyticsControls(

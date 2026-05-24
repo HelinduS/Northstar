@@ -1,9 +1,13 @@
 package com.example.northstar.ui.analytics.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -12,32 +16,47 @@ import com.example.northstar.ui.theme.*
 
 @Composable
 fun AnalyticsHeader(income: Long, expense: Long, netSaved: Long) {
-    val cs = MaterialTheme.colorScheme
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        HeaderCard("Income", income, Credit, Modifier.weight(1f))
-        HeaderCard("Expense", expense, Debit, Modifier.weight(1f))
-        HeaderCard("Saved", netSaved, cs.primary, Modifier.weight(1f))
+        HeaderCard("Income", income, Modifier.weight(1f))
+        HeaderCard("Expense", expense, Modifier.weight(1f))
+        HeaderCard("Saved", netSaved, Modifier.weight(1f))
     }
 }
 
 @Composable
-private fun HeaderCard(label: String, amount: Long, color: Color, modifier: Modifier) {
-    val cs = MaterialTheme.colorScheme
-    ElevatedCard(
+private fun HeaderCard(label: String, amount: Long, modifier: Modifier) {
+    // Subtle gradient: dark green to a slightly lighter dark green
+    val subtleGradient = Brush.verticalGradient(
+        colors = listOf(
+            GreenDeep,           // dark green (main colour)
+            Color(0xFF2E7D32)    // still dark green, but a bit lighter (subtle shading)
+        ),
+        startY = 0.0f,
+        endY = 0.6f   // gradient only affects top 60% – keeps the card mostly uniform
+    )
+
+    Card(
         modifier = modifier,
-        colors = CardDefaults.elevatedCardColors(containerColor = cs.surface)
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Text(label, fontSize = 11.sp, color = cs.onSurfaceVariant)
-            Text(
-                text = "Rs.${String.format("%.2f", amount / 100.0)}",
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Bold,
-                color = color
-            )
+        Box(
+            modifier = Modifier
+                .clip(RoundedCornerShape(12.dp))
+                .background(subtleGradient)
+        ) {
+            Column(modifier = Modifier.padding(12.dp)) {
+                Text(label, fontSize = 11.sp, color = Color.White.copy(alpha = 0.8f))
+                Text(
+                    text = "Rs.${String.format("%.2f", amount / 100.0)}",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+            }
         }
     }
 }
