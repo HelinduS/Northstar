@@ -7,7 +7,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -103,12 +102,8 @@ class MainActivity : ComponentActivity() {
                             BottomNavBar(navController = navController)
                         }
                     }
-                ) { paddingValues ->  // ← changed from '_' to 'paddingValues'
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(paddingValues)   // ← added this line
-                    ) {
+                ) { _ ->
+                    Box(modifier = Modifier.fillMaxSize()) {
                         NavGraph(
                             navController = navController,
                             startDestination = startDestination,
