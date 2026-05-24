@@ -1,6 +1,6 @@
 # NorthStar — Personal Finance Management App
 
-A native Android application built for SE3092 Platform Based Development Assignment 01 (2026 Semester 01). NorthStar helps users track income, manage expenses, set savings goals, and gain financial insights — designed around the personal finance scenario of Kavindu, a young professional managing monthly income, recurring expenses, and long-term savings targets.
+A native Android application built for SE3092 Platform Based Development Assignment 01. NorthStar helps users track income, manage expenses, set savings goals, and gain financial insights — designed around the personal finance scenario of Kavindu, a young professional managing monthly income, recurring expenses, and long-term savings targets.
 
 ---
 
