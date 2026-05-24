@@ -83,18 +83,17 @@ class BudgetRepositoryImpl @Inject constructor(
                 "endDate" to budget.endDate
             )
 
-            // Write to Firestore (document ID = category or budget.id)
-            val docRef = if (budget.id.isNotEmpty()) {
-                budgetsCollection(userId).document(budget.id)
-            } else {
-                budgetsCollection(userId).document(budget.category) // fallback to category
-            }
+            // Resolve a single canonical ID used across Firestore and Room.
+            val resolvedId = if (budget.id.isNotEmpty()) budget.id else budget.category
+
+            // Write to Firestore
+            val docRef = budgetsCollection(userId).document(resolvedId)
             docRef.set(data).await()
 
             // Cache to Room
             budgetDao.insertBudget(
                 BudgetEntity(
-                    id = budget.id,
+                    id = resolvedId,
                     category = budget.category,
                     limitAmount = budget.limitAmount,
                     spentAmount = budget.spentAmount,
