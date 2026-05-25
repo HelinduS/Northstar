@@ -10,6 +10,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -27,7 +28,6 @@ fun AnalyticsScreen(navController: NavController, viewModel: AnalyticsViewModel 
     val cs = MaterialTheme.colorScheme
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    // Date range picker state management
     var showDatePicker by remember { mutableStateOf(false) }
     var tempStart by remember { mutableStateOf<Long?>(null) }
     val datePickerState = rememberDatePickerState()
@@ -68,8 +68,8 @@ fun AnalyticsScreen(navController: NavController, viewModel: AnalyticsViewModel 
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = GreenDeep,
-                    titleContentColor = androidx.compose.ui.graphics.Color.White,
-                    navigationIconContentColor = androidx.compose.ui.graphics.Color.White
+                    titleContentColor = Color.White,
+                    navigationIconContentColor = Color.White
                 )
             )
         },
@@ -82,7 +82,6 @@ fun AnalyticsScreen(navController: NavController, viewModel: AnalyticsViewModel 
                 .padding(horizontal = 16.dp)
         ) {
             item {
-
                 Spacer(modifier = Modifier.height(12.dp))
 
                 AnalyticsHeader(
@@ -103,20 +102,46 @@ fun AnalyticsScreen(navController: NavController, viewModel: AnalyticsViewModel 
                 Spacer(modifier = Modifier.height(24.dp))
             }
 
+            // Expense grouping chips (only when Expense tab is selected)
+            if (uiState.selectedTab == AnalyticsTab.EXPENSE) {
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        FilterChip(
+                            selected = uiState.selectedExpenseGrouping == ExpenseGrouping.BY_CATEGORY,
+                            onClick = { viewModel.selectExpenseGrouping(ExpenseGrouping.BY_CATEGORY) },
+                            label = { Text("Expense Categories") },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = GreenDeep,
+                                selectedLabelColor = Color.White
+                            )
+                        )
+                        FilterChip(
+                            selected = uiState.selectedExpenseGrouping == ExpenseGrouping.BY_TYPE,
+                            onClick = { viewModel.selectExpenseGrouping(ExpenseGrouping.BY_TYPE) },
+                            label = { Text("Expense Type") },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = GreenDeep,
+                                selectedLabelColor = Color.White
+                            )
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+            }
+
             if (uiState.isLoading) {
                 item { Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = cs.primary) } }
             } else if (uiState.breakdownList.isEmpty()) {
                 item { Box(Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) { Text("No data found") } }
             } else {
                 item {
-                    // Check if we are currently looking at the Comparison tab
                     if (uiState.selectedTab == AnalyticsTab.COMPARISON) {
-                        // Switch chart visual variant based on custom filter selection
                         if (uiState.selectedFilter == TimeFilter.CUSTOM) {
                             val totalIncome = uiState.breakdownList.find { it.categoryName == "Income" }?.totalAmount ?: 0L
                             val totalExpense = uiState.breakdownList.find { it.categoryName == "Expenses" }?.totalAmount ?: 0L
-
-                            // Render Doughnut Chart for Custom Ranges
                             AnalyticsCharts(
                                 data = uiState.breakdownList,
                                 tab = uiState.selectedTab,
@@ -124,11 +149,9 @@ fun AnalyticsScreen(navController: NavController, viewModel: AnalyticsViewModel 
                                 totalExpense = totalExpense
                             )
                         } else {
-                            // Render standard chronological trend bars for fixed cycles (Weekly, Monthly, Yearly)
                             ComparisonBarChart(trendData = uiState.trendData)
                         }
                     } else {
-                        // Regular breakdown charts for Income and Expense sections
                         val total = uiState.breakdownList.sumOf { it.totalAmount }
                         AnalyticsCharts(
                             data = uiState.breakdownList,
@@ -145,7 +168,8 @@ fun AnalyticsScreen(navController: NavController, viewModel: AnalyticsViewModel 
                     AnalyticsBreakdown(item)
                     Spacer(modifier = Modifier.height(16.dp))
                 }
-                item { Spacer(modifier = Modifier.height(32.dp)) }
+                // Increased bottom spacer to prevent content being hidden by bottom navigation bar
+                item { Spacer(modifier = Modifier.height(80.dp)) }
             }
         }
     }
