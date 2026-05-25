@@ -8,8 +8,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material3.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
@@ -17,11 +15,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.currentStateAsState
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.northstar.Screen
@@ -29,8 +28,6 @@ import com.example.northstar.ui.dashboard.components.*
 import com.example.northstar.ui.notifications.NotificationPanel
 import com.example.northstar.ui.notifications.NotificationViewModel
 import com.example.northstar.ui.theme.*
-import java.text.SimpleDateFormat
-import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,6 +46,16 @@ fun DashboardScreen(
     val unreadCount by remember { derivedStateOf { notifications.count { !it.isRead } } }
 
     var showNotifications by remember { mutableStateOf(false) }
+
+    // Auto reload when screen comes back into focus
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val lifecycleState by lifecycleOwner.lifecycle.currentStateAsState()
+
+    LaunchedEffect(lifecycleState) {
+        if (lifecycleState == Lifecycle.State.RESUMED) {
+            dashboardViewModel.loadDashboardData()
+        }
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         PullToRefreshBox(
@@ -130,12 +137,11 @@ fun DashboardScreen(
         ) {
             NotificationPanel(
                 notifications = notifications,
-                onMarkAllRead = { notificationViewModel.markAllRead() },        // was markAllAsRead
-                onMarkRead = { notificationViewModel.markRead(it) },            // was markAsRead
-                onDelete = { notificationViewModel.delete(it) },    // was delete
+                onMarkAllRead = { notificationViewModel.markAllRead() },
+                onMarkRead = { notificationViewModel.markRead(it) },
+                onDelete = { notificationViewModel.delete(it) },
                 onDismiss = { showNotifications = false }
             )
         }
     }
 }
-

@@ -195,7 +195,7 @@ class DashboardViewModel @Inject constructor(
                     TransactionItem(
                         id = it.id,
                         title = it.getString("sourceType") ?: "Income",
-                        amount = it.getLong("amountLKR") ?: 0L,
+                        amount = it.getLong("lkrAmount") ?: 0L,
                         isIncome = true,
                         date = it.getTimestamp("date")?.toDate()?.time ?: 0L,
                         category = it.getString("sourceType") ?: "",
