@@ -137,13 +137,9 @@ fun DashboardScreen(
         ) {
             NotificationPanel(
                 notifications = notifications,
-                onMarkAllRead = { notificationViewModel.markAllAsRead() }, // mark all read
-                onMarkRead = { notificationViewModel.markAsRead(it) }, // mark read it
+                onMarkAllRead = { notificationViewModel.markAllAsRead() },
+                onMarkRead = { notificationViewModel.markAsRead(it) },
                 onDelete = { notificationViewModel.deleteNotification(it) },
-                // was delete
-                onMarkAllRead = { notificationViewModel.markAllRead() },
-                onMarkRead = { notificationViewModel.markRead(it) },
-                onDelete = { notificationViewModel.delete(it) },
                 onDismiss = { showNotifications = false }
             )
         }
