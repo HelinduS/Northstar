@@ -3,12 +3,14 @@ package com.example.northstar.ui.notifications
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.TrendingDown
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -60,7 +62,7 @@ fun notificationStyle(type: NotificationType): NotificationStyle = when (type) {
         background = Color(0xFFFFEBEE)
     )
     NotificationType.LARGE_EXPENSE -> NotificationStyle(
-        icon = Icons.Outlined.TrendingDown,
+        icon = Icons.AutoMirrored.Outlined.TrendingDown,  // Fix 2
         tint = Color(0xFFBF360C),
         background = Color(0xFFFBE9E7)
     )
@@ -86,6 +88,11 @@ fun notificationStyle(type: NotificationType): NotificationStyle = when (type) {
     )
     NotificationType.NO_GOAL_PROGRESS -> NotificationStyle(
         icon = Icons.Outlined.Insights,
+        tint = Color(0xFF37474F),
+        background = Color(0xFFECEFF1)
+    )
+    NotificationType.NO_EXPENSE_REMINDER -> NotificationStyle(  // Fix 1
+        icon = Icons.Outlined.NotificationsActive,
         tint = Color(0xFF37474F),
         background = Color(0xFFECEFF1)
     )
@@ -332,6 +339,7 @@ fun NotificationCard(
         modifier = Modifier
             .fillMaxWidth()
             .background(bgColor)
+            .clickable { if (!notification.isRead) onMarkRead() }  // Fix 3
             .padding(horizontal = 20.dp, vertical = 14.dp),
         verticalAlignment = Alignment.Top,
         horizontalArrangement = Arrangement.spacedBy(14.dp)

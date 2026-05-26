@@ -100,6 +100,9 @@ fun ExpenseScreen(
 
             val amountDouble = uiState.savedAmount / 100.0
 
+            // FR18: stamp the time so the 3-day alarm resets ← ONLY NEW LINE
+            notificationViewModel.recordExpenseTimestamp()
+
             // Use actual income from DashboardViewModel so percent and budget branches can fire
             val totalIncomeLkr: Long = dashboardUiState.totalIncomeLkr
 
