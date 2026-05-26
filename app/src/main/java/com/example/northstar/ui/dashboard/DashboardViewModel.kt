@@ -32,7 +32,9 @@ data class DashboardUiState(
     val allTimeExpensesLkr: Long = 0L,
     val allTimeNetSavedLkr: Long = 0L,
     val recentTransactions: List<TransactionItem> = emptyList(),
+    val allTransactions: List<TransactionItem> = emptyList(),
     val goals: List<Goal> = emptyList(),
+    val avgMonthlySavings: Long = 0L,
     val isLoading: Boolean = false,
     val error: String? = null
 )
@@ -64,7 +66,6 @@ class DashboardViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(DashboardUiState())
     val uiState: StateFlow<DashboardUiState> = _uiState.asStateFlow()
 
-    // Time-based greeting — recomputed every time it's accessed
     val greeting: Pair<String, ImageVector>
         get() {
             val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
@@ -122,12 +123,12 @@ class DashboardViewModel @Inject constructor(
                     .collection("users")
                     .document(user.uid)
                     .collection("incomes")
-                    .whereGreaterThanOrEqualTo("receivedDate", startOfMonth)
+                    .whereGreaterThanOrEqualTo("date", startOfMonth)
                     .get()
                     .await()
 
                 val totalIncome = incomesSnapshot.documents.sumOf {
-                    it.getLong("amountLKR") ?: 0L
+                    it.getLong("lkrAmount") ?: 0L
                 }
 
                 val expensesSnapshot = firestore
@@ -158,7 +159,7 @@ class DashboardViewModel @Inject constructor(
                     .await()
 
                 val allTimeIncome = allTimeIncomesSnapshot.documents.sumOf {
-                    it.getLong("amountLKR") ?: 0L
+                    it.getLong("lkrAmount") ?: 0L
                 }
 
                 val allTimeExpensesSnapshot = firestore
@@ -172,19 +173,37 @@ class DashboardViewModel @Inject constructor(
                     it.getLong("amount") ?: 0L
                 }
 
+                // FR12 — avg monthly savings over past 3 months
+                val threeMonthsAgoMs = Calendar.getInstance()
+                    .apply { add(Calendar.MONTH, -3) }
+                    .timeInMillis
+                val threeMonthIncome = allTimeIncomesSnapshot.documents
+                    .filter {
+                        (it.getTimestamp("date")?.toDate()?.time ?: 0L) >= threeMonthsAgoMs
+                    }
+                    .sumOf { it.getLong("lkrAmount") ?: 0L }
+                val threeMonthExpenses = allTimeExpensesSnapshot.documents
+                    .filter {
+                        (it.getTimestamp("date")?.toDate()?.time ?: 0L) >= threeMonthsAgoMs
+                    }
+                    .sumOf { it.getLong("amount") ?: 0L }
+                val avgMonthlySavings =
+                    ((threeMonthIncome - threeMonthExpenses) / 3L).coerceAtLeast(0L)
+
+                // Month incomes for recent transactions
                 val recentIncomes = incomesSnapshot.documents.map {
                     TransactionItem(
                         id = it.id,
                         title = it.getString("sourceType") ?: "Income",
-                        amount = it.getLong("amountLKR") ?: 0L,
+                        amount = it.getLong("lkrAmount") ?: 0L,
                         isIncome = true,
-                        date = it.getTimestamp("receivedDate")?.toDate()?.time ?: 0L,
+                        date = it.getTimestamp("date")?.toDate()?.time ?: 0L,
                         category = it.getString("sourceType") ?: "",
                         sourceType = it.getString("sourceType") ?: "",
-                        originalCurrency = it.getString("currency") ?: "LKR",
-                        originalAmount = it.getLong("amount") ?: 0L,
+                        originalCurrency = it.getString("originalCurrency") ?: "LKR",
+                        originalAmount = it.getLong("originalAmount") ?: 0L,
                         exchangeRate = it.getDouble("exchangeRate") ?: 1.0,
-                        notes = it.getString("note") ?: ""
+                        notes = it.getString("notes") ?: ""
                     )
                 }
 
@@ -197,14 +216,48 @@ class DashboardViewModel @Inject constructor(
                         date = it.getTimestamp("date")?.toDate()?.time ?: 0L,
                         category = it.getString("category") ?: "",
                         expenseType = it.getString("expenseType") ?: "",
-                        paymentMethod = it.getString("paymentSource") ?: "",
-                        description = it.getString("note") ?: ""
+                        paymentMethod = it.getString("paymentMethod") ?: "",
+                        description = it.getString("description") ?: ""
+                    )
+                }
+
+                // All time incomes for history
+                val allIncomes = allTimeIncomesSnapshot.documents.map {
+                    TransactionItem(
+                        id = it.id,
+                        title = it.getString("sourceType") ?: "Income",
+                        amount = it.getLong("lkrAmount") ?: 0L,
+                        isIncome = true,
+                        date = it.getTimestamp("date")?.toDate()?.time ?: 0L,
+                        category = it.getString("sourceType") ?: "",
+                        sourceType = it.getString("sourceType") ?: "",
+                        originalCurrency = it.getString("originalCurrency") ?: "LKR",
+                        originalAmount = it.getLong("originalAmount") ?: 0L,
+                        exchangeRate = it.getDouble("exchangeRate") ?: 1.0,
+                        notes = it.getString("notes") ?: ""
+                    )
+                }
+
+                val allExpenses = allTimeExpensesSnapshot.documents.map {
+                    TransactionItem(
+                        id = it.id,
+                        title = it.getString("category") ?: "Expense",
+                        amount = it.getLong("amount") ?: 0L,
+                        isIncome = false,
+                        date = it.getTimestamp("date")?.toDate()?.time ?: 0L,
+                        category = it.getString("category") ?: "",
+                        expenseType = it.getString("expenseType") ?: "",
+                        paymentMethod = it.getString("paymentMethod") ?: "",
+                        description = it.getString("description") ?: ""
                     )
                 }
 
                 val recentTransactions = (recentIncomes + recentExpenses)
                     .sortedByDescending { it.date }
-                    .take(20)
+                    .take(5)
+
+                val allTransactions = (allIncomes + allExpenses)
+                    .sortedByDescending { it.date }
 
                 _uiState.value = _uiState.value.copy(
                     displayName = displayName,
@@ -218,6 +271,8 @@ class DashboardViewModel @Inject constructor(
                     allTimeExpensesLkr = allTimeExpenses,
                     allTimeNetSavedLkr = allTimeIncome - allTimeExpenses,
                     recentTransactions = recentTransactions,
+                    allTransactions = allTransactions,
+                    avgMonthlySavings = avgMonthlySavings,
                     isLoading = false
                 )
 

@@ -43,8 +43,8 @@ class ExpenseRepositoryImpl @Inject constructor(
             currency = getString("currency") ?: "LKR",
             category = getString("category") ?: "",
             expenseType = getString("expenseType") ?: "",
-            paymentSource = getString("paymentSource") ?: "",
-            note = getString("note"),
+            paymentSource = getString("paymentMethod") ?: "",
+            note = getString("description"),
             date = getTimestamp("date")?.toDate()?.time ?: 0L,
             month = getString("month") ?: "",
             createdAt = getTimestamp("createdAt")?.toDate()?.time ?: 0L,
@@ -91,8 +91,8 @@ class ExpenseRepositoryImpl @Inject constructor(
                 "currency"      to expense.currency,
                 "category"      to expense.category,
                 "expenseType"   to expense.expenseType,
-                "paymentSource" to expense.paymentSource,
-                "note"          to (expense.note ?: ""),
+                "paymentMethod" to expense.paymentSource,
+                "description"   to (expense.note ?: ""),
                 "date"          to com.google.firebase.Timestamp(Date(expense.date)),
                 "month"         to expense.month,
                 "createdAt"     to com.google.firebase.Timestamp.now(),
@@ -116,8 +116,8 @@ class ExpenseRepositoryImpl @Inject constructor(
                 "currency"      to expense.currency,
                 "category"      to expense.category,
                 "expenseType"   to expense.expenseType,
-                "paymentSource" to expense.paymentSource,
-                "note"          to (expense.note ?: ""),
+                "paymentMethod" to expense.paymentSource,
+                "description"   to (expense.note ?: ""),
                 "updatedAt"     to com.google.firebase.Timestamp.now()
             )
             expensesCollection(userId).document(expense.id).update(data).await()

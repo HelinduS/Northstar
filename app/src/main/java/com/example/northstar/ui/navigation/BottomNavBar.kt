@@ -77,10 +77,20 @@ fun BottomNavBar(navController: NavHostController) {
                 icon = item.icon,
                 label = item.label,
                 onClick = {
-                    navController.navigate(item.route) {
-                        popUpTo(Screen.Dashboard.route) { saveState = true }
-                        launchSingleTop = true
-                        restoreState = true
+                    if (item.route == Screen.Dashboard.route) {
+                        // For Home — always pop everything back to Dashboard
+                        navController.navigate(Screen.Dashboard.route) {
+                            popUpTo(Screen.Dashboard.route) {
+                                inclusive = false
+                            }
+                            launchSingleTop = true
+                        }
+                    } else {
+                        navController.navigate(item.route) {
+                            popUpTo(Screen.Dashboard.route) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
                     }
                 },
                 modifier = Modifier.weight(1f)

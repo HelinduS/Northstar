@@ -30,7 +30,7 @@ import java.util.*
 import java.text.SimpleDateFormat
 
 @Composable
-fun SavingsGoalCard(goals: List<Goal> = emptyList()) {
+fun SavingsGoalCard(goals: List<Goal> = emptyList(), avgMonthlySavings: Long = 0L) {
     Column(modifier = Modifier.padding(top = 20.dp)) {
 
         Row(
@@ -95,7 +95,7 @@ fun SavingsGoalCard(goals: List<Goal> = emptyList()) {
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(goals) { goal ->
-                    GoalCardItem(goal = goal)
+                    GoalCardItem(goal = goal, avgMonthlySavings = avgMonthlySavings)
                 }
             }
         }
@@ -103,10 +103,11 @@ fun SavingsGoalCard(goals: List<Goal> = emptyList()) {
 }
 
 @Composable
-private fun GoalCardItem(goal: Goal) {
+private fun GoalCardItem(goal: Goal, avgMonthlySavings: Long = 0L) {
     val cs = MaterialTheme.colorScheme
     val dateFormatter = remember { SimpleDateFormat("MMM yyyy", Locale.US) }
-    val targetDate = if (goal.targetDate > 0L) dateFormatter.format(Date(goal.targetDate)) else "No date"
+
+    val remaining = (goal.targetAmount - goal.savedAmount).coerceAtLeast(0L)
 
     val daysRemaining = if (goal.targetDate > 0L) {
         val diff = goal.targetDate - System.currentTimeMillis()
@@ -116,9 +117,23 @@ private fun GoalCardItem(goal: Goal) {
     val monthsRemaining = (daysRemaining / 30.0).toInt().coerceAtLeast(0)
 
     val monthlyNeeded = if (goal.targetDate > 0L && daysRemaining > 0) {
-        val remaining = (goal.targetAmount - goal.savedAmount).coerceAtLeast(0L)
         (remaining / (daysRemaining / 30.0)).toLong()
     } else 0L
+
+    // FR12 — project completion date based on avg 3-month savings behaviour
+    val projectedDate = when {
+        goal.savedAmount >= goal.targetAmount -> "Done! 🎉"
+        avgMonthlySavings <= 0L              -> "—"
+        else -> {
+            val monthsToComplete = kotlin.math.ceil(
+                remaining.toDouble() / avgMonthlySavings
+            ).toLong().coerceAtLeast(1L)
+            val cal = Calendar.getInstance().apply {
+                add(Calendar.MONTH, monthsToComplete.toInt())
+            }
+            dateFormatter.format(cal.time)
+        }
+    }
 
     val targetProgress = if (goal.targetAmount > 0)
         (goal.savedAmount.toFloat() / goal.targetAmount).coerceIn(0f, 1f)
@@ -363,16 +378,17 @@ private fun GoalCardItem(goal: Goal) {
                     .height(28.dp)
                     .background(cs.outlineVariant)
             )
-            // Projected date
+            // Projected completion date (based on 3-month avg savings rate)
             Column(
                 modifier = Modifier.weight(1f),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    targetDate,
+                    projectedDate,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.W700,
-                    color = cs.onSurface,
+                    color = if (avgMonthlySavings > 0L) cs.onSurface
+                            else cs.onSurfaceVariant,
                     fontFamily = InterFontFamily
                 )
                 Text(

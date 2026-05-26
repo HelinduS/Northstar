@@ -42,13 +42,13 @@ class IncomeRepositoryImpl @Inject constructor(
                 id = id,
                 sourceType = getString("sourceType") ?: "",
                 projectName = getString("projectName"),
-                amount = getLong("amount") ?: 0L,
-                currency = getString("currency") ?: "LKR",
-                amountLKR = getLong("amountLKR") ?: 0L,
+                amount = getLong("originalAmount") ?: 0L,
+                currency = getString("originalCurrency") ?: "LKR",
+                amountLKR = getLong("lkrAmount") ?: 0L,
                 exchangeRate = getDouble("exchangeRate") ?: 1.0,
-                receivedDate = getTimestamp("receivedDate")?.toDate()?.time ?: 0L,
+                receivedDate = getTimestamp("date")?.toDate()?.time ?: 0L,
                 month = getString("month") ?: "",
-                note = getString("note"),
+                note = getString("notes"),
                 createdAt = getTimestamp("createdAt")?.toDate()?.time ?: 0L,
                 updatedAt = getTimestamp("updatedAt")?.toDate()?.time ?: 0L
             )
@@ -79,13 +79,13 @@ class IncomeRepositoryImpl @Inject constructor(
             val firestoreData = hashMapOf(
                 "sourceType" to income.sourceType,
                 "projectName" to (income.projectName ?: ""),
-                "amount" to income.amount,
-                "currency" to income.currency,
-                "amountLKR" to income.amountLKR,
+                "originalAmount" to income.amount,
+                "originalCurrency" to income.currency,
+                "lkrAmount" to income.amountLKR,
                 "exchangeRate" to income.exchangeRate,
-                "receivedDate" to com.google.firebase.Timestamp(Date(income.receivedDate)),
+                "date" to com.google.firebase.Timestamp(Date(income.receivedDate)),
                 "month" to income.month,
-                "note" to (income.note ?: ""),
+                "notes" to (income.note ?: ""),
                 "createdAt" to com.google.firebase.Timestamp.now(),
                 "updatedAt" to com.google.firebase.Timestamp.now()
             )
@@ -105,9 +105,9 @@ class IncomeRepositoryImpl @Inject constructor(
             val updates = mapOf(
                 "sourceType" to income.sourceType,
                 "projectName" to (income.projectName ?: ""),
-                "amount" to income.amount,
-                "amountLKR" to income.amountLKR,
-                "note" to (income.note ?: ""),
+                "originalAmount" to income.amount,
+                "lkrAmount" to income.amountLKR,
+                "notes" to (income.note ?: ""),
                 "updatedAt" to com.google.firebase.Timestamp.now()
             )
 
@@ -132,7 +132,7 @@ class IncomeRepositoryImpl @Inject constructor(
     override fun getAllIncomes(): Flow<List<Income>> = callbackFlow {
         val userId = getUserId() ?: return@callbackFlow
         val listener = incomesCollection(userId)
-            .orderBy("receivedDate", Query.Direction.DESCENDING)
+            .orderBy("date", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) return@addSnapshotListener
                 val incomes = snapshot?.documents?.mapNotNull { it.toIncome() } ?: emptyList()
@@ -148,8 +148,8 @@ class IncomeRepositoryImpl @Inject constructor(
         val endTimestamp = com.google.firebase.Timestamp(Date(endDate))
 
         val listener = incomesCollection(userId)
-            .whereGreaterThanOrEqualTo("receivedDate", startTimestamp)
-            .whereLessThanOrEqualTo("receivedDate", endTimestamp)
+            .whereGreaterThanOrEqualTo("date", startTimestamp)
+            .whereLessThanOrEqualTo("date", endTimestamp)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) return@addSnapshotListener
                 val incomes = snapshot?.documents?.mapNotNull { it.toIncome() } ?: emptyList()
@@ -161,7 +161,7 @@ class IncomeRepositoryImpl @Inject constructor(
     override fun getLatestIncomes(limit: Int): Flow<List<Income>> = callbackFlow {
         val userId = getUserId() ?: return@callbackFlow
         val listener = incomesCollection(userId)
-            .orderBy("receivedDate", Query.Direction.DESCENDING)
+            .orderBy("date", Query.Direction.DESCENDING)
             .limit(limit.toLong())
             .addSnapshotListener { snapshot, _ ->
                 val incomes = snapshot?.documents?.mapNotNull { it.toIncome() } ?: emptyList()
