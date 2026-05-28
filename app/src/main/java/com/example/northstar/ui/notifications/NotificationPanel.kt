@@ -28,61 +28,32 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Shows precise time for trust and clarity in a finance context:
-//   Today       → "9:44 AM"
-//   This week   → "Mon 9:44 AM"
-//   Older       → "12 Jan 9:44 AM"
-// ─────────────────────────────────────────────────────────────────────────────
-
+// Returns a human-readable timestamp:
+//   Today → "9:44 AM" | This week → "Mon 9:44 AM" | Older → "12 Jan 9:44 AM"
 fun smartExactTime(timestamp: LocalDateTime): String {
 
     val now  = LocalDateTime.now()
-
-    // Calculate full day difference between dates (not times)
     val days = ChronoUnit.DAYS.between(timestamp.toLocalDate(), now.toLocalDate())
 
     return when {
-
-        // Today — show only the time e.g. "9:44 AM"
-        days == 0L -> timestamp.format(
-            DateTimeFormatter.ofPattern("h:mm a")
-        )
-
-        // This week — show day name + time e.g. "Mon 9:44 AM"
-        days < 7L  -> timestamp.format(
-            DateTimeFormatter.ofPattern("EEE h:mm a")
-        )
-
-        // Older — show full date + time e.g. "12 Jan 9:44 AM"
-        else       -> timestamp.format(
-            DateTimeFormatter.ofPattern("dd MMM h:mm a")
-        )
+        days == 0L -> timestamp.format(DateTimeFormatter.ofPattern("h:mm a"))
+        days < 7L  -> timestamp.format(DateTimeFormatter.ofPattern("EEE h:mm a"))
+        else       -> timestamp.format(DateTimeFormatter.ofPattern("dd MMM h:mm a"))
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// NotificationStyle Data Class
-// Holds the icon, tint color, and background color for each notification type
-// Used to visually differentiate notification categories in the UI
-// ─────────────────────────────────────────────────────────────────────────────
-
+// Icon, tint, and background color for a notification type.
 data class NotificationStyle(
     val icon: ImageVector,
     val tint: Color,
     val background: Color
 )
 
-// ─────────────────────────────────────────────────────────────────────────────
-// notificationStyle()
-// Maps each NotificationType to its corresponding icon and colors
-// Called inside NotificationCard to render the correct visual style
-// ─────────────────────────────────────────────────────────────────────────────
-
+// Maps each NotificationType to its visual style (icon + colors).
 @Composable
 fun notificationStyle(type: NotificationType): NotificationStyle = when (type) {
 
-    // ── Income notifications — green theme ───────────────────────────────────
+    // Income — green
     NotificationType.INCOME_LOGGED -> NotificationStyle(
         icon = Icons.Outlined.AccountBalanceWallet,
         tint = Color(0xFF2E7D32),
@@ -95,14 +66,14 @@ fun notificationStyle(type: NotificationType): NotificationStyle = when (type) {
         background = Color(0xFFE8F5E9)
     )
 
-    // ── Expense notifications — blue theme ───────────────────────────────────
+    // Expense — blue
     NotificationType.EXPENSE_LOGGED -> NotificationStyle(
         icon = Icons.Outlined.Receipt,
         tint = Color(0xFF1565C0),
         background = Color(0xFFE3F2FD)
     )
 
-    // ── Budget warnings — orange/red theme ───────────────────────────────────
+    // Budget warnings — orange/red
     NotificationType.BUDGET_WARNING -> NotificationStyle(
         icon = Icons.Outlined.Warning,
         tint = Color(0xFFE65100),
@@ -115,14 +86,14 @@ fun notificationStyle(type: NotificationType): NotificationStyle = when (type) {
         background = Color(0xFFFFEBEE)
     )
 
-    // ── Large expense — deep orange theme ────────────────────────────────────
+    // Large expense — deep orange
     NotificationType.LARGE_EXPENSE -> NotificationStyle(
         icon = Icons.AutoMirrored.Outlined.TrendingDown,
         tint = Color(0xFFBF360C),
         background = Color(0xFFFBE9E7)
     )
 
-    // ── Goal notifications — purple/indigo theme ─────────────────────────────
+    // Goals — purple/indigo
     NotificationType.GOAL_REACHED -> NotificationStyle(
         icon = Icons.Outlined.CheckCircle,
         tint = Color(0xFF6A1B9A),
@@ -141,7 +112,7 @@ fun notificationStyle(type: NotificationType): NotificationStyle = when (type) {
         background = Color(0xFFFFF3E0)
     )
 
-    // ── Reminder notifications — grey/neutral theme ──────────────────────────
+    // Reminders — grey/neutral
     NotificationType.NO_INCOME_REMINDER -> NotificationStyle(
         icon = Icons.Outlined.NotificationsActive,
         tint = Color(0xFF37474F),
@@ -154,7 +125,6 @@ fun notificationStyle(type: NotificationType): NotificationStyle = when (type) {
         background = Color(0xFFECEFF1)
     )
 
-    // ── FR18: No expense reminder — grey/neutral theme ───────────────────────
     NotificationType.NO_EXPENSE_REMINDER -> NotificationStyle(
         icon = Icons.Outlined.NotificationsActive,
         tint = Color(0xFF37474F),
@@ -162,12 +132,7 @@ fun notificationStyle(type: NotificationType): NotificationStyle = when (type) {
     )
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// NotificationPanel
-// The main bottom sheet panel shown when the bell icon is tapped
-// Contains the header, mark-all-read button, close button, and notification list
-// ─────────────────────────────────────────────────────────────────────────────
-
+// Bottom sheet panel shown when the bell icon is tapped.
 @Composable
 fun NotificationPanel(
     notifications: List<NotificationItem>,
@@ -186,7 +151,7 @@ fun NotificationPanel(
             )
     ) {
 
-        // ── Drag handle — visual cue that panel can be dismissed ─────────────
+        // Drag handle
         Box(
             modifier = Modifier
                 .padding(top = 12.dp)
@@ -197,7 +162,7 @@ fun NotificationPanel(
                 .align(Alignment.CenterHorizontally)
         )
 
-        // ── Header row — title, unread count, mark all read, close ───────────
+        // Header: title, unread count, mark-all-read, close
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -206,7 +171,6 @@ fun NotificationPanel(
             verticalAlignment = Alignment.CenterVertically
         ) {
 
-            // Title + unread count label
             Column {
                 Text(
                     text = "Notifications",
@@ -216,7 +180,6 @@ fun NotificationPanel(
                     letterSpacing = (-0.3).sp
                 )
 
-                // Only show unread count if there are unread notifications
                 val unread = notifications.count { !it.isRead }
                 if (unread > 0) {
                     Spacer(Modifier.height(2.dp))
@@ -229,10 +192,8 @@ fun NotificationPanel(
                 }
             }
 
-            // Action buttons — mark all read + close
             Row(verticalAlignment = Alignment.CenterVertically) {
 
-                // Only show "Mark all read" if there are unread notifications
                 if (notifications.any { !it.isRead }) {
                     TextButton(
                         onClick = onMarkAllRead,
@@ -252,7 +213,6 @@ fun NotificationPanel(
                     }
                 }
 
-                // Close button — dismisses the panel
                 IconButton(onClick = onDismiss) {
                     Icon(
                         Icons.Outlined.Close,
@@ -263,28 +223,19 @@ fun NotificationPanel(
             }
         }
 
-        // ── Divider between header and notification list ──────────────────────
         HorizontalDivider(
             color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
             thickness = 0.8.dp
         )
 
-        // ── Content — empty state or scrollable notification list ─────────────
         if (notifications.isEmpty()) {
-
-            // Show empty state illustration when no notifications exist
             EmptyNotificationsView()
-
         } else {
-
-            // Scrollable list of notification cards with swipe-to-delete support
             LazyColumn(
                 contentPadding = PaddingValues(vertical = 6.dp, horizontal = 0.dp),
                 verticalArrangement = Arrangement.spacedBy(1.dp)
             ) {
                 items(notifications, key = { it.id }) { notification ->
-
-                    // Each card supports swipe left to delete
                     SwipeToDeleteNotificationCard(
                         notification = notification,
                         onMarkRead = { onMarkRead(notification.id) },
@@ -296,12 +247,7 @@ fun NotificationPanel(
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// EmptyNotificationsView
-// Shown when the notification list is empty
-// Displays a centred icon and friendly message
-// ─────────────────────────────────────────────────────────────────────────────
-
+// Empty state shown when there are no notifications.
 @Composable
 private fun EmptyNotificationsView() {
     Box(
@@ -312,8 +258,6 @@ private fun EmptyNotificationsView() {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-
-            // Bell icon inside a circular background
             Box(
                 modifier = Modifier
                     .size(72.dp)
@@ -329,7 +273,6 @@ private fun EmptyNotificationsView() {
                 )
             }
 
-            // Primary empty state message
             Text(
                 "All caught up!",
                 fontWeight = FontWeight.SemiBold,
@@ -337,7 +280,6 @@ private fun EmptyNotificationsView() {
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f)
             )
 
-            // Secondary empty state message
             Text(
                 "No notifications yet",
                 fontSize = 13.sp,
@@ -347,13 +289,7 @@ private fun EmptyNotificationsView() {
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// SwipeToDeleteNotificationCard
-// Wraps NotificationCard with swipe-to-delete functionality
-// Swipe left reveals a red delete background with trash icon
-// Completing the swipe calls onDelete to remove the notification
-// ─────────────────────────────────────────────────────────────────────────────
-
+// Wraps NotificationCard with swipe-left-to-delete support.
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SwipeToDeleteNotificationCard(
@@ -361,12 +297,8 @@ fun SwipeToDeleteNotificationCard(
     onMarkRead: () -> Unit,
     onDelete: () -> Unit
 ) {
-
-    // Track the swipe dismiss state
     val dismissState = rememberSwipeToDismissBoxState(
         confirmValueChange = { value ->
-
-            // Only trigger delete on left swipe (EndToStart)
             if (value == SwipeToDismissBoxValue.EndToStart) {
                 onDelete()
                 true
@@ -376,10 +308,10 @@ fun SwipeToDeleteNotificationCard(
 
     SwipeToDismissBox(
         state = dismissState,
-        enableDismissFromStartToEnd = false,  // disable right swipe
+        enableDismissFromStartToEnd = false,
         backgroundContent = {
 
-            // ── Red delete background revealed on left swipe ──────────────────
+            // Red delete background revealed on left swipe
             val color by animateColorAsState(
                 targetValue = when (dismissState.dismissDirection) {
                     SwipeToDismissBoxValue.EndToStart -> Color(0xFFE53935)
@@ -388,7 +320,6 @@ fun SwipeToDeleteNotificationCard(
                 label = "swipe_bg"
             )
 
-            // Scale the delete icon as the user swipes further
             val scale by animateFloatAsState(
                 targetValue = if (
                     dismissState.dismissDirection == SwipeToDismissBoxValue.EndToStart
@@ -403,8 +334,6 @@ fun SwipeToDeleteNotificationCard(
                     .padding(end = 24.dp),
                 contentAlignment = Alignment.CenterEnd
             ) {
-
-                // Delete icon + label shown on swipe background
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.scale(scale)
@@ -426,8 +355,6 @@ fun SwipeToDeleteNotificationCard(
             }
         }
     ) {
-
-        // The actual notification card sits on top of the swipe background
         NotificationCard(
             notification = notification,
             onMarkRead = onMarkRead,
@@ -436,28 +363,15 @@ fun SwipeToDeleteNotificationCard(
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// NotificationCard
-// Individual notification row showing icon, title, message, and timestamp
-// Tapping marks it as read (if unread)
-// Unread notifications have a highlighted background and a blue dot indicator
-// Timestamp uses smartExactTime() — precise and trustworthy for a finance app:
-//   Today       → "9:44 AM"
-//   This week   → "Mon 9:44 AM"
-//   Older       → "12 Jan 9:44 AM"
-// ─────────────────────────────────────────────────────────────────────────────
-
+// Single notification row. Tap to mark as read; unread items show a blue dot.
 @Composable
 fun NotificationCard(
     notification: NotificationItem,
     onMarkRead: () -> Unit,
     onDelete: () -> Unit
 ) {
-
-    // Get the icon + color style for this notification type
     val style = notificationStyle(notification.type)
 
-    // Unread notifications get a subtle highlighted background
     val bgColor = if (!notification.isRead)
         MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.18f)
     else
@@ -467,13 +381,13 @@ fun NotificationCard(
         modifier = Modifier
             .fillMaxWidth()
             .background(bgColor)
-            .clickable { if (!notification.isRead) onMarkRead() }  // tap to mark as read
+            .clickable { if (!notification.isRead) onMarkRead() }
             .padding(horizontal = 20.dp, vertical = 14.dp),
         verticalAlignment = Alignment.Top,
         horizontalArrangement = Arrangement.spacedBy(14.dp)
     ) {
 
-        // ── Circular icon on the left ─────────────────────────────────────────
+        // Circular icon
         Box(
             modifier = Modifier
                 .size(46.dp)
@@ -489,7 +403,6 @@ fun NotificationCard(
             )
         }
 
-        // ── Title, timestamp, and message text ────────────────────────────────
         Column(modifier = Modifier.weight(1f)) {
 
             Row(
@@ -498,7 +411,7 @@ fun NotificationCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
 
-                // Notification title — bold if unread, medium if read
+                // Bold title if unread
                 Text(
                     text = notification.title,
                     fontWeight = if (!notification.isRead) FontWeight.SemiBold else FontWeight.Medium,
@@ -511,10 +424,7 @@ fun NotificationCard(
 
                 Spacer(Modifier.width(8.dp))
 
-                // ── Smart exact timestamp ─────────────────────────────────────
-                // Today → "9:44 AM"
-                // This week → "Mon 9:44 AM"
-                // Older → "12 Jan 9:44 AM"
+                // Smart timestamp
                 Text(
                     text = smartExactTime(notification.timestamp),
                     fontSize = 11.sp,
@@ -524,7 +434,6 @@ fun NotificationCard(
 
             Spacer(Modifier.height(4.dp))
 
-            // Notification message body — max 2 lines with ellipsis
             Text(
                 text = notification.message,
                 fontSize = 13.sp,
@@ -535,8 +444,7 @@ fun NotificationCard(
             )
         }
 
-        // ── Blue unread indicator dot on the right ────────────────────────────
-        // Only shown for unread notifications
+        // Unread indicator dot
         if (!notification.isRead) {
             Box(
                 modifier = Modifier
