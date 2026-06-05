@@ -3,12 +3,14 @@ package com.example.northstar.ui.notifications
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.TrendingDown
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -22,77 +24,115 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 
-// ─── Icon + Color mapping ────────────────────────────────────────────────────
+// Returns a human-readable timestamp:
+//   Today → "9:44 AM" | This week → "Mon 9:44 AM" | Older → "12 Jan 9:44 AM"
+fun smartExactTime(timestamp: LocalDateTime): String {
 
+    val now  = LocalDateTime.now()
+    val days = ChronoUnit.DAYS.between(timestamp.toLocalDate(), now.toLocalDate())
+
+    return when {
+        days == 0L -> timestamp.format(DateTimeFormatter.ofPattern("h:mm a"))
+        days < 7L  -> timestamp.format(DateTimeFormatter.ofPattern("EEE h:mm a"))
+        else       -> timestamp.format(DateTimeFormatter.ofPattern("dd MMM h:mm a"))
+    }
+}
+
+// Icon, tint, and background color for a notification type.
 data class NotificationStyle(
     val icon: ImageVector,
     val tint: Color,
     val background: Color
 )
 
+// Maps each NotificationType to its visual style (icon + colors).
 @Composable
 fun notificationStyle(type: NotificationType): NotificationStyle = when (type) {
+
+    // Income — green
     NotificationType.INCOME_LOGGED -> NotificationStyle(
         icon = Icons.Outlined.AccountBalanceWallet,
         tint = Color(0xFF2E7D32),
         background = Color(0xFFE8F5E9)
     )
+
     NotificationType.MONTHLY_GOAL_MET -> NotificationStyle(
         icon = Icons.Outlined.EmojiEvents,
         tint = Color(0xFF2E7D32),
         background = Color(0xFFE8F5E9)
     )
+
+    // Expense — blue
     NotificationType.EXPENSE_LOGGED -> NotificationStyle(
         icon = Icons.Outlined.Receipt,
         tint = Color(0xFF1565C0),
         background = Color(0xFFE3F2FD)
     )
+
+    // Budget warnings — orange/red
     NotificationType.BUDGET_WARNING -> NotificationStyle(
         icon = Icons.Outlined.Warning,
         tint = Color(0xFFE65100),
         background = Color(0xFFFFF3E0)
     )
+
     NotificationType.BUDGET_CRITICAL -> NotificationStyle(
         icon = Icons.Outlined.ErrorOutline,
         tint = Color(0xFFC62828),
         background = Color(0xFFFFEBEE)
     )
+
+    // Large expense — deep orange
     NotificationType.LARGE_EXPENSE -> NotificationStyle(
-        icon = Icons.Outlined.TrendingDown,
+        icon = Icons.AutoMirrored.Outlined.TrendingDown,
         tint = Color(0xFFBF360C),
         background = Color(0xFFFBE9E7)
     )
+
+    // Goals — purple/indigo
     NotificationType.GOAL_REACHED -> NotificationStyle(
         icon = Icons.Outlined.CheckCircle,
         tint = Color(0xFF6A1B9A),
         background = Color(0xFFF3E5F5)
     )
+
     NotificationType.GOAL_MILESTONE -> NotificationStyle(
         icon = Icons.Outlined.Flag,
         tint = Color(0xFF283593),
         background = Color(0xFFE8EAF6)
     )
+
     NotificationType.GOAL_DEADLINE -> NotificationStyle(
         icon = Icons.Outlined.Schedule,
         tint = Color(0xFFE65100),
         background = Color(0xFFFFF3E0)
     )
+
+    // Reminders — grey/neutral
     NotificationType.NO_INCOME_REMINDER -> NotificationStyle(
         icon = Icons.Outlined.NotificationsActive,
         tint = Color(0xFF37474F),
         background = Color(0xFFECEFF1)
     )
+
     NotificationType.NO_GOAL_PROGRESS -> NotificationStyle(
         icon = Icons.Outlined.Insights,
         tint = Color(0xFF37474F),
         background = Color(0xFFECEFF1)
     )
+
+    NotificationType.NO_EXPENSE_REMINDER -> NotificationStyle(
+        icon = Icons.Outlined.NotificationsActive,
+        tint = Color(0xFF37474F),
+        background = Color(0xFFECEFF1)
+    )
 }
 
-// ─── Panel ───────────────────────────────────────────────────────────────────
-
+// Bottom sheet panel shown when the bell icon is tapped.
 @Composable
 fun NotificationPanel(
     notifications: List<NotificationItem>,
@@ -110,6 +150,7 @@ fun NotificationPanel(
                 RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
             )
     ) {
+
         // Drag handle
         Box(
             modifier = Modifier
@@ -121,7 +162,7 @@ fun NotificationPanel(
                 .align(Alignment.CenterHorizontally)
         )
 
-        // Header
+        // Header: title, unread count, mark-all-read, close
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -129,6 +170,7 @@ fun NotificationPanel(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
+
             Column {
                 Text(
                     text = "Notifications",
@@ -137,6 +179,7 @@ fun NotificationPanel(
                     color = MaterialTheme.colorScheme.onSurface,
                     letterSpacing = (-0.3).sp
                 )
+
                 val unread = notifications.count { !it.isRead }
                 if (unread > 0) {
                     Spacer(Modifier.height(2.dp))
@@ -150,6 +193,7 @@ fun NotificationPanel(
             }
 
             Row(verticalAlignment = Alignment.CenterVertically) {
+
                 if (notifications.any { !it.isRead }) {
                     TextButton(
                         onClick = onMarkAllRead,
@@ -168,6 +212,7 @@ fun NotificationPanel(
                         )
                     }
                 }
+
                 IconButton(onClick = onDismiss) {
                     Icon(
                         Icons.Outlined.Close,
@@ -202,8 +247,7 @@ fun NotificationPanel(
     }
 }
 
-// ─── Empty state ─────────────────────────────────────────────────────────────
-
+// Empty state shown when there are no notifications.
 @Composable
 private fun EmptyNotificationsView() {
     Box(
@@ -228,12 +272,14 @@ private fun EmptyNotificationsView() {
                     tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
                 )
             }
+
             Text(
                 "All caught up!",
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 16.sp,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f)
             )
+
             Text(
                 "No notifications yet",
                 fontSize = 13.sp,
@@ -243,8 +289,7 @@ private fun EmptyNotificationsView() {
     }
 }
 
-// ─── Swipe-to-delete card ────────────────────────────────────────────────────
-
+// Wraps NotificationCard with swipe-left-to-delete support.
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SwipeToDeleteNotificationCard(
@@ -265,6 +310,8 @@ fun SwipeToDeleteNotificationCard(
         state = dismissState,
         enableDismissFromStartToEnd = false,
         backgroundContent = {
+
+            // Red delete background revealed on left swipe
             val color by animateColorAsState(
                 targetValue = when (dismissState.dismissDirection) {
                     SwipeToDismissBoxValue.EndToStart -> Color(0xFFE53935)
@@ -272,8 +319,11 @@ fun SwipeToDeleteNotificationCard(
                 },
                 label = "swipe_bg"
             )
+
             val scale by animateFloatAsState(
-                targetValue = if (dismissState.dismissDirection == SwipeToDismissBoxValue.EndToStart) 1f else 0.75f,
+                targetValue = if (
+                    dismissState.dismissDirection == SwipeToDismissBoxValue.EndToStart
+                ) 1f else 0.75f,
                 label = "icon_scale"
             )
 
@@ -313,8 +363,7 @@ fun SwipeToDeleteNotificationCard(
     }
 }
 
-// ─── Notification card ───────────────────────────────────────────────────────
-
+// Single notification row. Tap to mark as read; unread items show a blue dot.
 @Composable
 fun NotificationCard(
     notification: NotificationItem,
@@ -332,11 +381,13 @@ fun NotificationCard(
         modifier = Modifier
             .fillMaxWidth()
             .background(bgColor)
+            .clickable { if (!notification.isRead) onMarkRead() }
             .padding(horizontal = 20.dp, vertical = 14.dp),
         verticalAlignment = Alignment.Top,
         horizontalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-        // Icon circle
+
+        // Circular icon
         Box(
             modifier = Modifier
                 .size(46.dp)
@@ -353,11 +404,14 @@ fun NotificationCard(
         }
 
         Column(modifier = Modifier.weight(1f)) {
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+
+                // Bold title if unread
                 Text(
                     text = notification.title,
                     fontWeight = if (!notification.isRead) FontWeight.SemiBold else FontWeight.Medium,
@@ -367,14 +421,19 @@ fun NotificationCard(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
+
                 Spacer(Modifier.width(8.dp))
+
+                // Smart timestamp
                 Text(
-                    text = notification.timestamp.format(DateTimeFormatter.ofPattern("h:mm a")),
+                    text = smartExactTime(notification.timestamp),
                     fontSize = 11.sp,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
                 )
             }
+
             Spacer(Modifier.height(4.dp))
+
             Text(
                 text = notification.message,
                 fontSize = 13.sp,

@@ -44,7 +44,7 @@ fun BudgetScreen(
             .fillMaxSize()
             .statusBarsPadding()
             .background(MaterialTheme.colorScheme.background),
-        contentPadding = PaddingValues(bottom = 16.dp)
+        contentPadding = PaddingValues(bottom = 80.dp)  // Increased from 16.dp to 80.dp
     ) {
         item {
             BudgetHeader(budgets = uiState.budgets, onBackClick = onBackClick)
@@ -116,6 +116,9 @@ fun BudgetScreen(
                 }
             }
         }
+
+        // Optional: add an extra spacer item for safety (though contentPadding handles it)
+        // item { Spacer(modifier = Modifier.height(80.dp)) }
     }
 
     if (showCreateModal) {

@@ -7,6 +7,7 @@ import com.example.northstar.data.repository.ExpenseRepository
 import com.example.northstar.data.repository.IncomeRepository
 import com.example.northstar.domain.model.AnalyticsSummary
 import com.example.northstar.domain.model.CategoryBreakdown
+import com.example.northstar.domain.model.Expense
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
@@ -20,10 +21,11 @@ class AnalyticsViewModel @Inject constructor(
     private val expenseRepository: ExpenseRepository
 ) : ViewModel() {
 
-    // Reactive state drivers
-    private val _selectedTab = MutableStateFlow(AnalyticsTab.EXPENSE)
-    private val _selectedFilter = MutableStateFlow(TimeFilter.MONTHLY)
+    // Reactive state drivers - DEFAULT TO INCOME AND WEEKLY
+    private val _selectedTab = MutableStateFlow(AnalyticsTab.INCOME)      // Changed from EXPENSE
+    private val _selectedFilter = MutableStateFlow(TimeFilter.WEEKLY)    // Changed from MONTHLY
     private val _customDateRange = MutableStateFlow<Pair<Long, Long>?>(null)
+    private val _selectedExpenseGrouping = MutableStateFlow(ExpenseGrouping.BY_CATEGORY)
 
     // Tracks all-time database health totals
     private val allTimeSummaryFlow = combine(
@@ -35,31 +37,48 @@ class AnalyticsViewModel @Inject constructor(
         AnalyticsSummary(totalInc, totalExp, totalInc - totalExp)
     }
 
-    // Main UI State flow: Cleanly pipe parameters via flatMapLatest to eliminate blocking .first() invocations
+    // Main UI State flow: combine all 4 source flows into a single flow that emits a data class
+    private data class AnalyticsParams(
+        val tab: AnalyticsTab,
+        val filter: TimeFilter,
+        val range: Pair<Long, Long>,
+        val grouping: ExpenseGrouping
+    )
+
     val uiState: StateFlow<AnalyticsUiState> = combine(
-        _selectedTab, _selectedFilter, _customDateRange
-    ) { tab, filter, custom ->
+        _selectedTab,
+        _selectedFilter,
+        _customDateRange,
+        _selectedExpenseGrouping
+    ) { tab, filter, custom, grouping ->
         val range = if (filter == TimeFilter.CUSTOM && custom != null) custom else calculateRange(filter)
-        Triple(tab, filter, range)
-    }.flatMapLatest { (tab, filter, range) ->
+        AnalyticsParams(tab, filter, range, grouping)
+    }.flatMapLatest { params ->
         combine(
-            incomeRepository.getIncomesByDateRange(range.first, range.second),
-            expenseRepository.getExpensesByDateRange(range.first, range.second),
+            incomeRepository.getIncomesByDateRange(params.range.first, params.range.second),
+            expenseRepository.getExpensesByDateRange(params.range.first, params.range.second),
             allTimeSummaryFlow
         ) { incs, exps, summary ->
-            val breakdown = when (tab) {
+            val breakdown = when (params.tab) {
                 AnalyticsTab.INCOME -> calculateIncomeBreakdown(incs)
-                AnalyticsTab.EXPENSE -> calculateExpenseBreakdown(exps)
+                AnalyticsTab.EXPENSE -> {
+                    if (params.grouping == ExpenseGrouping.BY_TYPE) {
+                        calculateExpenseTypeBreakdown(exps)
+                    } else {
+                        calculateExpenseBreakdown(exps)
+                    }
+                }
                 AnalyticsTab.COMPARISON -> calculateComparisonBreakdown(incs, exps)
             }
 
             AnalyticsUiState(
-                selectedTab = tab,
-                selectedFilter = filter,
+                selectedTab = params.tab,
+                selectedFilter = params.filter,
+                selectedExpenseGrouping = params.grouping,
                 allTimeSummary = summary,
                 breakdownList = breakdown,
                 isLoading = false,
-                trendData = if (tab == AnalyticsTab.COMPARISON) generateTrendData(incs, exps, filter) else emptyList()
+                trendData = if (params.tab == AnalyticsTab.COMPARISON) generateTrendData(incs, exps, params.filter) else emptyList()
             )
         }
     }.stateIn(
@@ -71,6 +90,7 @@ class AnalyticsViewModel @Inject constructor(
     // UI Action handlers
     fun selectTab(tab: AnalyticsTab) { _selectedTab.value = tab }
     fun selectFilter(filter: TimeFilter) { _selectedFilter.value = filter }
+    fun selectExpenseGrouping(grouping: ExpenseGrouping) { _selectedExpenseGrouping.value = grouping }
 
     fun onCustomRangeSelected(start: Long, end: Long) {
         val cal = Calendar.getInstance().apply {
@@ -83,7 +103,8 @@ class AnalyticsViewModel @Inject constructor(
         _selectedFilter.value = TimeFilter.CUSTOM
     }
 
-    // Maps Expense categories
+    // === Color Mapping ===
+
     private fun getExpenseColor(cat: String): Color = when (cat.uppercase()) {
         "RENT" -> Color(0xFF3498DB)
         "FOOD" -> Color(0xFFE67E22)
@@ -98,7 +119,6 @@ class AnalyticsViewModel @Inject constructor(
         else -> generateVibrantColor(cat)
     }
 
-    // Maps Income sources
     private fun getIncomeColor(src: String): Color = when (src.uppercase()) {
         "SALARY" -> Color(0xFF27AE60)
         "FREELANCE" -> Color(0xFF2980B9)
@@ -119,7 +139,9 @@ class AnalyticsViewModel @Inject constructor(
         return colors[Math.abs(seed.hashCode()) % colors.size]
     }
 
-    private fun calculateExpenseBreakdown(exps: List<com.example.northstar.domain.model.Expense>) = exps.groupBy { it.category }.map { (cat, list) ->
+    // === Breakdown Calculators ===
+
+    private fun calculateExpenseBreakdown(exps: List<Expense>) = exps.groupBy { it.category }.map { (cat, list) ->
         val sum = list.sumOf { it.amount }
         CategoryBreakdown(cat, sum, sum.toFloat() / exps.sumOf { it.amount }.coerceAtLeast(1), getExpenseColor(cat))
     }.sortedByDescending { it.totalAmount }
@@ -129,7 +151,7 @@ class AnalyticsViewModel @Inject constructor(
         CategoryBreakdown(src, sum, sum.toFloat() / incs.sumOf { it.amountLKR }.coerceAtLeast(1), getIncomeColor(src))
     }.sortedByDescending { it.totalAmount }
 
-    private fun calculateComparisonBreakdown(incs: List<com.example.northstar.domain.model.Income>, exps: List<com.example.northstar.domain.model.Expense>): List<CategoryBreakdown> {
+    private fun calculateComparisonBreakdown(incs: List<com.example.northstar.domain.model.Income>, exps: List<Expense>): List<CategoryBreakdown> {
         val totalInc = incs.sumOf { it.amountLKR }
         val totalExp = exps.sumOf { it.amount }
         val combined = totalInc + totalExp
@@ -140,9 +162,23 @@ class AnalyticsViewModel @Inject constructor(
         )
     }
 
+    // Breakdown by expense type (Committed vs Discretionary)
+    private fun calculateExpenseTypeBreakdown(exps: List<Expense>): List<CategoryBreakdown> {
+        val committed = exps.filter { it.expenseType == "COMMITTED" }.sumOf { it.amount }
+        val discretionary = exps.filter { it.expenseType == "DISCRETIONARY" }.sumOf { it.amount }
+        val total = committed + discretionary
+        if (total == 0L) return emptyList()
+        return listOf(
+            CategoryBreakdown("Committed", committed, committed.toFloat() / total, Color(0xFF3498DB)),
+            CategoryBreakdown("Discretionary", discretionary, discretionary.toFloat() / total, Color(0xFFE67E22))
+        )
+    }
+
+    // === Trend Data for Comparison Tab ===
+
     private fun generateTrendData(
         incs: List<com.example.northstar.domain.model.Income>,
-        exps: List<com.example.northstar.domain.model.Expense>,
+        exps: List<Expense>,
         filter: TimeFilter
     ): List<TrendData> {
         val cal = Calendar.getInstance()
@@ -163,7 +199,7 @@ class AnalyticsViewModel @Inject constructor(
                     TrendData(label, inc, exp)
                 }
             }
-            else -> { // MONTHLY or CUSTOM range partitions data into progressive chronological weeks
+            else -> { // MONTHLY or CUSTOM – group into 4 weeks
                 val labels = listOf("W1", "W2", "W3", "W4+")
                 labels.mapIndexed { i, label ->
                     val inc = incs.filter {
@@ -181,6 +217,8 @@ class AnalyticsViewModel @Inject constructor(
             }
         }
     }
+
+    // === Date Range Helpers ===
 
     private fun calculateRange(filter: TimeFilter): Pair<Long, Long> {
         val cal = Calendar.getInstance()

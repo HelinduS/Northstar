@@ -53,13 +53,15 @@ fun TransactionHistoryScreen(
     val cs = MaterialTheme.colorScheme
     val uiState by viewModel.uiState.collectAsState()
     var selectedFilter by remember { mutableStateOf(HistoryFilter.ALL) }
-    val filteredTransactions = remember(uiState.recentTransactions, selectedFilter) {
+
+    val filteredTransactions = remember(uiState.allTransactions, selectedFilter) {
         when (selectedFilter) {
-            HistoryFilter.ALL -> uiState.recentTransactions
-            HistoryFilter.INCOME -> uiState.recentTransactions.filter { it.isIncome }
-            HistoryFilter.EXPENSES -> uiState.recentTransactions.filter { !it.isIncome }
+            HistoryFilter.ALL -> uiState.allTransactions
+            HistoryFilter.INCOME -> uiState.allTransactions.filter { it.isIncome }
+            HistoryFilter.EXPENSES -> uiState.allTransactions.filter { !it.isIncome }
         }
     }
+
     val sectionTitle = when (selectedFilter) {
         HistoryFilter.ALL -> "All Transactions"
         HistoryFilter.INCOME -> "All Incomes"
@@ -70,7 +72,6 @@ fun TransactionHistoryScreen(
     var showDeleteDialog by remember { mutableStateOf<TransactionItem?>(null) }
     val listState = rememberLazyListState()
 
-    // View detail popup — logic unchanged
     selectedTransaction?.let { transaction ->
         TransactionDetailDialog(
             transaction = transaction,
@@ -82,7 +83,6 @@ fun TransactionHistoryScreen(
         )
     }
 
-    // Delete confirm dialog — logic unchanged
     showDeleteDialog?.let { transaction ->
         AlertDialog(
             onDismissRequest = { showDeleteDialog = null },
@@ -201,7 +201,7 @@ fun TransactionHistoryScreen(
             return@Scaffold
         }
 
-        if (uiState.recentTransactions.isEmpty()) {
+        if (uiState.allTransactions.isEmpty()) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -251,10 +251,10 @@ fun TransactionHistoryScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // ── Summary Banner ──────
-            val totalIncome = uiState.recentTransactions
+            // Summary Banner
+            val totalIncome = uiState.allTransactions
                 .filter { it.isIncome }.sumOf { it.amount }
-            val totalExpense = uiState.recentTransactions
+            val totalExpense = uiState.allTransactions
                 .filter { !it.isIncome }.sumOf { it.amount }
             val netBalance = totalIncome - totalExpense
 
@@ -263,7 +263,6 @@ fun TransactionHistoryScreen(
                     .fillMaxWidth()
                     .background(GreenDeep)
             ) {
-                // Decorative circles for depth
                 Box(
                     modifier = Modifier
                         .size(160.dp)
@@ -286,7 +285,6 @@ fun TransactionHistoryScreen(
                         .padding(horizontal = 20.dp, vertical = 20.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // Net balance — centered
                     Text(
                         text = "Net Balance",
                         color = Color.White.copy(alpha = 0.6f),
@@ -299,7 +297,10 @@ fun TransactionHistoryScreen(
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = "${if (netBalance >= 0) "+ " else "- "}LKR ${
-                            String.format(Locale.US, "%,.2f", Math.abs(netBalance) / 100.0)
+                            String.format(
+                                Locale.US, "%,.2f",
+                                Math.abs(netBalance) / 100.0
+                            )
                         }",
                         color = Color.White,
                         fontWeight = FontWeight.Bold,
@@ -311,7 +312,6 @@ fun TransactionHistoryScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // ── ALL | INCOME | EXPENSES filter tabs (measured underline) ──
                     val density = LocalDensity.current
                     val allWidthPx = remember { mutableStateOf(0) }
                     val incomeWidthPx = remember { mutableStateOf(0) }
@@ -321,7 +321,7 @@ fun TransactionHistoryScreen(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // All tab with measured underline width
+                        // ALL tab
                         Column(
                             modifier = Modifier
                                 .weight(1f)
@@ -329,7 +329,11 @@ fun TransactionHistoryScreen(
                                 .padding(vertical = 8.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Box(modifier = Modifier.onGloballyPositioned { allWidthPx.value = it.size.width }) {
+                            Box(
+                                modifier = Modifier.onGloballyPositioned {
+                                    allWidthPx.value = it.size.width
+                                }
+                            ) {
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(5.dp)
@@ -342,7 +346,10 @@ fun TransactionHistoryScreen(
                                     )
                                     Text(
                                         text = "ALL",
-                                        color = if (selectedFilter == HistoryFilter.ALL) Color.White else Color.White.copy(alpha = 0.65f),
+                                        color = if (selectedFilter == HistoryFilter.ALL)
+                                            Color.White
+                                        else
+                                            Color.White.copy(alpha = 0.65f),
                                         fontSize = 13.sp,
                                         fontWeight = FontWeight.ExtraBold,
                                         letterSpacing = 1.sp
@@ -355,13 +362,15 @@ fun TransactionHistoryScreen(
                                     .height(2.dp)
                                     .width(with(density) { allWidthPx.value.toDp() })
                                     .background(
-                                        color = if (selectedFilter == HistoryFilter.ALL) Color.White else Color.Transparent,
+                                        color = if (selectedFilter == HistoryFilter.ALL)
+                                            Color.White
+                                        else
+                                            Color.Transparent,
                                         shape = RoundedCornerShape(50)
                                     )
                             )
                         }
 
-                        // Vertical divider
                         Box(
                             modifier = Modifier
                                 .width(1.dp)
@@ -369,7 +378,7 @@ fun TransactionHistoryScreen(
                                 .background(Color.White.copy(alpha = 0.40f))
                         )
 
-                        // Income tab with measured underline width
+                        // INCOME tab
                         Column(
                             modifier = Modifier
                                 .weight(1f)
@@ -377,7 +386,11 @@ fun TransactionHistoryScreen(
                                 .padding(vertical = 8.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Box(modifier = Modifier.onGloballyPositioned { incomeWidthPx.value = it.size.width }) {
+                            Box(
+                                modifier = Modifier.onGloballyPositioned {
+                                    incomeWidthPx.value = it.size.width
+                                }
+                            ) {
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(5.dp)
@@ -390,7 +403,10 @@ fun TransactionHistoryScreen(
                                     )
                                     Text(
                                         text = "INCOME",
-                                        color = if (selectedFilter == HistoryFilter.INCOME) Color.White else Color.White.copy(alpha = 0.65f),
+                                        color = if (selectedFilter == HistoryFilter.INCOME)
+                                            Color.White
+                                        else
+                                            Color.White.copy(alpha = 0.65f),
                                         fontSize = 13.sp,
                                         fontWeight = FontWeight.ExtraBold,
                                         letterSpacing = 1.sp
@@ -403,13 +419,15 @@ fun TransactionHistoryScreen(
                                     .height(2.dp)
                                     .width(with(density) { incomeWidthPx.value.toDp() })
                                     .background(
-                                        color = if (selectedFilter == HistoryFilter.INCOME) Color.White else Color.Transparent,
+                                        color = if (selectedFilter == HistoryFilter.INCOME)
+                                            Color.White
+                                        else
+                                            Color.Transparent,
                                         shape = RoundedCornerShape(50)
                                     )
                             )
                         }
 
-                        // Vertical divider
                         Box(
                             modifier = Modifier
                                 .width(1.dp)
@@ -417,7 +435,7 @@ fun TransactionHistoryScreen(
                                 .background(Color.White.copy(alpha = 0.40f))
                         )
 
-                        // Expenses tab with measured underline width
+                        // EXPENSES tab
                         Column(
                             modifier = Modifier
                                 .weight(1f)
@@ -425,7 +443,11 @@ fun TransactionHistoryScreen(
                                 .padding(vertical = 8.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Box(modifier = Modifier.onGloballyPositioned { expensesWidthPx.value = it.size.width }) {
+                            Box(
+                                modifier = Modifier.onGloballyPositioned {
+                                    expensesWidthPx.value = it.size.width
+                                }
+                            ) {
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(5.dp)
@@ -438,7 +460,10 @@ fun TransactionHistoryScreen(
                                     )
                                     Text(
                                         text = "EXPENSES",
-                                        color = if (selectedFilter == HistoryFilter.EXPENSES) Color.White else Color.White.copy(alpha = 0.65f),
+                                        color = if (selectedFilter == HistoryFilter.EXPENSES)
+                                            Color.White
+                                        else
+                                            Color.White.copy(alpha = 0.65f),
                                         fontSize = 13.sp,
                                         fontWeight = FontWeight.ExtraBold,
                                         letterSpacing = 1.sp
@@ -451,7 +476,10 @@ fun TransactionHistoryScreen(
                                     .height(2.dp)
                                     .width(with(density) { expensesWidthPx.value.toDp() })
                                     .background(
-                                        color = if (selectedFilter == HistoryFilter.EXPENSES) Color.White else Color.Transparent,
+                                        color = if (selectedFilter == HistoryFilter.EXPENSES)
+                                            Color.White
+                                        else
+                                            Color.Transparent,
                                         shape = RoundedCornerShape(50)
                                     )
                             )
@@ -462,7 +490,7 @@ fun TransactionHistoryScreen(
                 }
             }
 
-            // ── Section header ────────────────────────────────────────────
+            // Section header
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -491,7 +519,7 @@ fun TransactionHistoryScreen(
                 }
             }
 
-            // ── Transaction list ──────────────────────────────────────────
+            // Transaction list
             LazyColumn(
                 state = listState,
                 modifier = Modifier
@@ -511,10 +539,6 @@ fun TransactionHistoryScreen(
         }
     }
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// TransactionHistoryItem
-// ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
 fun TransactionHistoryItem(
@@ -548,7 +572,6 @@ fun TransactionHistoryItem(
         shape = RoundedCornerShape(18.dp)
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
-            // Thin accent line at top
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -561,7 +584,6 @@ fun TransactionHistoryItem(
                     )
             )
 
-            // ── Top row: icon + title + amount ───────────────────────────
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -574,7 +596,6 @@ fun TransactionHistoryItem(
                     horizontalArrangement = Arrangement.spacedBy(14.dp),
                     modifier = Modifier.weight(1f)
                 ) {
-                    // Icon bubble
                     Box(
                         modifier = Modifier
                             .size(50.dp)
@@ -609,7 +630,6 @@ fun TransactionHistoryItem(
                             letterSpacing = (-0.2).sp
                         )
                         Spacer(modifier = Modifier.height(3.dp))
-                        // Date + time under title
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(4.dp)
@@ -637,7 +657,6 @@ fun TransactionHistoryItem(
                     }
                 }
 
-                // Amount chip
                 Surface(
                     shape = RoundedCornerShape(10.dp),
                     color = accentColor.copy(alpha = 0.1f)
@@ -652,7 +671,6 @@ fun TransactionHistoryItem(
                 }
             }
 
-            // ── Info chip row: category · type · payment ─────────────────
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -660,7 +678,6 @@ fun TransactionHistoryItem(
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Category
                 Surface(
                     shape = RoundedCornerShape(6.dp),
                     color = accentColor.copy(alpha = 0.1f)
@@ -675,7 +692,6 @@ fun TransactionHistoryItem(
                     )
                 }
 
-                // Expense type
                 if (!transaction.isIncome && transaction.expenseType.isNotEmpty()) {
                     Surface(
                         shape = RoundedCornerShape(6.dp),
@@ -692,7 +708,6 @@ fun TransactionHistoryItem(
                     }
                 }
 
-                // Payment method
                 if (!transaction.isIncome && transaction.paymentMethod.isNotEmpty()) {
                     Surface(
                         shape = RoundedCornerShape(6.dp),
@@ -710,14 +725,12 @@ fun TransactionHistoryItem(
                 }
             }
 
-            // Divider
             HorizontalDivider(
                 color = cs.outlineVariant,
                 thickness = 1.dp,
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
 
-            // Action row
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -765,10 +778,6 @@ fun TransactionHistoryItem(
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// TransactionDetailDialog
-// ─────────────────────────────────────────────────────────────────────────────
-
 @Composable
 fun TransactionDetailDialog(
     transaction: TransactionItem,
@@ -790,8 +799,6 @@ fun TransactionDetailDialog(
             elevation = CardDefaults.cardElevation(defaultElevation = 12.dp)
         ) {
             Column(modifier = Modifier.fillMaxWidth()) {
-
-                // ── Header ─────────────────────────────────────────────────
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -802,7 +809,6 @@ fun TransactionDetailDialog(
                         .padding(24.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    // Decorative background circle
                     Box(
                         modifier = Modifier
                             .size(120.dp)
@@ -813,7 +819,6 @@ fun TransactionDetailDialog(
                     )
 
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        // Icon circle
                         Box(
                             modifier = Modifier
                                 .size(64.dp)
@@ -840,7 +845,6 @@ fun TransactionDetailDialog(
                         }
                         Spacer(modifier = Modifier.height(14.dp))
 
-                        // Type pill
                         Surface(
                             shape = RoundedCornerShape(20.dp),
                             color = accentColor
@@ -881,7 +885,6 @@ fun TransactionDetailDialog(
                     }
                 }
 
-                // ── Details ────────────────────────────────────────────────
                 Column(
                     modifier = Modifier.padding(20.dp),
                     verticalArrangement = Arrangement.spacedBy(0.dp)
@@ -901,10 +904,7 @@ fun TransactionDetailDialog(
                         }
                         if (transaction.description.isNotEmpty()) {
                             DetailDivider()
-                            DetailRow(
-                                label = "Description",
-                                value = transaction.description
-                            )
+                            DetailRow(label = "Description", value = transaction.description)
                         }
                     } else {
                         if (transaction.originalCurrency != "LKR") {
@@ -937,7 +937,6 @@ fun TransactionDetailDialog(
 
                     Spacer(modifier = Modifier.height(20.dp))
 
-                    // Action buttons
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -959,13 +958,9 @@ fun TransactionDetailDialog(
                             modifier = Modifier
                                 .weight(1f)
                                 .height(48.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Debit
-                            ),
+                            colors = ButtonDefaults.buttonColors(containerColor = Debit),
                             shape = RoundedCornerShape(14.dp),
-                            elevation = ButtonDefaults.buttonElevation(
-                                defaultElevation = 4.dp
-                            )
+                            elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
                         ) {
                             Icon(
                                 Icons.Default.Delete,
@@ -981,10 +976,6 @@ fun TransactionDetailDialog(
         }
     }
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// DetailRow & DetailDivider
-// ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
 fun DetailDivider() {
