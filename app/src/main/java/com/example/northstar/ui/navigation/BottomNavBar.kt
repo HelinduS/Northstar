@@ -67,7 +67,7 @@ fun BottomNavBar(navController: NavHostController, modifier: Modifier = Modifier
                 ambientColor = Color.Black.copy(alpha = 0.15f),
                 spotColor = Color.Black.copy(alpha = 0.15f)
             )
-            .background(cs.surfaceContainerHigh, RoundedCornerShape(24.dp))
+            .background(cs.surface, RoundedCornerShape(24.dp))
             .border(1.dp, cs.outlineVariant, RoundedCornerShape(24.dp))
             .height(72.dp),
         horizontalArrangement = Arrangement.SpaceEvenly,
