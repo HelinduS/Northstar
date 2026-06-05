@@ -85,7 +85,7 @@ class GoalRepositoryImpl @Inject constructor(
             )
             // Use the UUID supplied by the ViewModel as both Firestore doc ID and Room PK
             goalDao.insertGoal(goal.toEntity())
-            goalsCollection(userId).document(goal.id).set(data).await()
+            goalsCollection(userId).document(goal.id).set(data) // fire-and-forget, syncs when online
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
@@ -104,7 +104,7 @@ class GoalRepositoryImpl @Inject constructor(
                 "isActive"     to goal.isActive
             )
             goalDao.insertGoal(goal.toEntity())                 // REPLACE strategy updates cache
-            goalsCollection(userId).document(goal.id).update(data).await()
+            goalsCollection(userId).document(goal.id).update(data) // fire-and-forget, syncs when online
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
@@ -115,8 +115,8 @@ class GoalRepositoryImpl @Inject constructor(
         try {
             val userId = getUserIdOrNull()
                 ?: return@withContext Result.failure(IllegalStateException("User is not signed in"))
-            goalsCollection(userId).document(goalId).delete().await()
             goalDao.deleteGoalById(goalId)
+            goalsCollection(userId).document(goalId).delete() // fire-and-forget, syncs when online
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)

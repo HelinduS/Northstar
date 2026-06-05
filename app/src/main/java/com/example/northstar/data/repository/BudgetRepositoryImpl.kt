@@ -102,9 +102,8 @@ class BudgetRepositoryImpl @Inject constructor(
                 )
             )
 
-            // Then sync to Firestore
-            val docRef = budgetsCollection(userId).document(resolvedId)
-            docRef.set(data).await()
+            // Fire-and-forget Firestore sync — completes when online
+            budgetsCollection(userId).document(resolvedId).set(data)
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
@@ -139,8 +138,8 @@ class BudgetRepositoryImpl @Inject constructor(
                 ?: firestoreBudgetId
                 ?: category
 
-            budgetsCollection(userId).document(budgetId).delete().await()
             budgetDao.deleteBudgetById(budgetId)
+            budgetsCollection(userId).document(budgetId).delete() // fire-and-forget, syncs when online
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)

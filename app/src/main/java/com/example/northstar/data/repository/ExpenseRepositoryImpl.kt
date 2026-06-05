@@ -100,7 +100,7 @@ class ExpenseRepositoryImpl @Inject constructor(
             )
             // Use the domain-model ID so Firestore and Room share the same key
             expenseDao.insertExpense(expense.toEntity())
-            expensesCollection(userId).document(expense.id).set(data).await()
+            expensesCollection(userId).document(expense.id).set(data) // fire-and-forget, syncs when online
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
@@ -121,7 +121,7 @@ class ExpenseRepositoryImpl @Inject constructor(
                 "updatedAt"     to com.google.firebase.Timestamp.now()
             )
             expenseDao.insertExpense(expense.toEntity())         // REPLACE strategy updates cache
-            expensesCollection(userId).document(expense.id).update(data).await()
+            expensesCollection(userId).document(expense.id).update(data) // fire-and-forget, syncs when online
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
@@ -132,8 +132,8 @@ class ExpenseRepositoryImpl @Inject constructor(
         try {
             val userId = getUserIdOrNull()
                 ?: return@withContext Result.failure(IllegalStateException("User is not signed in"))
-            expensesCollection(userId).document(expenseId).delete().await()
             expenseDao.deleteExpenseById(expenseId)
+            expensesCollection(userId).document(expenseId).delete() // fire-and-forget, syncs when online
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)

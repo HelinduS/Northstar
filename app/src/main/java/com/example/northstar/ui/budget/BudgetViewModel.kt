@@ -19,6 +19,8 @@ class BudgetViewModel @Inject constructor(
     private val _filterState = MutableStateFlow(BudgetFilterState())
     private val _sortState = MutableStateFlow(BudgetSortOption.LOWEST_SPENDING)
     private val _snoozedAlerts = MutableStateFlow<Set<String>>(emptySet())
+    private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
 
     // Normalize expense category to match budget category keys
     private fun normalizeExpenseCategory(rawCategory: String): String {
@@ -166,12 +168,16 @@ class BudgetViewModel @Inject constructor(
                 endDate = endDate
             )
             budgetRepository.addBudget(record)
+                .onFailure { e -> _errorMessage.value = e.message ?: "Failed to save budget" }
         }
     }
 
     fun removeBudget(category: String) {
         viewModelScope.launch {
             budgetRepository.deleteBudget(category)
+                .onFailure { e -> _errorMessage.value = e.message ?: "Failed to delete budget" }
         }
     }
+
+    fun clearError() { _errorMessage.value = null }
 }

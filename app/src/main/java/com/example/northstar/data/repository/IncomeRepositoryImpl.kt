@@ -91,7 +91,7 @@ class IncomeRepositoryImpl @Inject constructor(
             )
 
             incomeDao.insertIncome(income.toEntity())
-            incomesCollection(userId).document(income.id).set(firestoreData).await()
+            incomesCollection(userId).document(income.id).set(firestoreData) // fire-and-forget, syncs when online
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
@@ -112,7 +112,7 @@ class IncomeRepositoryImpl @Inject constructor(
             )
 
             incomeDao.insertIncome(income.toEntity())
-            incomesCollection(userId).document(income.id).update(updates).await()
+            incomesCollection(userId).document(income.id).update(updates) // fire-and-forget, syncs when online
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
@@ -123,7 +123,7 @@ class IncomeRepositoryImpl @Inject constructor(
         try {
             val userId = getUserId() ?: return@withContext Result.failure(Exception("User not logged in"))
             incomeDao.deleteIncomeById(incomeId)
-            incomesCollection(userId).document(incomeId).delete().await()
+            incomesCollection(userId).document(incomeId).delete() // fire-and-forget, syncs when online
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)

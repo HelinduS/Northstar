@@ -175,7 +175,8 @@ class IncomeViewModel @Inject constructor(
                 updatedAt = System.currentTimeMillis()
             )
             repository.addIncome(income)
-            _uiState.value = IncomeUiState.Success
+                .onSuccess { _uiState.value = IncomeUiState.Success }
+                .onFailure { e -> _uiState.value = IncomeUiState.Error(e.message ?: "Failed to save income") }
         }
     }
 
