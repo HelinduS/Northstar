@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Calendar
 import javax.inject.Inject
@@ -135,7 +136,13 @@ class DashboardViewModel @Inject constructor(
     }
 
     fun loadDashboardData() {
-        // Data updates reactively via repository snapshot listeners — no manual reload needed
+        // Data updates reactively via repository snapshot listeners — no manual reload needed.
+        // Briefly toggle isLoading so PullToRefreshBox dismisses its indicator correctly.
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true)
+            delay(400)
+            _uiState.value = _uiState.value.copy(isLoading = false)
+        }
     }
 
     private fun buildUiState(
