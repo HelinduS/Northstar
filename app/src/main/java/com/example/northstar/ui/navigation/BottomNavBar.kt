@@ -62,12 +62,12 @@ fun BottomNavBar(navController: NavHostController, modifier: Modifier = Modifier
             .padding(horizontal = 20.dp)
             .padding(top = 8.dp, bottom = 12.dp)
             .shadow(
-                elevation = 20.dp,
+                elevation = 12.dp,
                 shape = RoundedCornerShape(24.dp),
-                ambientColor = Color.Black.copy(alpha = 0.25f),
-                spotColor = Color.Black.copy(alpha = 0.25f)
+                ambientColor = Color.Black.copy(alpha = 0.15f),
+                spotColor = Color.Black.copy(alpha = 0.15f)
             )
-            .background(cs.surface.copy(alpha = 0.92f), RoundedCornerShape(24.dp))
+            .background(cs.surfaceContainerHigh, RoundedCornerShape(24.dp))
             .border(1.dp, cs.outlineVariant, RoundedCornerShape(24.dp))
             .height(72.dp),
         horizontalArrangement = Arrangement.SpaceEvenly,
