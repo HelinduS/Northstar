@@ -230,7 +230,9 @@ fun ExpenseScreen(
                             color = Color.White,
                             fontSize = 44.sp,
                             fontWeight = FontWeight.ExtraBold,
-                            letterSpacing = (-1).sp
+                            letterSpacing = (-1).sp,
+                            maxLines = 1,
+                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                         )
                     }
 
@@ -238,7 +240,11 @@ fun ExpenseScreen(
 
                     OutlinedTextField(
                         value = amount,
-                        onValueChange = { amount = it },
+                        onValueChange = {
+                            if (it.all { c -> c.isDigit() || c == '.' }) {
+                                amount = it
+                            }
+                        },
                         placeholder = {
                             Text(
                                 "Enter amount",
