@@ -30,16 +30,27 @@ class IncomeViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val sourceCurrencyMap = mapOf(
+
         "Salary" to listOf("LKR", "USD"),
+
         "Freelance" to listOf("LKR", "USD"),
+
         "Social Media" to listOf("USD"),
+
         "Google AdSense" to listOf("USD"),
+
         "Investments" to listOf("LKR"),
+
         "E-commerce" to listOf("USD"),
+
         "Affiliate" to listOf("USD"),
+
         "Crypto" to listOf("USDT", "BTC", "ETH", "ALT"),
+
         "Digital Products" to listOf("USD"),
+
         "Tutoring" to listOf("LKR", "USD"),
+
         "Other" to listOf("LKR", "USD", "EUR", "GBP", "JPY", "CHF", "CAD", "AUD", "INR", "CNY")
     )
 
@@ -138,17 +149,29 @@ class IncomeViewModel @Inject constructor(
             val lkrAmountInCents = (amountInCents * exchangeRate).toLong()
             val month = SimpleDateFormat("yyyy-MM", Locale.US).format(Date(date))
             val income = Income(
+
                 id = UUID.randomUUID().toString(),
+
                 sourceType = sourceType,
+
                 projectName = projectName,
+
                 amount = amountInCents,
+
                 currency = currency,
+
                 amountLKR = lkrAmountInCents,
+
                 exchangeRate = exchangeRate,
+
                 receivedDate = date,
+
                 month = month,
+
                 note = notes,
+
                 createdAt = System.currentTimeMillis(),
+
                 updatedAt = System.currentTimeMillis()
             )
             repository.addIncome(income)

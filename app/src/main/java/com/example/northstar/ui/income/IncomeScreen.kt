@@ -60,6 +60,7 @@ fun IncomeScreen(
 
     var showCurrencyMenu by remember { mutableStateOf(false) }
     var showSourceMenu by remember { mutableStateOf(false) }
+    var showConfirmDialog by remember { mutableStateOf(false) }
 
     val dateFormatter = remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
 
@@ -76,6 +77,74 @@ fun IncomeScreen(
         }
     }
 
+    // Confirmation Dialog
+    if (showConfirmDialog) {
+        AlertDialog(
+            onDismissRequest = { showConfirmDialog = false },
+            title = {
+                Text(
+                    "Confirm Income",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp
+                )
+            },
+            text = {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    DetailRow("Source", selectedSource.ifEmpty { "Not selected" })
+                    if (selectedSource == "Freelance" && projectName.isNotBlank()) {
+                        DetailRow("Project", projectName)
+                    }
+                    DetailRow(
+                        "Amount",
+                        "$selectedCurrency ${if (amount.isEmpty()) "0" else amount}"
+                    )
+                    if (selectedCurrency != "LKR" && amount.isNotEmpty()) {
+                        DetailRow(
+                            "≈ LKR",
+                            "Rs. ${String.format(Locale.US, "%,.2f", totalLkrEstimate)}"
+                        )
+                    }
+                    DetailRow(
+                        "Date",
+                        if (selectedDate == 0L) "Not selected"
+                        else dateFormatter.format(Date(selectedDate))
+                    )
+                    if (notes.isNotBlank()) {
+                        DetailRow("Note", notes)
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showConfirmDialog = false
+                        viewModel.addIncome(
+                            sourceType = selectedSource,
+                            projectName = if (selectedSource == "Freelance") projectName else null,
+                            amountStr = amount,
+                            currency = selectedCurrency,
+                            exchangeRate = currentRate,
+                            date = selectedDate,
+                            notes = notes.ifBlank { null }
+                        )
+                    }
+                ) {
+                    Text("OK", color = GreenDeep, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showConfirmDialog = false }) {
+                    Text("Cancel")
+                }
+            },
+            containerColor = cs.surface,
+            titleContentColor = cs.onSurface,
+            textContentColor = cs.onSurfaceVariant
+        )
+    }
+
     Scaffold(
         containerColor = cs.background,
         bottomBar = {
@@ -86,15 +155,7 @@ fun IncomeScreen(
                 Button(
                     onClick = {
                         if (amount.isNotEmpty()) {
-                            viewModel.addIncome(
-                                sourceType = selectedSource,
-                                projectName = if (selectedSource == "Freelance") projectName else null,
-                                amountStr = amount,
-                                currency = selectedCurrency,
-                                exchangeRate = currentRate,
-                                date = selectedDate,
-                                notes = notes.ifBlank { null }
-                            )
+                            showConfirmDialog = true
                         }
                     },
                     modifier = Modifier
@@ -219,9 +280,17 @@ fun IncomeScreen(
                             .background(cs.surface)
                     ) {
                         val sources = listOf(
-                            "Salary", "Freelance", "Social Media", "Google AdSense",
-                            "Investments", "E-commerce", "Affiliate", "Crypto",
-                            "Digital Products", "Tutoring", "Other"
+                            "Salary",
+                            "Freelance",
+                            "Social Media",
+                            "Google AdSense",
+                            "Investments",
+                            "E-commerce",
+                            "Affiliate",
+                            "Crypto",
+                            "Digital Products",
+                            "Tutoring",
+                            "Other"
                         )
                         sources.forEach { title ->
                             DropdownMenuItem(
@@ -244,6 +313,7 @@ fun IncomeScreen(
 
                 if (selectedSource == "Freelance") {
                     OutlinedTextField(
+
                         value = projectName,
                         onValueChange = { projectName = it },
                         label = { Text("Project Name") },
@@ -256,10 +326,14 @@ fun IncomeScreen(
                 Box {
                     DetailDropdown(
                         label = "Currency",
+
                         selected = "$selectedCurrency (${getCurrencyName(selectedCurrency)})",
+
                         icon = Icons.Default.Info,
+
                         onClick = { showCurrencyMenu = true }
                     )
+
                     DropdownMenu(
                         expanded = showCurrencyMenu,
                         onDismissRequest = { showCurrencyMenu = false },
@@ -315,7 +389,9 @@ fun IncomeScreen(
                     shape = RoundedCornerShape(12.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = cs.primary,
+
                         unfocusedBorderColor = cs.outline,
+
                         cursorColor = cs.primary
                     )
                 )
@@ -334,15 +410,22 @@ fun IncomeScreen(
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text(
                                 "Estimated Total (LKR)",
+
                                 fontSize = 13.sp,
+
                                 color = Color.Gray,
+
                                 fontWeight = FontWeight.Medium
                             )
+
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
                                 "Rs. ${String.format(Locale.US, "%,.2f", totalLkrEstimate)}",
+
                                 fontSize = 24.sp,
+
                                 fontWeight = FontWeight.Bold,
+
                                 color = Color(0xFF388E3C)
                             )
                         }
@@ -373,7 +456,7 @@ fun IncomeScreen(
                     )
                 }
 
-                // 6. Date Selection
+                // 6. Date Selection - FIXED: uses a light built-in theme
                 DetailDropdown(
                     label = "Date Received",
                     selected = if (selectedDate == 0L) "Select Date"
@@ -383,7 +466,7 @@ fun IncomeScreen(
                         val cal = Calendar.getInstance()
                         val themedContext = ContextThemeWrapper(
                             context,
-                            android.R.style.Theme_DeviceDefault_Dialog_Alert
+                            android.R.style.Theme_Material_Light_Dialog
                         )
                         DatePickerDialog(
                             themedContext,
@@ -401,8 +484,11 @@ fun IncomeScreen(
                 // 7. Notes
                 OutlinedTextField(
                     value = notes,
+
                     onValueChange = { notes = it },
+
                     label = { Text("Add a note...") },
+
                     leadingIcon = {
                         Icon(
                             Icons.Default.Edit,
@@ -415,6 +501,25 @@ fun IncomeScreen(
                 )
             }
         }
+    }
+}
+
+@Composable
+fun DetailRow(label: String, value: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = label,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+        )
+        Text(
+            text = value,
+            fontWeight = FontWeight.Normal,
+            color = MaterialTheme.colorScheme.onSurface
+        )
     }
 }
 
