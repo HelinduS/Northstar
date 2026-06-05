@@ -90,8 +90,8 @@ class IncomeRepositoryImpl @Inject constructor(
                 "updatedAt" to com.google.firebase.Timestamp.now()
             )
 
-            incomesCollection(userId).document(income.id).set(firestoreData).await()
             incomeDao.insertIncome(income.toEntity())
+            incomesCollection(userId).document(income.id).set(firestoreData).await()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
@@ -111,8 +111,8 @@ class IncomeRepositoryImpl @Inject constructor(
                 "updatedAt" to com.google.firebase.Timestamp.now()
             )
 
-            incomesCollection(userId).document(income.id).update(updates).await()
             incomeDao.insertIncome(income.toEntity())
+            incomesCollection(userId).document(income.id).update(updates).await()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
@@ -122,6 +122,7 @@ class IncomeRepositoryImpl @Inject constructor(
     override suspend fun deleteIncome(incomeId: String): Result<Unit> = withContext(Dispatchers.IO) {
         try {
             val userId = getUserId() ?: return@withContext Result.failure(Exception("User not logged in"))
+            incomeDao.deleteIncomeById(incomeId)
             incomesCollection(userId).document(incomeId).delete().await()
             Result.success(Unit)
         } catch (e: Exception) {
