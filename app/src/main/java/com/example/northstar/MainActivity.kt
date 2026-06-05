@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Scaffold
+import androidx.compose.ui.Alignment
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -88,29 +89,36 @@ class MainActivity : ComponentActivity() {
                     return@NorthStarTheme
                 }
 
+                val showNavBar = currentRoute in listOf(
+                    Screen.Dashboard.route,
+                    Screen.Analytics.route,
+                    Screen.TransactionHistory.route,
+                    Screen.Profile.route,
+                    Screen.Goals.route,
+                    Screen.Budgets.route
+                )
+
                 Scaffold(
-                    modifier             = Modifier.fillMaxSize(),
-                    containerColor       = Color.Transparent,
-                    contentWindowInsets  = WindowInsets(0),
-                    bottomBar = {
-                        val showNavBar = currentRoute in listOf(
-                            Screen.Dashboard.route,
-                            Screen.Analytics.route,
-                            Screen.TransactionHistory.route,
-                            Screen.Profile.route,
-                            Screen.Goals.route,
-                            Screen.Budgets.route
-                        )
-                        if (showNavBar) BottomNavBar(navController = navController)
-                    }
-                ) {innerPadding ->
-                    Box(modifier = Modifier
-                        .padding(innerPadding).fillMaxSize()) {
+                    modifier            = Modifier.fillMaxSize(),
+                    containerColor      = Color.Transparent,
+                    contentWindowInsets = WindowInsets(0),
+                ) { innerPadding ->
+                    Box(
+                        modifier = Modifier
+                            .padding(top = innerPadding.calculateTopPadding())
+                            .fillMaxSize()
+                    ) {
                         NavGraph(
                             navController    = navController,
                             startDestination = startDestination,
                             pinLockManager   = pinLockManager
                         )
+                        if (showNavBar) {
+                            BottomNavBar(
+                                navController = navController,
+                                modifier      = Modifier.align(Alignment.BottomCenter)
+                            )
+                        }
                     }
                 }
             }

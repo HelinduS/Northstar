@@ -44,7 +44,7 @@ sealed class BottomNavItem(val route: String, val icon: ImageVector, val label: 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BottomNavBar(navController: NavHostController) {
+fun BottomNavBar(navController: NavHostController, modifier: Modifier = Modifier) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
     var showAddSheet by remember { mutableStateOf(false) }
@@ -55,7 +55,7 @@ fun BottomNavBar(navController: NavHostController) {
 
     // Modern floating action bar design
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .navigationBarsPadding()
             .padding(horizontal = 20.dp)
