@@ -36,9 +36,9 @@ import java.util.*
 @Composable
 fun IncomeScreen(
     navController: NavController,
-    viewModel: IncomeViewModel = hiltViewModel()
+    incomeViewModel: IncomeViewModel = hiltViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by incomeViewModel.uiState.collectAsState()
     val context = LocalContext.current
     val cs = MaterialTheme.colorScheme
 
@@ -46,12 +46,12 @@ fun IncomeScreen(
         viewModelStoreOwner = context as ComponentActivity
     )
 
-    val selectedSource by viewModel.selectedSource.collectAsState()
-    val selectedCurrency by viewModel.selectedCurrency.collectAsState()
-    val availableCurrencies by viewModel.availableCurrencies.collectAsState()
-    val currentRate by viewModel.exchangeRate.collectAsState()
-    val isFetching by viewModel.isFetchingRate.collectAsState()
-    val totalLkrEstimate by viewModel.totalLkrEstimate.collectAsState()
+    val selectedSource by incomeViewModel.selectedSource.collectAsState()
+    val selectedCurrency by incomeViewModel.selectedCurrency.collectAsState()
+    val availableCurrencies by incomeViewModel.availableCurrencies.collectAsState()
+    val currentRate by incomeViewModel.exchangeRate.collectAsState()
+    val isFetching by incomeViewModel.isFetchingRate.collectAsState()
+    val totalLkrEstimate by incomeViewModel.totalLkrEstimate.collectAsState()
 
     var amount by remember { mutableStateOf("") }
     var projectName by remember { mutableStateOf("") }
@@ -73,7 +73,7 @@ fun IncomeScreen(
                 newBalance = amountInLkr
             )
             navController.popBackStack()
-            viewModel.resetState()
+            incomeViewModel.resetState()
         }
     }
 
@@ -120,7 +120,7 @@ fun IncomeScreen(
                 TextButton(
                     onClick = {
                         showConfirmDialog = false
-                        viewModel.addIncome(
+                        incomeViewModel.addIncome(
                             sourceType = selectedSource,
                             projectName = if (selectedSource == "Freelance") projectName else null,
                             amountStr = amount,
@@ -303,7 +303,7 @@ fun IncomeScreen(
                                     )
                                 },
                                 onClick = {
-                                    viewModel.onSourceSelected(title)
+                                    incomeViewModel.onSourceSelected(title)
                                     showSourceMenu = false
                                 }
                             )
@@ -359,7 +359,7 @@ fun IncomeScreen(
                                     }
                                 },
                                 onClick = {
-                                    viewModel.onCurrencySelected(currency)
+                                    incomeViewModel.onCurrencySelected(currency)
                                     showCurrencyMenu = false
                                 }
                             )
@@ -373,7 +373,7 @@ fun IncomeScreen(
                     onValueChange = {
                         if (it.all { c -> c.isDigit() || c == '.' }) {
                             amount = it
-                            viewModel.updateLiveAmount(it)
+                            incomeViewModel.updateLiveAmount(it)
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
@@ -436,13 +436,13 @@ fun IncomeScreen(
                 if (selectedCurrency != "LKR") {
                     OutlinedTextField(
                         value = currentRate.toString(),
-                        onValueChange = { viewModel.updateExchangeRate(it) },
+                        onValueChange = { incomeViewModel.updateExchangeRate(it) },
                         modifier = Modifier.fillMaxWidth(),
                         label = { Text("Exchange Rate (1 $selectedCurrency to LKR)") },
                         shape = RoundedCornerShape(12.dp),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                         trailingIcon = {
-                            IconButton(onClick = { viewModel.refreshRate() }) {
+                            IconButton(onClick = { incomeViewModel.refreshRate() }) {
                                 if (isFetching) {
                                     CircularProgressIndicator(
                                         modifier = Modifier.size(20.dp),
