@@ -84,8 +84,8 @@ class GoalRepositoryImpl @Inject constructor(
                 "createdAt"    to com.google.firebase.Timestamp.now()
             )
             // Use the UUID supplied by the ViewModel as both Firestore doc ID and Room PK
-            goalsCollection(userId).document(goal.id).set(data).await()
             goalDao.insertGoal(goal.toEntity())
+            goalsCollection(userId).document(goal.id).set(data).await()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
@@ -103,8 +103,8 @@ class GoalRepositoryImpl @Inject constructor(
                 "targetDate"   to com.google.firebase.Timestamp(java.util.Date(goal.targetDate)),
                 "isActive"     to goal.isActive
             )
-            goalsCollection(userId).document(goal.id).update(data).await()
             goalDao.insertGoal(goal.toEntity())                 // REPLACE strategy updates cache
+            goalsCollection(userId).document(goal.id).update(data).await()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)

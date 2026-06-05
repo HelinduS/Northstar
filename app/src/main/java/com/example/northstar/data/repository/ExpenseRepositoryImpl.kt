@@ -99,8 +99,8 @@ class ExpenseRepositoryImpl @Inject constructor(
                 "updatedAt"     to com.google.firebase.Timestamp.now()
             )
             // Use the domain-model ID so Firestore and Room share the same key
-            expensesCollection(userId).document(expense.id).set(data).await()
             expenseDao.insertExpense(expense.toEntity())
+            expensesCollection(userId).document(expense.id).set(data).await()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
@@ -120,8 +120,8 @@ class ExpenseRepositoryImpl @Inject constructor(
                 "description"   to (expense.note ?: ""),
                 "updatedAt"     to com.google.firebase.Timestamp.now()
             )
-            expensesCollection(userId).document(expense.id).update(data).await()
             expenseDao.insertExpense(expense.toEntity())         // REPLACE strategy updates cache
+            expensesCollection(userId).document(expense.id).update(data).await()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)

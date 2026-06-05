@@ -86,11 +86,7 @@ class BudgetRepositoryImpl @Inject constructor(
             // Resolve a single canonical ID used across Firestore and Room.
             val resolvedId = if (budget.id.isNotEmpty()) budget.id else budget.category
 
-            // Write to Firestore
-            val docRef = budgetsCollection(userId).document(resolvedId)
-            docRef.set(data).await()
-
-            // Cache to Room
+            // Write to Room first — data is safe even without internet
             budgetDao.insertBudget(
                 BudgetEntity(
                     id = resolvedId,
@@ -105,6 +101,10 @@ class BudgetRepositoryImpl @Inject constructor(
                     endDate = budget.endDate
                 )
             )
+
+            // Then sync to Firestore
+            val docRef = budgetsCollection(userId).document(resolvedId)
+            docRef.set(data).await()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
