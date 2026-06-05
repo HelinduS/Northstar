@@ -1,16 +1,27 @@
 package com.example.northstar.ui.goals
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.outlined.Flag
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
@@ -23,6 +34,61 @@ import com.example.northstar.domain.model.Goal
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.*
+
+// ─────────────────────────────────────────────────────────
+
+@Composable
+fun AddGoalButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.96f else 1f,
+        label = "press_scale"
+    )
+
+    val greenText = Color(0xFF1D9E75)
+
+    Row(
+        modifier = modifier
+            .scale(scale)
+            .clip(RoundedCornerShape(10.dp))
+            .clickable(
+                interactionSource = interactionSource,
+                indication        = null,
+                onClick           = onClick
+            )
+            .padding(horizontal = 4.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(22.dp)
+                .clip(CircleShape)
+                .background(greenText.copy(alpha = 0.12f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                Icons.Default.Add,
+                contentDescription = null,
+                tint = greenText,
+                modifier = Modifier.size(13.dp)
+            )
+        }
+        Text(
+            text       = "Add goal",
+            fontSize   = 14.sp,
+            fontWeight = FontWeight.Medium,
+            color      = greenText,
+            fontFamily = InterFontFamily
+        )
+    }
+}
+
+// ─────────────────────────────────────────────────────────
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -127,6 +193,7 @@ fun AddGoalDialog(
             }
         },
         confirmButton = {
+            val isEnabled = name.isNotBlank() && amount.isNotBlank() && selectedDateMillis != null
             Button(
                 onClick = {
                     val targetAmount = (amount.toLongOrNull() ?: 0L) * 100L
@@ -135,10 +202,45 @@ fun AddGoalDialog(
                         onConfirm(name, targetAmount, targetDate)
                     }
                 },
-                enabled = name.isNotBlank() && amount.isNotBlank() && selectedDateMillis != null,
-                shape  = RoundedCornerShape(10.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = GreenDeep)
-            ) { Text("Add Goal") }
+                enabled = isEnabled,
+                shape   = RoundedCornerShape(10.dp),
+                modifier = Modifier.fillMaxWidth(),
+                contentPadding = PaddingValues(0.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(
+                            if (isEnabled)
+                                Brush.linearGradient(listOf(Color(0xFF0F6E56), Color(0xFF1D9E75)))
+                            else
+                                Brush.linearGradient(listOf(Color(0xFFB0B0B0), Color(0xFFB0B0B0)))
+                        )
+                        .padding(vertical = 12.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            Icons.Outlined.Flag,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(17.dp)
+                        )
+                        Text(
+                            "Add Goal",
+                            fontSize   = 15.sp,
+                            fontWeight = FontWeight.Medium,
+                            color      = Color.White,
+                            fontFamily = InterFontFamily
+                        )
+                    }
+                }
+            }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
@@ -339,20 +441,18 @@ fun EditGoalDialog(
                             color      = GreenDeep,
                             fontWeight = FontWeight.Medium
                         )
-
                     }
                 }
             }
         },
         confirmButton = {
+            val isEnabled = name.isNotBlank() && amount.isNotBlank()
             Button(
                 onClick = {
-                    // Validate name
                     if (name.isBlank()) {
                         nameError = true
                         return@Button
                     }
-                    // Validate amount
                     val parsedAmount = amount.toLongOrNull()
                     when {
                         parsedAmount == null || parsedAmount <= 0L -> {
@@ -372,10 +472,40 @@ fun EditGoalDialog(
                         selectedDateMillis ?: goal.targetDate
                     )
                 },
-                shape  = RoundedCornerShape(10.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = GreenDeep)
+                shape   = RoundedCornerShape(10.dp),
+                modifier = Modifier.fillMaxWidth(),
+                contentPadding = PaddingValues(0.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
             ) {
-                Text("Save Changes")
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(
+                            Brush.linearGradient(listOf(Color(0xFF0F6E56), Color(0xFF1D9E75)))
+                        )
+                        .padding(vertical = 12.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            Icons.Outlined.Flag,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(17.dp)
+                        )
+                        Text(
+                            "Save Changes",
+                            fontSize   = 15.sp,
+                            fontWeight = FontWeight.Medium,
+                            color      = Color.White,
+                            fontFamily = InterFontFamily
+                        )
+                    }
+                }
             }
         },
         dismissButton = {

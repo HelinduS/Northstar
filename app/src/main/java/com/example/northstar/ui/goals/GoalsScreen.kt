@@ -142,10 +142,12 @@ fun GoalsScreen(
                                 }
                             )
                         } else {
+                            // ── "My Goals" heading row with minimal Add goal button ──
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 16.dp, vertical = 16.dp),
+                                    .padding(horizontal = 16.dp)
+                                    .padding(top = 16.dp, bottom = 12.dp),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
@@ -157,21 +159,14 @@ fun GoalsScreen(
                                     fontFamily = InterFontFamily,
                                     letterSpacing = (-0.2).sp
                                 )
-                                TextButton(
+                                AddGoalButton(
                                     onClick = {
                                         prefilledTemplate = null
                                         showAddDialog = true
                                     }
-                                ) {
-                                    Text(
-                                        "+ Add goal",
-                                        fontSize = 13.sp,
-                                        color = MaterialTheme.colorScheme.primary,
-                                        fontWeight = FontWeight.Medium,
-                                        fontFamily = InterFontFamily
-                                    )
-                                }
+                                )
                             }
+
                             goals.forEach { goal ->
                                 Box(
                                     modifier = Modifier
