@@ -7,16 +7,19 @@ import androidx.compose.material.icons.filled.WbTwilight
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.northstar.data.repository.ExpenseRepository
 import com.example.northstar.data.repository.GoalRepository
+import com.example.northstar.data.repository.IncomeRepository
+import com.example.northstar.domain.model.Expense
 import com.example.northstar.domain.model.Goal
+import com.example.northstar.domain.model.Income
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 import java.util.Calendar
 import javax.inject.Inject
 
@@ -56,10 +59,37 @@ data class TransactionItem(
     val notes: String = ""
 )
 
+private fun Income.toTransactionItem() = TransactionItem(
+    id = id,
+    title = sourceType,
+    amount = amountLKR,
+    isIncome = true,
+    date = receivedDate,
+    category = sourceType,
+    sourceType = sourceType,
+    originalCurrency = currency,
+    originalAmount = amount,
+    exchangeRate = exchangeRate,
+    notes = note ?: ""
+)
+
+private fun Expense.toTransactionItem() = TransactionItem(
+    id = id,
+    title = category,
+    amount = amount,
+    isIncome = false,
+    date = date,
+    category = category,
+    expenseType = expenseType,
+    paymentMethod = paymentSource,
+    description = note ?: ""
+)
+
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
     private val firebaseAuth: FirebaseAuth,
-    private val firestore: FirebaseFirestore,
+    private val incomeRepository: IncomeRepository,
+    private val expenseRepository: ExpenseRepository,
     private val goalRepository: GoalRepository
 ) : ViewModel() {
 
@@ -78,230 +108,99 @@ class DashboardViewModel @Inject constructor(
         }
 
     init {
-        loadDashboardData()
-        loadGoals()
+        observeDashboard()
     }
 
-    private fun loadGoals() {
+    private fun observeDashboard() {
+        val user = firebaseAuth.currentUser
+        if (user == null) {
+            _uiState.value = DashboardUiState(isLoading = false, error = "User not logged in")
+            return
+        }
+        val displayName = user.displayName ?: ""
+        val email = user.email ?: ""
+        _uiState.value = _uiState.value.copy(isLoading = true)
+
         viewModelScope.launch {
-            goalRepository.getAllGoals().collect { goals ->
-                _uiState.value = _uiState.value.copy(goals = goals)
+            combine(
+                incomeRepository.getAllIncomes(),
+                expenseRepository.getAllExpenses(),
+                goalRepository.getAllGoals()
+            ) { incomes, expenses, goals ->
+                buildUiState(displayName, email, incomes, expenses, goals)
+            }.collect { state ->
+                _uiState.value = state
             }
         }
     }
 
     fun loadDashboardData() {
-        viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
-            try {
-                val user = firebaseAuth.currentUser
-                if (user == null) {
-                    _uiState.value = DashboardUiState(
-                        isLoading = false,
-                        error = "User not logged in"
-                    )
-                    return@launch
-                }
+        // Data updates reactively via repository snapshot listeners — no manual reload needed
+    }
 
-                val userDoc = firestore
-                    .collection("users")
-                    .document(user.uid)
-                    .get()
-                    .await()
+    private fun buildUiState(
+        displayName: String,
+        email: String,
+        incomes: List<Income>,
+        expenses: List<Expense>,
+        goals: List<Goal>
+    ): DashboardUiState {
+        val startOfMonth = Calendar.getInstance().apply {
+            set(Calendar.DAY_OF_MONTH, 1)
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
 
-                val displayName = userDoc.getString("displayName") ?: ""
-                val email = userDoc.getString("email") ?: ""
+        val monthIncomes = incomes.filter { it.receivedDate >= startOfMonth }
+        val monthExpenses = expenses.filter { it.date >= startOfMonth }
 
-                val calendar = java.util.Calendar.getInstance()
-                calendar.set(java.util.Calendar.DAY_OF_MONTH, 1)
-                calendar.set(java.util.Calendar.HOUR_OF_DAY, 0)
-                calendar.set(java.util.Calendar.MINUTE, 0)
-                calendar.set(java.util.Calendar.SECOND, 0)
-                val startOfMonth = calendar.time
+        val totalIncome = monthIncomes.sumOf { it.amountLKR }
+        val totalExpenses = monthExpenses.sumOf { it.amount }
+        val committedExpenses = monthExpenses.filter { it.expenseType == "COMMITTED" }.sumOf { it.amount }
+        val discretionaryExpenses = monthExpenses.filter { it.expenseType == "DISCRETIONARY" }.sumOf { it.amount }
 
-                val incomesSnapshot = firestore
-                    .collection("users")
-                    .document(user.uid)
-                    .collection("incomes")
-                    .whereGreaterThanOrEqualTo("date", startOfMonth)
-                    .get()
-                    .await()
+        val allTimeIncome = incomes.sumOf { it.amountLKR }
+        val allTimeExpenses = expenses.sumOf { it.amount }
 
-                val totalIncome = incomesSnapshot.documents.sumOf {
-                    it.getLong("lkrAmount") ?: 0L
-                }
+        val threeMonthsAgoMs = Calendar.getInstance().apply { add(Calendar.MONTH, -3) }.timeInMillis
+        val threeMonthIncome = incomes.filter { it.receivedDate >= threeMonthsAgoMs }.sumOf { it.amountLKR }
+        val threeMonthExpenses = expenses.filter { it.date >= threeMonthsAgoMs }.sumOf { it.amount }
+        val avgMonthlySavings = ((threeMonthIncome - threeMonthExpenses) / 3L).coerceAtLeast(0L)
 
-                val expensesSnapshot = firestore
-                    .collection("users")
-                    .document(user.uid)
-                    .collection("expenses")
-                    .whereGreaterThanOrEqualTo("date", startOfMonth)
-                    .get()
-                    .await()
+        val recentTransactions = (monthIncomes.map { it.toTransactionItem() } + monthExpenses.map { it.toTransactionItem() })
+            .sortedByDescending { it.date }
+            .take(5)
 
-                val totalExpenses = expensesSnapshot.documents.sumOf {
-                    it.getLong("amount") ?: 0L
-                }
+        val allTransactions = (incomes.map { it.toTransactionItem() } + expenses.map { it.toTransactionItem() })
+            .sortedByDescending { it.date }
 
-                val committedExpenses = expensesSnapshot.documents
-                    .filter { it.getString("expenseType") == "COMMITTED" }
-                    .sumOf { it.getLong("amount") ?: 0L }
-
-                val discretionaryExpenses = expensesSnapshot.documents
-                    .filter { it.getString("expenseType") == "DISCRETIONARY" }
-                    .sumOf { it.getLong("amount") ?: 0L }
-
-                val allTimeIncomesSnapshot = firestore
-                    .collection("users")
-                    .document(user.uid)
-                    .collection("incomes")
-                    .get()
-                    .await()
-
-                val allTimeIncome = allTimeIncomesSnapshot.documents.sumOf {
-                    it.getLong("lkrAmount") ?: 0L
-                }
-
-                val allTimeExpensesSnapshot = firestore
-                    .collection("users")
-                    .document(user.uid)
-                    .collection("expenses")
-                    .get()
-                    .await()
-
-                val allTimeExpenses = allTimeExpensesSnapshot.documents.sumOf {
-                    it.getLong("amount") ?: 0L
-                }
-
-                // FR12 — avg monthly savings over past 3 months
-                val threeMonthsAgoMs = Calendar.getInstance()
-                    .apply { add(Calendar.MONTH, -3) }
-                    .timeInMillis
-                val threeMonthIncome = allTimeIncomesSnapshot.documents
-                    .filter {
-                        (it.getTimestamp("date")?.toDate()?.time ?: 0L) >= threeMonthsAgoMs
-                    }
-                    .sumOf { it.getLong("lkrAmount") ?: 0L }
-                val threeMonthExpenses = allTimeExpensesSnapshot.documents
-                    .filter {
-                        (it.getTimestamp("date")?.toDate()?.time ?: 0L) >= threeMonthsAgoMs
-                    }
-                    .sumOf { it.getLong("amount") ?: 0L }
-                val avgMonthlySavings =
-                    ((threeMonthIncome - threeMonthExpenses) / 3L).coerceAtLeast(0L)
-
-                // Month incomes for recent transactions
-                val recentIncomes = incomesSnapshot.documents.map {
-                    TransactionItem(
-                        id = it.id,
-                        title = it.getString("sourceType") ?: "Income",
-                        amount = it.getLong("lkrAmount") ?: 0L,
-                        isIncome = true,
-                        date = it.getTimestamp("date")?.toDate()?.time ?: 0L,
-                        category = it.getString("sourceType") ?: "",
-                        sourceType = it.getString("sourceType") ?: "",
-                        originalCurrency = it.getString("originalCurrency") ?: "LKR",
-                        originalAmount = it.getLong("originalAmount") ?: 0L,
-                        exchangeRate = it.getDouble("exchangeRate") ?: 1.0,
-                        notes = it.getString("notes") ?: ""
-                    )
-                }
-
-                val recentExpenses = expensesSnapshot.documents.map {
-                    TransactionItem(
-                        id = it.id,
-                        title = it.getString("category") ?: "Expense",
-                        amount = it.getLong("amount") ?: 0L,
-                        isIncome = false,
-                        date = it.getTimestamp("date")?.toDate()?.time ?: 0L,
-                        category = it.getString("category") ?: "",
-                        expenseType = it.getString("expenseType") ?: "",
-                        paymentMethod = it.getString("paymentMethod") ?: "",
-                        description = it.getString("description") ?: ""
-                    )
-                }
-
-                // All time incomes for history
-                val allIncomes = allTimeIncomesSnapshot.documents.map {
-                    TransactionItem(
-                        id = it.id,
-                        title = it.getString("sourceType") ?: "Income",
-                        amount = it.getLong("lkrAmount") ?: 0L,
-                        isIncome = true,
-                        date = it.getTimestamp("date")?.toDate()?.time ?: 0L,
-                        category = it.getString("sourceType") ?: "",
-                        sourceType = it.getString("sourceType") ?: "",
-                        originalCurrency = it.getString("originalCurrency") ?: "LKR",
-                        originalAmount = it.getLong("originalAmount") ?: 0L,
-                        exchangeRate = it.getDouble("exchangeRate") ?: 1.0,
-                        notes = it.getString("notes") ?: ""
-                    )
-                }
-
-                val allExpenses = allTimeExpensesSnapshot.documents.map {
-                    TransactionItem(
-                        id = it.id,
-                        title = it.getString("category") ?: "Expense",
-                        amount = it.getLong("amount") ?: 0L,
-                        isIncome = false,
-                        date = it.getTimestamp("date")?.toDate()?.time ?: 0L,
-                        category = it.getString("category") ?: "",
-                        expenseType = it.getString("expenseType") ?: "",
-                        paymentMethod = it.getString("paymentMethod") ?: "",
-                        description = it.getString("description") ?: ""
-                    )
-                }
-
-                val recentTransactions = (recentIncomes + recentExpenses)
-                    .sortedByDescending { it.date }
-                    .take(5)
-
-                val allTransactions = (allIncomes + allExpenses)
-                    .sortedByDescending { it.date }
-
-                _uiState.value = _uiState.value.copy(
-                    displayName = displayName,
-                    email = email,
-                    totalIncomeLkr = totalIncome,
-                    totalExpensesLkr = totalExpenses,
-                    netSavedLkr = totalIncome - totalExpenses,
-                    committedExpensesLkr = committedExpenses,
-                    discretionaryExpensesLkr = discretionaryExpenses,
-                    allTimeIncomeLkr = allTimeIncome,
-                    allTimeExpensesLkr = allTimeExpenses,
-                    allTimeNetSavedLkr = allTimeIncome - allTimeExpenses,
-                    recentTransactions = recentTransactions,
-                    allTransactions = allTransactions,
-                    avgMonthlySavings = avgMonthlySavings,
-                    isLoading = false
-                )
-
-            } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    error = e.message ?: "Failed to load dashboard data"
-                )
-            }
-        }
+        return DashboardUiState(
+            displayName = displayName,
+            email = email,
+            totalIncomeLkr = totalIncome,
+            totalExpensesLkr = totalExpenses,
+            netSavedLkr = totalIncome - totalExpenses,
+            committedExpensesLkr = committedExpenses,
+            discretionaryExpensesLkr = discretionaryExpenses,
+            allTimeIncomeLkr = allTimeIncome,
+            allTimeExpensesLkr = allTimeExpenses,
+            allTimeNetSavedLkr = allTimeIncome - allTimeExpenses,
+            recentTransactions = recentTransactions,
+            allTransactions = allTransactions,
+            goals = goals,
+            avgMonthlySavings = avgMonthlySavings,
+            isLoading = false
+        )
     }
 
     fun deleteTransaction(transactionId: String, isIncome: Boolean) {
         viewModelScope.launch {
-            try {
-                val user = firebaseAuth.currentUser ?: return@launch
-                val collection = if (isIncome) "incomes" else "expenses"
-                firestore
-                    .collection("users")
-                    .document(user.uid)
-                    .collection(collection)
-                    .document(transactionId)
-                    .delete()
-                    .await()
-                loadDashboardData()
-            } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    error = e.message ?: "Failed to delete transaction"
-                )
+            if (isIncome) {
+                incomeRepository.deleteIncome(transactionId)
+            } else {
+                expenseRepository.deleteExpense(transactionId)
             }
         }
     }

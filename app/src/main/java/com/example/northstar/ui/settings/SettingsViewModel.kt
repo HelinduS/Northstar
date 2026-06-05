@@ -8,16 +8,18 @@ import android.graphics.pdf.PdfDocument
 import androidx.core.content.FileProvider
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.northstar.data.repository.ExpenseRepository
+import com.example.northstar.data.repository.GoalRepository
+import com.example.northstar.data.repository.IncomeRepository
 import com.example.northstar.ui.theme.ThemePreferenceManager
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -34,7 +36,9 @@ data class SettingsUiState(
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val firebaseAuth: FirebaseAuth,
-    private val firestore: FirebaseFirestore,
+    private val incomeRepository: IncomeRepository,
+    private val expenseRepository: ExpenseRepository,
+    private val goalRepository: GoalRepository,
     @ApplicationContext private val context: Context,
     private val themePreferenceManager: ThemePreferenceManager
 ) : ViewModel() {
@@ -55,27 +59,9 @@ class SettingsViewModel @Inject constructor(
                 val user = firebaseAuth.currentUser ?: return@launch
                 val dateFormat = SimpleDateFormat("dd MMM yyyy HH:mm", Locale.getDefault())
 
-                // Fetch all data
-                val incomesSnapshot = firestore
-                    .collection("users")
-                    .document(user.uid)
-                    .collection("incomes")
-                    .get()
-                    .await()
-
-                val expensesSnapshot = firestore
-                    .collection("users")
-                    .document(user.uid)
-                    .collection("expenses")
-                    .get()
-                    .await()
-
-                val goalsSnapshot = firestore
-                    .collection("users")
-                    .document(user.uid)
-                    .collection("goals")
-                    .get()
-                    .await()
+                val incomes = incomeRepository.getAllIncomes().first()
+                val expenses = expenseRepository.getAllExpenses().first()
+                val goals = goalRepository.getAllGoals().first()
 
                 // Create PDF
                 val pdfDocument = PdfDocument()
@@ -199,7 +185,7 @@ class SettingsViewModel @Inject constructor(
                 var totalIncome = 0L
                 var rowIndex = 0
 
-                incomesSnapshot.documents.forEach { doc ->
+                incomes.forEach { income ->
                     if (yPos > pageHeight - 60f) {
                         pdfDocument.finishPage(page)
                         page = newPage()
@@ -207,26 +193,22 @@ class SettingsViewModel @Inject constructor(
                         drawHeader(canvas)
                         yPos = 100f
                     }
-                    val amount = doc.getLong("lkrAmount") ?: 0L
-                    val source = doc.getString("sourceType") ?: "Unknown"
-                    val date = doc.getTimestamp("date")?.toDate()
-                    val notes = doc.getString("notes") ?: "-"
-                    totalIncome += amount
+                    totalIncome += income.amountLKR
 
-                    yPos = drawRow(canvas, "Source", source, yPos, rowIndex % 2 == 0)
+                    yPos = drawRow(canvas, "Source", income.sourceType.ifEmpty { "Unknown" }, yPos, rowIndex % 2 == 0)
                     yPos = drawRow(
                         canvas, "Amount",
-                        "LKR ${String.format(Locale.US, "%,.2f", amount / 100.0)}",
+                        "LKR ${String.format(Locale.US, "%,.2f", income.amountLKR / 100.0)}",
                         yPos, rowIndex % 2 == 0
                     )
                     yPos = drawRow(
                         canvas, "Date",
-                        if (date != null) dateFormat.format(date) else "-",
+                        dateFormat.format(Date(income.receivedDate)),
                         yPos, rowIndex % 2 == 0
                     )
                     yPos = drawRow(
                         canvas, "Notes",
-                        notes.ifEmpty { "-" },
+                        income.note?.ifEmpty { "-" } ?: "-",
                         yPos, rowIndex % 2 == 0
                     )
 
@@ -271,7 +253,7 @@ class SettingsViewModel @Inject constructor(
                 var totalExpenses = 0L
                 rowIndex = 0
 
-                expensesSnapshot.documents.forEach { doc ->
+                expenses.forEach { expense ->
                     if (yPos > pageHeight - 60f) {
                         pdfDocument.finishPage(page)
                         page = newPage()
@@ -279,30 +261,24 @@ class SettingsViewModel @Inject constructor(
                         drawHeader(canvas)
                         yPos = 100f
                     }
-                    val amount = doc.getLong("amount") ?: 0L
-                    val category = doc.getString("category") ?: "Unknown"
-                    val expenseType = doc.getString("expenseType") ?: "-"
-                    val paymentMethod = doc.getString("paymentMethod") ?: "-"
-                    val description = doc.getString("description") ?: "-"
-                    val date = doc.getTimestamp("date")?.toDate()
-                    totalExpenses += amount
+                    totalExpenses += expense.amount
 
-                    yPos = drawRow(canvas, "Category", category, yPos, rowIndex % 2 == 0)
+                    yPos = drawRow(canvas, "Category", expense.category.ifEmpty { "Unknown" }, yPos, rowIndex % 2 == 0)
                     yPos = drawRow(
                         canvas, "Amount",
-                        "LKR ${String.format(Locale.US, "%,.2f", amount / 100.0)}",
+                        "LKR ${String.format(Locale.US, "%,.2f", expense.amount / 100.0)}",
                         yPos, rowIndex % 2 == 0
                     )
-                    yPos = drawRow(canvas, "Type", expenseType, yPos, rowIndex % 2 == 0)
-                    yPos = drawRow(canvas, "Payment", paymentMethod, yPos, rowIndex % 2 == 0)
+                    yPos = drawRow(canvas, "Type", expense.expenseType.ifEmpty { "-" }, yPos, rowIndex % 2 == 0)
+                    yPos = drawRow(canvas, "Payment", expense.paymentSource.ifEmpty { "-" }, yPos, rowIndex % 2 == 0)
                     yPos = drawRow(
                         canvas, "Description",
-                        description.ifEmpty { "-" },
+                        expense.note?.ifEmpty { "-" } ?: "-",
                         yPos, rowIndex % 2 == 0
                     )
                     yPos = drawRow(
                         canvas, "Date",
-                        if (date != null) dateFormat.format(date) else "-",
+                        dateFormat.format(Date(expense.date)),
                         yPos, rowIndex % 2 == 0
                     )
 
@@ -346,7 +322,7 @@ class SettingsViewModel @Inject constructor(
                 yPos = drawSectionTitle(canvas, "SAVINGS GOALS", yPos)
                 rowIndex = 0
 
-                goalsSnapshot.documents.forEach { doc ->
+                goals.forEach { goal ->
                     if (yPos > pageHeight - 60f) {
                         pdfDocument.finishPage(page)
                         page = newPage()
@@ -354,29 +330,25 @@ class SettingsViewModel @Inject constructor(
                         drawHeader(canvas)
                         yPos = 100f
                     }
-                    val name = doc.getString("name") ?: "Unknown"
-                    val targetAmount = doc.getLong("targetAmount") ?: 0L
-                    val savedAmount = doc.getLong("savedAmount") ?: 0L
-                    val targetDate = doc.getTimestamp("targetDate")?.toDate()
-                    val progress = if (targetAmount > 0)
-                        (savedAmount * 100 / targetAmount) else 0
+                    val progress = if (goal.targetAmount > 0)
+                        (goal.savedAmount * 100 / goal.targetAmount) else 0
 
-                    yPos = drawRow(canvas, "Goal", name, yPos, rowIndex % 2 == 0)
+                    yPos = drawRow(canvas, "Goal", goal.name.ifEmpty { "Unknown" }, yPos, rowIndex % 2 == 0)
                     yPos = drawRow(
                         canvas, "Target",
-                        "LKR ${String.format(Locale.US, "%,.2f", targetAmount / 100.0)}",
+                        "LKR ${String.format(Locale.US, "%,.2f", goal.targetAmount / 100.0)}",
                         yPos, rowIndex % 2 == 0
                     )
                     yPos = drawRow(
                         canvas, "Saved",
-                        "LKR ${String.format(Locale.US, "%,.2f", savedAmount / 100.0)}",
+                        "LKR ${String.format(Locale.US, "%,.2f", goal.savedAmount / 100.0)}",
                         yPos, rowIndex % 2 == 0
                     )
                     yPos = drawRow(canvas, "Progress", "$progress%", yPos, rowIndex % 2 == 0)
-                    if (targetDate != null) {
+                    if (goal.targetDate > 0) {
                         yPos = drawRow(
                             canvas, "Target Date",
-                            dateFormat.format(targetDate),
+                            dateFormat.format(Date(goal.targetDate)),
                             yPos, rowIndex % 2 == 0
                         )
                     }
@@ -480,37 +452,11 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
-                val user = firebaseAuth.currentUser ?: return@launch
+                incomeRepository.getAllIncomes().first().forEach { incomeRepository.deleteIncome(it.id) }
+                expenseRepository.getAllExpenses().first().forEach { expenseRepository.deleteExpense(it.id) }
+                goalRepository.getAllGoals().first().forEach { goalRepository.deleteGoal(it.id) }
 
-                val incomes = firestore
-                    .collection("users")
-                    .document(user.uid)
-                    .collection("incomes")
-                    .get()
-                    .await()
-                incomes.documents.forEach { it.reference.delete().await() }
-
-                val expenses = firestore
-                    .collection("users")
-                    .document(user.uid)
-                    .collection("expenses")
-                    .get()
-                    .await()
-                expenses.documents.forEach { it.reference.delete().await() }
-
-                val goals = firestore
-                    .collection("users")
-                    .document(user.uid)
-                    .collection("goals")
-                    .get()
-                    .await()
-                goals.documents.forEach { it.reference.delete().await() }
-
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    clearSuccess = true
-                )
-
+                _uiState.value = _uiState.value.copy(isLoading = false, clearSuccess = true)
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
