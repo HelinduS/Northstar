@@ -40,7 +40,7 @@ fun GoalCard(goal: Goal, viewModel: GoalViewModel) {
     )
     LaunchedEffect(Unit) { progressVisible = true }
 
-    val isReached      = viewModel.isGoalReached(goal)
+    val isReached       = viewModel.isGoalReached(goal)
     val percentComplete = (rawProgress * 100).toInt()
 
     val currencyFormat = remember { NumberFormat.getInstance(Locale.getDefault()) }
@@ -55,6 +55,7 @@ fun GoalCard(goal: Goal, viewModel: GoalViewModel) {
     var showContributeDialog by remember { mutableStateOf(false) }
     var showDeleteDialog     by remember { mutableStateOf(false) }
     var showReachedDialog    by remember { mutableStateOf(false) }
+    var showEditDialog       by remember { mutableStateOf(false) } // NEW
 
     Box(
         modifier = Modifier
@@ -123,8 +124,10 @@ fun GoalCard(goal: Goal, viewModel: GoalViewModel) {
             Box(modifier = Modifier.fillMaxWidth().height(0.5.dp).background(cs.outlineVariant))
             Spacer(modifier = Modifier.height(14.dp))
 
-            // Action row
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            // ── Action row ────────────────────────────────────────────
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+
+                // Add funds
                 Button(
                     onClick = { if (isReached) showReachedDialog = true else showContributeDialog = true },
                     modifier = Modifier.weight(1f).height(40.dp),
@@ -134,12 +137,45 @@ fun GoalCard(goal: Goal, viewModel: GoalViewModel) {
                 ) {
                     Text("Add funds", fontSize = 13.sp, fontWeight = FontWeight.Medium, fontFamily = InterFontFamily)
                 }
+
+                // Edit (NEW)
                 Box(
-                    modifier = Modifier.weight(1f).height(40.dp).clip(RoundedCornerShape(12.dp))
-                        .background(Color(0xFFFFF5F5)).border(0.5.dp, Color(0xFFFFC9C9), RoundedCornerShape(12.dp)),
+                    modifier = Modifier
+                        .weight(1f).height(40.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color(0xFFF0FDF4))
+                        .border(0.5.dp, Color(0xFFA3E9C9), RoundedCornerShape(12.dp)),
                     contentAlignment = Alignment.Center
                 ) {
-                    TextButton(onClick = { showDeleteDialog = true }, modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(0.dp)) {
+                    TextButton(
+                        onClick = { showEditDialog = true },
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(0.dp)
+                    ) {
+                        Text(
+                            "Edit",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = GreenDeep,
+                            fontFamily = InterFontFamily
+                        )
+                    }
+                }
+
+                // Delete
+                Box(
+                    modifier = Modifier
+                        .weight(1f).height(40.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color(0xFFFFF5F5))
+                        .border(0.5.dp, Color(0xFFFFC9C9), RoundedCornerShape(12.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    TextButton(
+                        onClick = { showDeleteDialog = true },
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(0.dp)
+                    ) {
                         Text("Delete", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = Debit, fontFamily = InterFontFamily)
                     }
                 }
@@ -187,6 +223,23 @@ fun GoalCard(goal: Goal, viewModel: GoalViewModel) {
                 Button(onClick = { showReachedDialog = false },
                     colors = ButtonDefaults.buttonColors(containerColor = GreenDeep),
                     shape = RoundedCornerShape(10.dp)) { Text("Great!", fontFamily = InterFontFamily) }
+            }
+        )
+    }
+
+    // NEW: Edit dialog
+    if (showEditDialog) {
+        EditGoalDialog(
+            goal      = goal,
+            onDismiss = { showEditDialog = false },
+            onConfirm = { newName, newAmount, newDate ->
+                viewModel.updateGoal(
+                    goalId          = goal.id,
+                    newName         = newName,
+                    newTargetAmount = newAmount,
+                    newTargetDate   = newDate
+                )
+                showEditDialog = false
             }
         )
     }

@@ -31,6 +31,14 @@ class GoalViewModel @Inject constructor(
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
 
+    // ── NEW: edit state ───────────────────────────────────────
+    private val _editingGoal = MutableStateFlow<Goal?>(null)
+    val editingGoal: StateFlow<Goal?> = _editingGoal.asStateFlow()
+
+    fun startEditing(goal: Goal) { _editingGoal.value = goal }
+    fun stopEditing()            { _editingGoal.value = null  }
+    // ─────────────────────────────────────────────────────────
+
     init {
         loadGoals()
         loadActiveGoal()
@@ -71,7 +79,7 @@ class GoalViewModel @Inject constructor(
         viewModelScope.launch {
             _isLoading.value = true
             val newSaved = (goal.savedAmount + amount)
-                .coerceAtMost(goal.targetAmount) // ← caps at target
+                .coerceAtMost(goal.targetAmount)
             val updated = goal.copy(savedAmount = newSaved)
             goalRepository.updateGoal(updated).onFailure {
                 _error.value = it.message
@@ -79,6 +87,29 @@ class GoalViewModel @Inject constructor(
             _isLoading.value = false
         }
     }
+
+    // ── NEW: updateGoal ───────────────────────────────────────
+    fun updateGoal(
+        goalId: String,
+        newName: String,
+        newTargetAmount: Long,
+        newTargetDate: Long
+    ) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            val existing = _goals.value.find { it.id == goalId } ?: return@launch
+            val updated = existing.copy(
+                name         = newName,
+                targetAmount = newTargetAmount,
+                targetDate   = newTargetDate
+            )
+            goalRepository.updateGoal(updated).onFailure {
+                _error.value = it.message
+            }
+            _isLoading.value = false
+        }
+    }
+    // ─────────────────────────────────────────────────────────
 
     fun deleteGoal(goalId: String) {
         viewModelScope.launch {
@@ -88,7 +119,6 @@ class GoalViewModel @Inject constructor(
         }
     }
 
-    // Business logic helpers
     fun getProgress(goal: Goal): Float {
         if (goal.targetAmount == 0L) return 0f
         return (goal.savedAmount.toFloat() / goal.targetAmount.toFloat() * 100f)
@@ -103,7 +133,6 @@ class GoalViewModel @Inject constructor(
         return goal.savedAmount >= goal.targetAmount
     }
 
-    // For dashboard
     fun getTotalSaved(): Long = _goals.value.sumOf { it.savedAmount }
     fun getCompletedGoalsCount(): Int = _goals.value.count { isGoalReached(it) }
 }
