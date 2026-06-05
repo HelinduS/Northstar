@@ -32,7 +32,7 @@ import com.example.northstar.ui.notifications.NotificationViewModel
 import com.example.northstar.ui.theme.*
 import java.text.SimpleDateFormat
 import java.util.*
-
+import androidx.compose.foundation.clickable
 data class CategoryOption(
     val value: String,
     val label: String,
@@ -453,6 +453,23 @@ fun ExpenseScreen(
                             letterSpacing = 0.3.sp,
                             modifier = Modifier.padding(bottom = 8.dp)
                         )
+                        val cal = Calendar.getInstance()
+                        val openDatePicker = {
+                            val themedContext = ContextThemeWrapper(
+                                context,
+                                android.R.style.Theme_Material_Light_Dialog
+                            )
+                            DatePickerDialog(
+                                themedContext,
+                                { _, y, m, d ->
+                                    cal.set(y, m, d)
+                                    selectedDate = cal.timeInMillis
+                                },
+                                cal.get(Calendar.YEAR),
+                                cal.get(Calendar.MONTH),
+                                cal.get(Calendar.DAY_OF_MONTH)
+                            ).show()
+                        }
                         OutlinedTextField(
                             value = if (selectedDate == 0L) ""
                             else dateFormatter.format(Date(selectedDate)),
@@ -469,42 +486,31 @@ fun ExpenseScreen(
                                 Icon(
                                     Icons.Default.DateRange,
                                     contentDescription = null,
-                                    tint = if (selectedDate == 0L) cs.onSurfaceVariant
-                                    else cs.primary,
+                                    tint = if (selectedDate == 0L) cs.onSurfaceVariant else cs.primary,
                                     modifier = Modifier.size(20.dp)
                                 )
                             },
                             trailingIcon = {
-                                IconButton(onClick = {
-                                    val cal = Calendar.getInstance()
-                                    val themedContext = ContextThemeWrapper(
-                                        context,
-                                        android.R.style.Theme_Material_Light_Dialog
-                                    )
-                                    DatePickerDialog(
-                                        themedContext,
-                                        { _, y, m, d ->
-                                            cal.set(y, m, d)
-                                            selectedDate = cal.timeInMillis
-                                        },
-                                        cal.get(Calendar.YEAR),
-                                        cal.get(Calendar.MONTH),
-                                        cal.get(Calendar.DAY_OF_MONTH)
-                                    ).show()
-                                }) {
-                                    Icon(
-                                        Icons.Default.Edit,
-                                        contentDescription = "Pick date",
-                                        tint = cs.onSurfaceVariant
-                                    )
-                                }
+                                Icon(
+                                    Icons.Default.Edit,
+                                    contentDescription = "Pick date",
+                                    tint = cs.onSurfaceVariant
+                                )
                             },
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { openDatePicker() },
                             shape = RoundedCornerShape(12.dp),
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedBorderColor = cs.primary.copy(alpha = 0.5f),
-                                unfocusedBorderColor = cs.outline
-                            )
+                                unfocusedBorderColor = cs.outline,
+                                disabledBorderColor = cs.outline,
+                                disabledTextColor = cs.onSurface,
+                                disabledLeadingIconColor = if (selectedDate == 0L) cs.onSurfaceVariant else cs.primary,
+                                disabledTrailingIconColor = cs.onSurfaceVariant,
+                                disabledPlaceholderColor = cs.onSurfaceVariant
+                            ),
+                            enabled = false
                         )
                     }
 
