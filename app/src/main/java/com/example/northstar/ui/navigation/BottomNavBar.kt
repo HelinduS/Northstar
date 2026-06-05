@@ -1,6 +1,7 @@
 package com.example.northstar.ui.navigation
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -67,6 +68,7 @@ fun BottomNavBar(navController: NavHostController, modifier: Modifier = Modifier
                 spotColor = Color.Black.copy(alpha = 0.15f)
             )
             .background(cs.surface, RoundedCornerShape(24.dp))
+            .border(0.5.dp, cs.outlineVariant.copy(alpha = 0.6f), RoundedCornerShape(24.dp))
             .height(72.dp),
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
