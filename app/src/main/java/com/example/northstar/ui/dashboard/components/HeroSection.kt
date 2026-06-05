@@ -62,7 +62,7 @@ fun HeroSection(
         .joinToString("") { it.first().uppercaseChar().toString() }
         .ifBlank { "?" }
 
-    val spendRatio = if (income > 0) (expenses.toFloat() / income).coerceIn(0f, 1f) else 0f
+    val spendRatio = if (allTimeIncome > 0) (allTimeExpenses.toFloat() / allTimeIncome).coerceIn(0f, 1f) else 0f
     val spendPct   = (spendRatio * 100).toInt()
 
     val heroBrush = Brush.linearGradient(
