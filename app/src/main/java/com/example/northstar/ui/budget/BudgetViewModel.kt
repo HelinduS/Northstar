@@ -20,7 +20,7 @@ class BudgetViewModel @Inject constructor(
     private val _sortState = MutableStateFlow(BudgetSortOption.LOWEST_SPENDING)
     private val _snoozedAlerts = MutableStateFlow<Set<String>>(emptySet())
 
-    // Normalize expense category strings to match budget category keys
+    // Normalize expense category to match budget category keys
     private fun normalizeExpenseCategory(rawCategory: String): String {
         val upper = rawCategory.trim().uppercase()
         return when (upper) {
@@ -39,27 +39,33 @@ class BudgetViewModel @Inject constructor(
         _snoozedAlerts
     ) { rawBudgets, allExpenses, filters, sorting, snoozed ->
 
-
-        val spentMapCents = allExpenses.groupBy { expense ->
-            normalizeExpenseCategory(expense.category)
-        }.mapValues { entry -> entry.value.sumOf { it.amount } }
-
-
-        val spentMapLkr = spentMapCents.mapValues { (_, cents) -> cents / 100 }
-
-
         val processedBudgets = rawBudgets.map { budget ->
-            val normalizedBudgetCategory = budget.category.trim().uppercase()
-            val budgetLookupKey = when (normalizedBudgetCategory) {
-                "FOOD & DINING" -> "FOOD & DINING"
-                "HEALTH & FITNESS" -> "HEALTH & FITNESS"
-                "SUBSCRIPTION" -> "SUBSCRIPTION"
-                else -> normalizedBudgetCategory
-            }
-            val totalSpentAmount = spentMapLkr[budgetLookupKey] ?: 0L
-            budget.copy(spentAmount = totalSpentAmount)
+            val budgetLookupKey = normalizeExpenseCategory(budget.category)
+
+            // Calculate total spent within the budget's date range, converting cents → LKR
+            val totalSpentLkr = allExpenses
+                .filter { expense ->
+                    // 1. Category match
+                    normalizeExpenseCategory(expense.category) == budgetLookupKey
+                }
+                .filter { expense ->
+                    // 2. Date range filter (only expenses inside budget.startDate..budget.endDate)
+                    val expenseDate = expense.date
+                    val start = budget.startDate
+                    val end = budget.endDate
+                    when {
+                        start != null && end != null -> expenseDate in start..end
+                        start != null && end == null -> expenseDate >= start
+                        start == null && end != null -> expenseDate <= end
+                        else -> true // fallback (should not happen for custom periods)
+                    }
+                }
+                .sumOf { it.amount / 100 } // Convert cents to LKR
+
+            budget.copy(spentAmount = totalSpentLkr)
         }
-        //  Generate alerts
+
+        // Generate alerts (unchanged)
         val generatedAlerts = mutableListOf<BudgetSystemAlert>()
         processedBudgets.forEach { budget ->
             val spendRatio = if (budget.limitAmount > 0) budget.spentAmount.toFloat() / budget.limitAmount.toFloat() else 0f
@@ -86,7 +92,7 @@ class BudgetViewModel @Inject constructor(
             }
         }
 
-        //  Filter and sort budgets
+        // Filter and sort (unchanged)
         val filteredAndSorted = processedBudgets.filter { budget ->
             val matchesPeriod = filters.period == "ALL" || budget.period.equals(filters.period, ignoreCase = true)
             val matchesStatus = when (filters.status) {
