@@ -1,5 +1,7 @@
 package com.example.northstar.ui.expense
 
+import android.app.DatePickerDialog
+import android.view.ContextThemeWrapper
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -28,6 +30,8 @@ import androidx.navigation.NavController
 import com.example.northstar.ui.dashboard.DashboardViewModel
 import com.example.northstar.ui.notifications.NotificationViewModel
 import com.example.northstar.ui.theme.*
+import java.text.SimpleDateFormat
+import java.util.*
 
 data class CategoryOption(
     val value: String,
@@ -88,85 +92,52 @@ fun ExpenseScreen(
     var selectedExpenseType by remember { mutableStateOf("") }
     var selectedPaymentMethod by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
+    var selectedDate by remember { mutableLongStateOf(0L) }
+
+    val dateFormatter = remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
 
     var categoryExpanded by remember { mutableStateOf(false) }
     var expenseTypeExpanded by remember { mutableStateOf(false) }
     var paymentMethodExpanded by remember { mutableStateOf(false) }
 
-    // UPDATED NOTIFICATION LOGIC
     LaunchedEffect(uiState.isSaved) {
-
         if (uiState.isSaved) {
-
             val amountDouble = uiState.savedAmount / 100.0
 
-            // FR18: stamp the time so the 3-day alarm resets ← ONLY NEW LINE
             notificationViewModel.recordExpenseTimestamp()
 
-            // Use actual income from DashboardViewModel so percent and budget branches can fire
             val totalIncomeLkr: Long = dashboardUiState.totalIncomeLkr
 
-            // Expense Logged Notification
             val percent = if (totalIncomeLkr > 0) {
                 ((uiState.savedAmount * 100L) / totalIncomeLkr).toInt()
             } else {
                 0
             }
 
-            notificationViewModel.notifyExpenseLogged(
-                amountDouble,
-                percent
-            )
+            notificationViewModel.notifyExpenseLogged(amountDouble, percent)
 
-            // Large Expense Notification
             if (uiState.isLargeExpense) {
-
-                notificationViewModel.notifyLargeExpense(
-                    amountDouble,
-                    uiState.savedCategory
-                )
+                notificationViewModel.notifyLargeExpense(amountDouble, uiState.savedCategory)
             }
 
-            // Budget Warnings
             if (totalIncomeLkr > 0) {
-
                 val totalExpenses = uiState.totalExpensesLkr
-
-                val budgetPercent =
-                    ((totalExpenses * 100L) / totalIncomeLkr).toInt()
-
+                val budgetPercent = ((totalExpenses * 100L) / totalIncomeLkr).toInt()
                 when {
-
-                    budgetPercent >= 90 -> {
-
-                        notificationViewModel.notifyBudgetCritical(
-                            budgetPercent
-                        )
-                    }
-
-                    budgetPercent >= 70 -> {
-
-                        notificationViewModel.notifyBudgetWarning(
-                            budgetPercent
-                        )
-                    }
+                    budgetPercent >= 90 -> notificationViewModel.notifyBudgetCritical(budgetPercent)
+                    budgetPercent >= 70 -> notificationViewModel.notifyBudgetWarning(budgetPercent)
                 }
             }
 
             viewModel.resetSavedState()
-
             navController.popBackStack()
         }
     }
 
     Scaffold(
-
         topBar = {
-
             TopAppBar(
-
                 title = {
-
                     Text(
                         text = "Add Expense",
                         color = Color.White,
@@ -176,9 +147,7 @@ fun ExpenseScreen(
                         modifier = Modifier.padding(start = 12.dp)
                     )
                 },
-
                 navigationIcon = {
-
                     Box(
                         modifier = Modifier
                             .padding(start = 8.dp)
@@ -189,14 +158,10 @@ fun ExpenseScreen(
                             ),
                         contentAlignment = Alignment.Center
                     ) {
-
                         IconButton(
-                            onClick = {
-                                navController.popBackStack()
-                            },
+                            onClick = { navController.popBackStack() },
                             modifier = Modifier.size(36.dp)
                         ) {
-
                             Icon(
                                 Icons.Default.ArrowBack,
                                 contentDescription = "Back",
@@ -206,10 +171,7 @@ fun ExpenseScreen(
                         }
                     }
                 },
-
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = GreenDeep
-                )
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = GreenDeep)
             )
         },
         containerColor = cs.background
@@ -230,7 +192,6 @@ fun ExpenseScreen(
                     .padding(horizontal = 24.dp, vertical = 28.dp),
                 contentAlignment = Alignment.Center
             ) {
-
                 Box(
                     modifier = Modifier
                         .size(140.dp)
@@ -242,10 +203,7 @@ fun ExpenseScreen(
                         )
                 )
 
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = "HOW MUCH DID YOU SPEND?",
                         color = Color.White.copy(alpha = 0.55f),
@@ -260,18 +218,13 @@ fun ExpenseScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center
                     ) {
-
                         Text(
                             text = "LKR",
                             color = Color.White.copy(alpha = 0.6f),
                             fontSize = 18.sp,
                             fontWeight = FontWeight.SemiBold,
-                            modifier = Modifier.padding(
-                                end = 8.dp,
-                                top = 10.dp
-                            )
+                            modifier = Modifier.padding(end = 8.dp, top = 10.dp)
                         )
-
                         Text(
                             text = if (amount.isEmpty()) "0.00" else amount,
                             color = Color.White,
@@ -285,11 +238,8 @@ fun ExpenseScreen(
 
                     OutlinedTextField(
                         value = amount,
-                        onValueChange = {
-                            amount = it
-                        },
+                        onValueChange = { amount = it },
                         placeholder = {
-
                             Text(
                                 "Enter amount",
                                 color = Color.White.copy(alpha = 0.4f),
@@ -298,9 +248,7 @@ fun ExpenseScreen(
                                 fontSize = 15.sp
                             )
                         },
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Number
-                        ),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
                         textStyle = LocalTextStyle.current.copy(
@@ -337,7 +285,6 @@ fun ExpenseScreen(
                 elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
                 shape = RoundedCornerShape(20.dp)
             ) {
-
                 Column(
                     modifier = Modifier.padding(20.dp),
                     verticalArrangement = Arrangement.spacedBy(20.dp)
@@ -363,39 +310,29 @@ fun ExpenseScreen(
                         )
                     }
 
-
+                    // Category dropdown
                     DropdownField(
                         label = "Category",
-                        value = expenseCategories.find {
-                            it.value == selectedCategory
-                        }?.label ?: "",
+                        value = expenseCategories.find { it.value == selectedCategory }?.label ?: "",
                         placeholder = "Select a category",
-                        leadingIcon = expenseCategories.find {
-                            it.value == selectedCategory
-                        }?.icon ?: Icons.Default.List,
+                        leadingIcon = expenseCategories.find { it.value == selectedCategory }?.icon
+                            ?: Icons.Default.List,
                         expanded = categoryExpanded,
-                        onExpandedChange = {
-                            categoryExpanded = it
-                        }
+                        onExpandedChange = { categoryExpanded = it }
                     ) {
-
                         expenseCategories.forEach { category ->
-
                             DropdownMenuItem(
                                 text = {
-
                                     Row(
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                                     ) {
-
                                         Icon(
                                             category.icon,
                                             contentDescription = null,
                                             tint = cs.primary,
                                             modifier = Modifier.size(18.dp)
                                         )
-
                                         Text(
                                             category.label,
                                             fontSize = 14.sp,
@@ -417,29 +354,20 @@ fun ExpenseScreen(
                     // Expense Type dropdown
                     DropdownField(
                         label = "Expense Type",
-                        value = expenseTypes.find {
-                            it.value == selectedExpenseType
-                        }?.label ?: "",
+                        value = expenseTypes.find { it.value == selectedExpenseType }?.label ?: "",
                         placeholder = "Committed or Discretionary?",
-                        leadingIcon = expenseTypes.find {
-                            it.value == selectedExpenseType
-                        }?.icon ?: Icons.Default.List,
+                        leadingIcon = expenseTypes.find { it.value == selectedExpenseType }?.icon
+                            ?: Icons.Default.List,
                         expanded = expenseTypeExpanded,
-                        onExpandedChange = {
-                            expenseTypeExpanded = it
-                        }
+                        onExpandedChange = { expenseTypeExpanded = it }
                     ) {
-
                         expenseTypes.forEach { type ->
-
                             DropdownMenuItem(
                                 text = {
-
                                     Row(
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                                     ) {
-
                                         Icon(
                                             type.icon,
                                             contentDescription = null,
@@ -477,29 +405,20 @@ fun ExpenseScreen(
                     // Payment Method dropdown
                     DropdownField(
                         label = "Payment Method",
-                        value = paymentMethods.find {
-                            it.value == selectedPaymentMethod
-                        }?.label ?: "",
+                        value = paymentMethods.find { it.value == selectedPaymentMethod }?.label ?: "",
                         placeholder = "How did you pay?",
-                        leadingIcon = paymentMethods.find {
-                            it.value == selectedPaymentMethod
-                        }?.icon ?: Icons.Default.Edit,
+                        leadingIcon = paymentMethods.find { it.value == selectedPaymentMethod }?.icon
+                            ?: Icons.Default.Edit,
                         expanded = paymentMethodExpanded,
-                        onExpandedChange = {
-                            paymentMethodExpanded = it
-                        }
+                        onExpandedChange = { paymentMethodExpanded = it }
                     ) {
-
                         paymentMethods.forEach { method ->
-
                             DropdownMenuItem(
                                 text = {
-
                                     Row(
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                                     ) {
-
                                         Icon(
                                             method.icon,
                                             contentDescription = null,
@@ -524,9 +443,75 @@ fun ExpenseScreen(
 
                     HorizontalDivider(color = cs.outlineVariant, thickness = 0.8.dp)
 
+                    // Date picker
+                    Column {
+                        Text(
+                            text = "Date",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = cs.onSurfaceVariant,
+                            letterSpacing = 0.3.sp,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                        OutlinedTextField(
+                            value = if (selectedDate == 0L) ""
+                            else dateFormatter.format(Date(selectedDate)),
+                            onValueChange = {},
+                            readOnly = true,
+                            placeholder = {
+                                Text(
+                                    "Select date",
+                                    color = cs.onSurfaceVariant,
+                                    fontSize = 14.sp
+                                )
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    Icons.Default.DateRange,
+                                    contentDescription = null,
+                                    tint = if (selectedDate == 0L) cs.onSurfaceVariant
+                                    else cs.primary,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            },
+                            trailingIcon = {
+                                IconButton(onClick = {
+                                    val cal = Calendar.getInstance()
+                                    val themedContext = ContextThemeWrapper(
+                                        context,
+                                        android.R.style.Theme_Material_Light_Dialog
+                                    )
+                                    DatePickerDialog(
+                                        themedContext,
+                                        { _, y, m, d ->
+                                            cal.set(y, m, d)
+                                            selectedDate = cal.timeInMillis
+                                        },
+                                        cal.get(Calendar.YEAR),
+                                        cal.get(Calendar.MONTH),
+                                        cal.get(Calendar.DAY_OF_MONTH)
+                                    ).show()
+                                }) {
+                                    Icon(
+                                        Icons.Default.Edit,
+                                        contentDescription = "Pick date",
+                                        tint = cs.onSurfaceVariant
+                                    )
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = cs.primary.copy(alpha = 0.5f),
+                                unfocusedBorderColor = cs.outline
+                            )
+                        )
+                    }
+
+                    HorizontalDivider(color = cs.outlineVariant, thickness = 0.8.dp)
+
                     // Description field
                     Column {
-
                         Text(
                             text = "Description",
                             fontSize = 12.sp,
@@ -535,12 +520,9 @@ fun ExpenseScreen(
                             letterSpacing = 0.3.sp,
                             modifier = Modifier.padding(bottom = 8.dp)
                         )
-
                         OutlinedTextField(
                             value = description,
-                            onValueChange = {
-                                description = it
-                            },
+                            onValueChange = { description = it },
                             placeholder = {
                                 Text(
                                     "Add a note (optional)",
@@ -570,7 +552,6 @@ fun ExpenseScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             if (uiState.error != null) {
-
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -580,81 +561,58 @@ fun ExpenseScreen(
                     ),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-
                     Text(
                         text = uiState.error!!,
                         color = Debit,
                         modifier = Modifier.padding(16.dp)
                     )
                 }
-
                 Spacer(modifier = Modifier.height(8.dp))
             }
 
             Button(
-
                 onClick = {
-
-                    val amountLong =
-                        (amount.toDoubleOrNull() ?: 0.0)
-                            .times(100)
-                            .toLong()
-
+                    val amountLong = (amount.toDoubleOrNull() ?: 0.0).times(100).toLong()
                     if (amountLong > 0) {
-
                         viewModel.addExpense(
                             amount = amountLong,
                             category = selectedCategory,
                             expenseType = selectedExpenseType,
                             paymentMethod = selectedPaymentMethod,
                             description = description,
-                            date = System.currentTimeMillis()
+                            date = if (selectedDate == 0L) System.currentTimeMillis()
+                            else selectedDate
                         )
                     }
                 },
-
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
                     .height(54.dp),
-
-                enabled =
-                    !uiState.isLoading &&
-                            amount.isNotEmpty() &&
-                            selectedCategory.isNotEmpty() &&
-                            selectedExpenseType.isNotEmpty() &&
-                            selectedPaymentMethod.isNotEmpty(),
-
+                enabled = !uiState.isLoading &&
+                        amount.isNotEmpty() &&
+                        selectedCategory.isNotEmpty() &&
+                        selectedExpenseType.isNotEmpty() &&
+                        selectedPaymentMethod.isNotEmpty() &&
+                        selectedDate != 0L,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = GreenDeep,
                     disabledContainerColor = GreenDeep.copy(alpha = 0.35f)
                 ),
-
                 shape = RoundedCornerShape(16.dp)
-
             ) {
-
                 if (uiState.isLoading) {
-
                     CircularProgressIndicator(
                         modifier = Modifier.size(22.dp),
                         color = Color.White,
                         strokeWidth = 2.5.dp
                     )
-
                 } else {
-
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-
-                        Icon(
-                            Icons.Default.Check,
-                            contentDescription = null,
-                            tint = Color.White
-                        )
-
+                        Icon(Icons.Default.Check, contentDescription = null, tint = Color.White)
                         Text(
                             text = "Save Expense",
                             color = Color.White,
@@ -682,7 +640,6 @@ fun DropdownField(
 ) {
     val cs = MaterialTheme.colorScheme
     Column {
-
         Text(
             text = label,
             fontSize = 12.sp,
@@ -691,27 +648,18 @@ fun DropdownField(
             letterSpacing = 0.3.sp,
             modifier = Modifier.padding(bottom = 8.dp)
         )
-
         ExposedDropdownMenuBox(
             expanded = expanded,
             onExpandedChange = onExpandedChange
         ) {
-
             OutlinedTextField(
                 value = value,
                 onValueChange = {},
                 readOnly = true,
-
                 placeholder = {
-                    Text(
-                        placeholder,
-                        color = cs.onSurfaceVariant,
-                        fontSize = 14.sp
-                    )
+                    Text(placeholder, color = cs.onSurfaceVariant, fontSize = 14.sp)
                 },
-
                 leadingIcon = {
-
                     Icon(
                         leadingIcon,
                         contentDescription = null,
@@ -719,13 +667,9 @@ fun DropdownField(
                         modifier = Modifier.size(20.dp)
                     )
                 },
-
                 trailingIcon = {
-                    ExposedDropdownMenuDefaults.TrailingIcon(
-                        expanded = expanded
-                    )
+                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
                 },
-
                 modifier = Modifier
                     .fillMaxWidth()
                     .menuAnchor(),
@@ -737,12 +681,9 @@ fun DropdownField(
                     unfocusedBorderColor = cs.outline
                 )
             )
-
             ExposedDropdownMenu(
                 expanded = expanded,
-                onDismissRequest = {
-                    onExpandedChange(false)
-                }
+                onDismissRequest = { onExpandedChange(false) }
             ) {
                 content()
             }
