@@ -121,7 +121,8 @@ fun ExpenseScreen(
             }
 
             if (totalIncomeLkr > 0) {
-                val totalExpenses = uiState.totalExpensesLkr
+                // Use this month's expenses from dashboardUiState — not all-time from ExpenseViewModel
+                val totalExpenses = dashboardUiState.totalExpensesLkr
                 val budgetPercent = ((totalExpenses * 100L) / totalIncomeLkr).toInt()
                 when {
                     budgetPercent >= 90 -> notificationViewModel.notifyBudgetCritical(budgetPercent)
