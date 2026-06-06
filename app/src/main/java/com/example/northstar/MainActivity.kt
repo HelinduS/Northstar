@@ -4,6 +4,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,6 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.northstar.data.repository.AuthRepository
+import com.example.northstar.data.repository.SyncManager
 import com.example.northstar.ui.lock.PinLockManager
 import com.example.northstar.ui.lock.PinMode
 import com.example.northstar.ui.lock.PinScreen
@@ -34,10 +37,18 @@ class MainActivity : ComponentActivity() {
     @Inject lateinit var authRepository: AuthRepository
     @Inject lateinit var pinLockManager: PinLockManager
     @Inject lateinit var themePreferenceManager: ThemePreferenceManager
+    @Inject lateinit var syncManager: SyncManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        // Sync any Room data that never made it to Firestore (e.g. written offline, app killed)
+        if (authRepository.isLoggedIn()) {
+            lifecycleScope.launch {
+                syncManager.syncRoomToFirestore()
+            }
+        }
 
         // Create notification channels once on app start
         NotificationHelper.createNotificationChannels(this)

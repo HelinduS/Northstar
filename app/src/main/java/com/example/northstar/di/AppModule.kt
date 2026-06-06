@@ -131,6 +131,20 @@ object AppModule {
 
     @Provides
     @Singleton
+    fun provideSyncManager(
+        incomeDao: IncomeDao,
+        expenseDao: ExpenseDao,
+        goalDao: GoalDao,
+        budgetDao: BudgetDao,
+        firestore: FirebaseFirestore,
+        firebaseAuth: FirebaseAuth
+    ): com.example.northstar.data.repository.SyncManager =
+        com.example.northstar.data.repository.SyncManager(
+            incomeDao, expenseDao, goalDao, budgetDao, firestore, firebaseAuth
+        )
+
+    @Provides
+    @Singleton
     fun provideBudgetRepository(
         budgetDao: BudgetDao,
         firebaseAuth: FirebaseAuth,

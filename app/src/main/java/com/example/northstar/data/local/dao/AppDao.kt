@@ -35,6 +35,9 @@ interface IncomeDao {
     @Query("SELECT * FROM incomes ORDER BY receivedDate DESC")
     fun getAllIncomes(): Flow<List<IncomeEntity>>
 
+    @Query("SELECT * FROM incomes")
+    suspend fun getAllIncomesOnce(): List<IncomeEntity>
+
     @Query("SELECT * FROM incomes WHERE receivedDate >= :startDate AND receivedDate <= :endDate ORDER BY receivedDate DESC")
     fun getIncomesByDateRange(startDate: Long, endDate: Long): Flow<List<IncomeEntity>>
 
@@ -53,6 +56,9 @@ interface ExpenseDao {
 
     @Query("SELECT * FROM expenses ORDER BY date DESC")
     fun getAllExpenses(): Flow<List<ExpenseEntity>>
+
+    @Query("SELECT * FROM expenses")
+    suspend fun getAllExpensesOnce(): List<ExpenseEntity>
 
     @Query("SELECT * FROM expenses WHERE date >= :startDate AND date <= :endDate ORDER BY date DESC")
     fun getExpensesByDateRange(startDate: Long, endDate: Long): Flow<List<ExpenseEntity>>
@@ -79,6 +85,9 @@ interface GoalDao {
     @Query("SELECT * FROM goals ORDER BY createdAt DESC")
     fun getAllGoals(): Flow<List<GoalEntity>>
 
+    @Query("SELECT * FROM goals")
+    suspend fun getAllGoalsOnce(): List<GoalEntity>
+
     @Query("SELECT * FROM goals WHERE isActive = 1 LIMIT 1")
     fun getActiveGoal(): Flow<GoalEntity?>
 
@@ -100,6 +109,9 @@ interface BudgetDao {
 
     @Query("SELECT * FROM budgets ORDER BY createdAt DESC")
     fun getAllBudgets(): Flow<List<BudgetEntity>>
+
+    @Query("SELECT * FROM budgets")
+    suspend fun getAllBudgetsOnce(): List<BudgetEntity>
 
     @Query("SELECT * FROM budgets WHERE category = :category LIMIT 1")
     suspend fun findByCategory(category: String): BudgetEntity?
